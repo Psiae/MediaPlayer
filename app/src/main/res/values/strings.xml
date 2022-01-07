@@ -1,0 +1,17 @@
+<resources>
+
+    <!-- Application -->
+    <string name="app_name">Media Player</string>
+    <string name="home">Home</string>
+    <string name="song">Song</string>
+    <string name="playlist">Playlist</string>
+    <string name="album">Album</string>
+    <string name="settings">Settings</string>
+
+
+    <!-- Fragment -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="under_construction">UNDER CONSTRUCTION</string>
+    <string name="coming_soon">Coming Soon</string>
+
+</resources>

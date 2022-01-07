@@ -1,0 +1,10 @@
+package com.example.mediaplayer.viewmodel
+
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
+@HiltViewModel
+class SongViewModel @Inject constructor(
+    // Inject
+) : ViewModel() {}

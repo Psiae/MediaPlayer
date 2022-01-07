@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navBottomHome">
+
+    <fragment
+        android:id="@+id/navBottomSong"
+        android:name="com.example.mediaplayer.view.fragments.SongFragment"
+        android:label="fragment_song"
+        tools:layout="@layout/fragment_song" >
+        <action
+            android:id="@+id/action_navBottomSong_to_navBottomHome"
+            app:destination="@id/navBottomHome" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navBottomHome"
+        android:name="com.example.mediaplayer.view.fragments.HomeFragment"
+        android:label="HomeFragment"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_navBottomHome_to_navBottomSong"
+            app:destination="@id/navBottomSong" />
+    </fragment>
+</navigation>
