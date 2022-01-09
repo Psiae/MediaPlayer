@@ -1,21 +1,19 @@
 package com.example.mediaplayer.view.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.mediaplayer.databinding.FragmentSongBinding
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import androidx.fragment.app.Fragment
+import com.example.mediaplayer.databinding.FragmentHomeBinding
+import com.example.mediaplayer.databinding.FragmentPlaylistBinding
 import timber.log.Timber
 
-@AndroidEntryPoint
-class SongFragment : Fragment() {
+class PlaylistFragment: Fragment() {
 
-    private var _binding: FragmentSongBinding? = null
-    private val binding: FragmentSongBinding
-    get() = _binding!!
+    private var _binding: FragmentPlaylistBinding? = null
+    private val binding: FragmentPlaylistBinding
+        get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -23,20 +21,22 @@ class SongFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         if (_binding == null) {
-            _binding = FragmentSongBinding.inflate(inflater, container, false)
-            Timber.d("SongFragment Inflated")
+            _binding = FragmentPlaylistBinding.inflate(inflater, container, false)
+            Timber.d("FragmentPlaylistBinding Inflated")
         }
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.apply {
+
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-        if (_binding == null) Timber.d("SongFragment Destroyed")
+        if (_binding == null) Timber.d("PlaylistFragment Destroyed")
     }
 }

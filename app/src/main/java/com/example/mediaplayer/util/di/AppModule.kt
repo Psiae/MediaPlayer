@@ -22,5 +22,9 @@ object AppModule {
     ) = Glide.with(context).setDefaultRequestOptions(RequestOptions()
         .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
 
+    fun provideAppContext(
+        @ApplicationContext Context: Context
+    ) = Context
+
 
 }

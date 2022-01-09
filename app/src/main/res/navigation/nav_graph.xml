@@ -9,11 +9,7 @@
         android:id="@+id/navBottomSong"
         android:name="com.example.mediaplayer.view.fragments.SongFragment"
         android:label="fragment_song"
-        tools:layout="@layout/fragment_song" >
-        <action
-            android:id="@+id/action_navBottomSong_to_navBottomHome"
-            app:destination="@id/navBottomHome" />
-    </fragment>
+        tools:layout="@layout/fragment_song" />
 
     <fragment
         android:id="@+id/navBottomHome"
@@ -23,5 +19,21 @@
         <action
             android:id="@+id/action_navBottomHome_to_navBottomSong"
             app:destination="@id/navBottomSong" />
+        <action
+            android:id="@+id/action_navBottomHome_to_navBottomPlaylist"
+            app:destination="@id/navBottomPlaylist" />
+        <action
+            android:id="@+id/action_navBottomHome_to_navBottomLibrary"
+            app:destination="@id/navBottomLibrary" />
     </fragment>
+    <fragment
+        android:id="@+id/navBottomLibrary"
+        android:name="com.example.mediaplayer.view.fragments.LibraryFragment"
+        android:label="LibraryFragment"
+        tools:layout="@layout/fragment_library"/>
+    <fragment
+        android:id="@+id/navBottomPlaylist"
+        android:name="com.example.mediaplayer.view.fragments.PlaylistFragment"
+        android:label="PlaylistFragment"
+        tools:layout="@layout/fragment_playlist"/>
 </navigation>

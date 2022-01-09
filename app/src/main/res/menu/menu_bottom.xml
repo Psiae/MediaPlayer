@@ -13,17 +13,17 @@
         android:icon="@drawable/ic_music_note_white"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/navPlaylist"
+        android:id="@+id/navBottomPlaylist"
         android:title="@string/playlist"
         android:icon="@drawable/ic_music_queue_white"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/navAlbum"
-        android:title="@string/album"
+        android:id="@+id/navBottomLibrary"
+        android:title="@string/library"
         android:icon="@drawable/ic_music_library_white"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/navSettings"
+        android:id="@+id/navBottomSettings"
         android:title="@string/settings"
         android:icon="@drawable/ic_settings_white"
         app:showAsAction="ifRoom"/>
