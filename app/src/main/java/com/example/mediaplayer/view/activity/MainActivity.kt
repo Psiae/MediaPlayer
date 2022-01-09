@@ -2,6 +2,7 @@ package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -21,6 +22,7 @@ import timber.log.Timber
 import java.util.*
 
 @AndroidEntryPoint
+@SuppressLint("LogNotTimber")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -31,7 +33,6 @@ class MainActivity : AppCompatActivity() {
     private val myNavController: NavController
         get() = _myNavController!!
 
-    @SuppressLint("LogNotTimber")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
@@ -56,8 +57,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    var start = true
+
     private fun setBottomNavListener(containerId: Int) {
         binding.bottomNavigationView.setOnItemSelectedListener {
+            if (start) {
+                start = false
+                binding.bottomNavigationView.selectedItemId = R.id.navBottomSong
+                currentFragment = it.itemId
+            }
             Timber.d("$currentFragment, ${it.itemId}")
             if (currentFragment == it.itemId) return@setOnItemSelectedListener false
             Timber.d("$currentFragment, ${it.itemId}")
@@ -74,7 +82,10 @@ class MainActivity : AppCompatActivity() {
                     navReplace(fragmentLibraryConstructing, LibraryFragment(), containerId, id)
                 R.id.navBottomSettings ->
                     navReplace(fragmentSettingsConstructing, null, containerId, id)
-                else -> false
+                else -> {
+                    Log.wtf(this::class.java.simpleName, "How is this option selected, smh")
+                    false
+                }
             }
         }
     }
