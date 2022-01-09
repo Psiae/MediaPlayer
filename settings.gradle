@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Media Player"
 include ':app'
+include ':open'
