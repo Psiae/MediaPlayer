@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*

@@ -2,23 +2,17 @@ package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.util.ext.*
-import com.example.mediaplayer.view.fragments.HomeFragment
-import com.example.mediaplayer.view.fragments.LibraryFragment
-import com.example.mediaplayer.view.fragments.PlaylistFragment
-import com.example.mediaplayer.view.fragments.SongFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import timber.log.Timber
+import java.lang.Exception
 import java.util.*
 
 @AndroidEntryPoint
@@ -26,12 +20,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    private var currentFragment: Int = -1
-    private var _myNavController: NavController? = null
-
-    private val myNavController: NavController
-        get() = _myNavController!!
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,95 +28,76 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navHostFragment = supportFragmentManager.findFragmentByTag(
-            "FragmentContainer"
-        ) as NavHostFragment
-
-        _myNavController = navHostFragment.navController
-        val navController = myNavController
-
-        navController.popBackStack()
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
+        navController = navHostFragment.navController
+        navController.popBackStack(R.id.navBottomHome, true)
         navController.navigate(R.id.navBottomSong)
+
 
         binding.apply {
             bottomNavigationView.apply {
                 setupWithNavController(navController)
-                setBottomNavListener(navHostFragment.id)
+                setNavItemSelected()
             }
         }
     }
 
-    var start = true
-
-    private fun setBottomNavListener(containerId: Int) {
-        binding.bottomNavigationView.setOnItemSelectedListener {
-            if (start) {
-                start = false
-                binding.bottomNavigationView.selectedItemId = R.id.navBottomSong
-                currentFragment = it.itemId
-            }
-            Timber.d("$currentFragment, ${it.itemId}")
-            if (currentFragment == it.itemId) return@setOnItemSelectedListener false
-            Timber.d("$currentFragment, ${it.itemId}")
-            val id = it.itemId
-
-            when (it.itemId) {
-                R.id.navBottomHome ->
-                    navReplace(fragmentHomeConstructing, HomeFragment(), containerId, id)
-                R.id.navBottomSong ->
-                    navReplace(fragmentSongConstructing, SongFragment(), containerId, id)
-                R.id.navBottomPlaylist ->
-                    navReplace(fragmentPlaylistConstructing, PlaylistFragment(), containerId, id)
-                R.id.navBottomLibrary ->
-                    navReplace(fragmentLibraryConstructing, LibraryFragment(), containerId, id)
-                R.id.navBottomSettings ->
-                    navReplace(fragmentSettingsConstructing, null, containerId, id)
-                else -> {
-                    Log.wtf(this::class.java.simpleName, "How is this option selected, smh")
-                    false
+    private fun setNavItemSelected() {
+        binding.bottomNavigationView.apply {
+            setOnItemSelectedListener {
+                navController.popBackStack(R.id.navBottomSong, false)
+                try {
+                    navController.navigate(it.itemId)
+                } catch (e: Exception) {
+                    navController.popBackStack(R.id.navBottomSong, true)
+                    navController.navigate(R.id.navBottomSong)
+                }
+                when (it.itemId) {
+                    R.id.navBottomHome -> {
+                        if (homeConstructing) toast()
+                        true
+                    }
+                    R.id.navBottomSong -> {
+                        if (songConstructing) toast()
+                        true
+                    }
+                    R.id.navBottomPlaylist -> {
+                        if (playlistConstructing) toast()
+                        true
+                    }
+                    R.id.navBottomLibrary -> {
+                        if (libraryConstructing) toast()
+                        true
+                    }
+                    R.id.navBottomSettings -> {
+                        if (settingsConstructing) toast()
+                        false
+                    }
+                    else -> false
                 }
             }
+            setOnItemReselectedListener {}
         }
     }
 
-    private fun navReplace(
-        constructing: Boolean,
-        fragment: Fragment?,
-        containerId: Int,
-        itemId: Int
-        ): Boolean {
-        return if (constructing) {
-            shortToast("Coming Soon")
-            false
-        } else {
-            if (currentFragment != fragment!!.id) {
-                supportFragmentManager.beginTransaction()
-                    .replace(containerId, fragment)
-                    .commit()
-            }
-            currentFragment = itemId
-            true
-        }
-    }
 
-    var curToast = ""
-    private fun shortToast(msg: String) {
-        if (msg != curToast) CoroutineScope(Dispatchers.Default).launch {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, msg, Toast.LENGTH_SHORT).show()
-            }
-            curToast = msg
-            delay(2000)
-            curToast = ""
-        }
-    }
-    private fun longToast(msg: String) {
-        if (msg != curToast) CoroutineScope(Dispatchers.Main).launch {
-            Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show()
-            curToast = msg
-            delay(2000)
-            curToast = ""
-        }
+    private var curToast = ""
+    private fun toast(
+        msg: String = "Coming Soon!",
+        short: Boolean = true
+    ) = CoroutineScope(Dispatchers.Main.immediate).launch {
+        if (msg == curToast) return@launch
+        if (short) Toast.makeText(this@MainActivity,
+            msg,
+            Toast.LENGTH_SHORT).show()
+        else Toast.makeText(this@MainActivity,
+            msg,
+            Toast.LENGTH_LONG).show()
+
+        curToast = msg
+        if (short) delay(2000) else delay(3500)
+        curToast = ""
     }
 }
 
