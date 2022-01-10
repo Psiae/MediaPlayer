@@ -14,6 +14,13 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.91" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -46,5 +53,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/bottomNavigationView"
         app:navGraph="@navigation/nav_graph" />
+
+    <Button
+        android:id="@+id/btnGrantPermission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/check_permission"
+        app:layout_constraintBottom_toBottomOf="@+id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="@+id/navHostContainer"
+        app:layout_constraintStart_toStartOf="@+id/navHostContainer"
+        app:layout_constraintTop_toTopOf="@+id/guideline5"
+        android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

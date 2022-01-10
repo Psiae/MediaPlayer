@@ -5,3 +5,5 @@ var songConstructing = false
 var playlistConstructing = true
 var libraryConstructing = true
 var settingsConstructing = true
+
+var curToast = "default"

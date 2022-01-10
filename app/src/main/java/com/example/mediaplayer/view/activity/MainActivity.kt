@@ -1,7 +1,11 @@
 package com.example.mediaplayer.view.activity
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.*
@@ -9,15 +13,24 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
+import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
+import com.example.mediaplayer.util.Constants.INTERNET
+import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.PERMISSION_INTERNET_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.PERMISSION_READ_EXT_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.ext.*
+import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import java.lang.Exception
+import timber.log.Timber
 import java.util.*
 
 @AndroidEntryPoint
 @SuppressLint("LogNotTimber")
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
@@ -27,67 +40,158 @@ class MainActivity : AppCompatActivity() {
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        curToast = "default"
 
+        // navController setup
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
         navController = navHostFragment.navController
-        navController.popBackStack(R.id.navBottomHome, true)
-        navController.navigate(R.id.navBottomSong)
-
+        setDestinationListener(navController)
 
         binding.apply {
             bottomNavigationView.apply {
                 setupWithNavController(navController)
-                setNavItemSelected()
+                setOnItemReselectedListener { }
+            }
+        }
+
+        // Permission check
+        // shows permissionScreen if permission is not granted
+        if (!checkPermission()) {
+            permissionScreen()
+        }
+    }
+
+    /**
+     * Navigation Setup
+     */
+    private fun setDestinationListener(controller: NavController) {
+        controller.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.navBottomHome -> if (homeConstructing) toast()
+                R.id.navBottomSong -> if (songConstructing) toast()
+                R.id.navBottomPlaylist -> if (playlistConstructing) toast()
+                R.id.navBottomLibrary -> if (libraryConstructing) toast()
+                R.id.navBottomSettings -> if (settingsConstructing) toast()
             }
         }
     }
 
-    private fun setNavItemSelected() {
-        binding.bottomNavigationView.apply {
-            setOnItemSelectedListener {
-                navController.popBackStack(R.id.navBottomSong, false)
-                try {
-                    navController.navigate(it.itemId)
-                } catch (e: Exception) {
-                    navController.popBackStack(R.id.navBottomSong, true)
-                    navController.navigate(R.id.navBottomSong)
-                }
-                when (it.itemId) {
-                    R.id.navBottomHome -> {
-                        if (homeConstructing) toast()
-                        true
-                    }
-                    R.id.navBottomSong -> {
-                        if (songConstructing) toast()
-                        true
-                    }
-                    R.id.navBottomPlaylist -> {
-                        if (playlistConstructing) toast()
-                        true
-                    }
-                    R.id.navBottomLibrary -> {
-                        if (libraryConstructing) toast()
-                        true
-                    }
-                    R.id.navBottomSettings -> {
-                        if (settingsConstructing) toast()
-                        false
-                    }
-                    else -> false
-                }
-            }
-            setOnItemReselectedListener {}
+    /**
+     * Permission Setup
+     */
+    @SuppressLint("InlinedApi")
+    private fun checkPermission(): Boolean {
+        if (!hasPermission(INTERNET))
+            requestPermission(INTERNET)
+
+        if (!hasPermission(FOREGROUND_SERVICE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            requestPermission(FOREGROUND_SERVICE)
+
+        if (!hasPermission(WRITE_STORAGE))
+            requestPermission(WRITE_STORAGE)
+
+        return (hasPermission(INTERNET)
+                && hasPermission(FOREGROUND_SERVICE)
+                && hasPermission(WRITE_STORAGE))
+    }
+    private fun hasPermission(perms: String): Boolean {
+        return when (perms) {
+            Manifest.permission.INTERNET ->
+                EasyPermissions.hasPermissions(this, perms)
+            Manifest.permission.FOREGROUND_SERVICE ->
+                EasyPermissions.hasPermissions(this, perms)
+            Manifest.permission.WRITE_EXTERNAL_STORAGE ->
+                EasyPermissions.hasPermissions(this, perms)
+            Manifest.permission.READ_EXTERNAL_STORAGE ->
+                EasyPermissions.hasPermissions(this, perms)
+            else -> false
+        }
+    }
+    private fun requestPermission(perms: String) {
+        Timber.d("requestPermission: $perms")
+        when (perms) {
+            Manifest.permission.INTERNET ->
+                EasyPermissions.requestPermissions(
+                    this,
+                    "This App Need Internet Permission",
+                    PERMISSION_INTERNET_REQUEST_CODE,
+                    perms
+                )
+            Manifest.permission.FOREGROUND_SERVICE ->
+                EasyPermissions.requestPermissions(
+                    this,
+                    "This App Need Foreground Permission",
+                    PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
+                    perms
+                )
+            Manifest.permission.WRITE_EXTERNAL_STORAGE ->
+                EasyPermissions.requestPermissions(
+                    this,
+                    "This App Need Write Storage Permission",
+                    PERMISSION_WRITE_EXT_REQUEST_CODE,
+                    perms
+                )
+            Manifest.permission.READ_EXTERNAL_STORAGE ->
+                EasyPermissions.requestPermissions(
+                    this,
+                    "This App Need Read Storage Permission",
+                    PERMISSION_READ_EXT_REQUEST_CODE,
+                    perms
+                )
+            else -> Unit
         }
     }
 
+    override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            toast("Permission Denied!")
+            SettingsDialog.Builder(this).build().show()
+        }
+        if (EasyPermissions.somePermissionDenied(this, perms.first())) {
+            toast("Permission Needed!")
+        }
+    }
 
-    private var curToast = ""
+    override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
+        if (checkPermission()) {
+            toast("Permission Granted!, Restarting...")
+            restartApp()
+        }
+    }
+
+    private fun permissionScreen() {
+        binding.apply {
+            bottomNavigationView.visibility = View.GONE
+            navHostContainer.visibility = View.GONE
+            seekBar.visibility = View.GONE
+            btnGrantPermission.visibility = View.VISIBLE
+            btnGrantPermission.setOnClickListener {
+                if (checkPermission()) {
+                    restartApp()
+                }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
     private fun toast(
         msg: String = "Coming Soon!",
         short: Boolean = true
     ) = CoroutineScope(Dispatchers.Main.immediate).launch {
         if (msg == curToast) return@launch
+        if (curToast.isNotEmpty()) {
+            curToast = ""
+            return@launch
+        }
         if (short) Toast.makeText(this@MainActivity,
             msg,
             Toast.LENGTH_SHORT).show()
@@ -98,6 +202,20 @@ class MainActivity : AppCompatActivity() {
         curToast = msg
         if (short) delay(2000) else delay(3500)
         curToast = ""
+    }
+
+    private fun restartApp() {
+        CoroutineScope(Dispatchers.Main).launch {
+            toast("App will be restarted shortly...")
+            delay(1000)
+            val resIntent = Intent(this@MainActivity, MainActivity::class.java)
+            finishAffinity()
+            startActivity(resIntent)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 }
 
