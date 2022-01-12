@@ -85,7 +85,7 @@ class SongFragment : Fragment() {
                 title = "Summit",
                 artist = "Rei",
                 album = "Romancer",
-                imageUri = "https://firebasestorage.googleapis.com/v0/b/musicplayer-88831.appspot.com/o/Music%2FOther%2FDustcell.jpg?alt=media&token=7a9c9dbb-52e8-46b3-a54c-2a15cfb2a39f"
+                imageUri = testImageUrl
             ),
         )
         songViewModel.postSongList(songList)
