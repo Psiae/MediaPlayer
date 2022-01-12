@@ -1,6 +1,5 @@
 package com.example.mediaplayer.view.activity
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
@@ -17,7 +16,6 @@ import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.INTERNET
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_INTERNET_REQUEST_CODE
-import com.example.mediaplayer.util.Constants.PERMISSION_READ_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
@@ -88,21 +86,24 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         if (!hasPermission(Perms(INTERNET)))
             requestPermission(Perms(
                 INTERNET,
-                PERMISSION_INTERNET_REQUEST_CODE
+                PERMISSION_INTERNET_REQUEST_CODE,
+                "Internet"
             ))
 
         if (!hasPermission(Perms(FOREGROUND_SERVICE))
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 requestPermission(Perms(
                     FOREGROUND_SERVICE,
-                    PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
+                    PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
+                "Foreground Service"
                 ))
 
         if (!hasPermission(Perms(WRITE_STORAGE))
             || !hasPermission(Perms(READ_STORAGE)))
                 requestPermission(Perms(
                     WRITE_STORAGE,
-                    PERMISSION_WRITE_EXT_REQUEST_CODE
+                    PERMISSION_WRITE_EXT_REQUEST_CODE,
+                    "Write External Storage"
                 ))
 
         return (hasPermission(Perms(INTERNET))
@@ -135,7 +136,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         Timber.d("requestPermission: $perms")
         EasyPermissions.requestPermissions(
             this,
-            "This App Need $perms",
+            "This App Need ${perms.msg} Permission",
             perms.requestId,
             perms.permission
         )
