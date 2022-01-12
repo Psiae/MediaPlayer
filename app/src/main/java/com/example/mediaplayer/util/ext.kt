@@ -7,3 +7,8 @@ var libraryConstructing = true
 var settingsConstructing = true
 
 var curToast = "default"
+
+data class Perms(
+    val permission: String,
+    val requestId: Int = 130
+)

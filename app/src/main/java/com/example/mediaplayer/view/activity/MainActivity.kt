@@ -19,6 +19,7 @@ import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQU
 import com.example.mediaplayer.util.Constants.PERMISSION_INTERNET_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_READ_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.ext.*
 import com.vmadalin.easypermissions.EasyPermissions
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         curToast = "default"
 
         // navController setup
@@ -48,6 +50,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         navController = navHostFragment.navController
         setDestinationListener(navController)
 
+        // View setup
         binding.apply {
             bottomNavigationView.apply {
                 setupWithNavController(navController)
@@ -59,7 +62,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         // shows permissionScreen if permission is not granted
         if (!checkPermission()) {
             permissionScreen()
-        }
+        } else curToast = ""
     }
 
     /**
@@ -68,11 +71,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.navBottomHome -> if (homeConstructing) toast()
-                R.id.navBottomSong -> if (songConstructing) toast()
-                R.id.navBottomPlaylist -> if (playlistConstructing) toast()
-                R.id.navBottomLibrary -> if (libraryConstructing) toast()
-                R.id.navBottomSettings -> if (settingsConstructing) toast()
+                R.id.navBottomHome -> if (homeConstructing) toast("Coming Soon!")
+                R.id.navBottomSong -> if (songConstructing) toast("Coming Soon!")
+                R.id.navBottomPlaylist -> if (playlistConstructing) toast("Coming Soon!")
+                R.id.navBottomLibrary -> if (libraryConstructing) toast("Coming Soon!")
+                R.id.navBottomSettings -> if (settingsConstructing) toast("Coming Soon!")
             }
         }
     }
@@ -82,21 +85,41 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      */
     @SuppressLint("InlinedApi")
     private fun checkPermission(): Boolean {
-        if (!hasPermission(INTERNET))
-            requestPermission(INTERNET)
+        if (!hasPermission(Perms(INTERNET)))
+            requestPermission(Perms(
+                INTERNET,
+                PERMISSION_INTERNET_REQUEST_CODE
+            ))
 
-        if (!hasPermission(FOREGROUND_SERVICE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            requestPermission(FOREGROUND_SERVICE)
+        if (!hasPermission(Perms(FOREGROUND_SERVICE))
+            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                requestPermission(Perms(
+                    FOREGROUND_SERVICE,
+                    PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
+                ))
 
-        if (!hasPermission(WRITE_STORAGE))
-            requestPermission(WRITE_STORAGE)
+        if (!hasPermission(Perms(WRITE_STORAGE))
+            || !hasPermission(Perms(READ_STORAGE)))
+                requestPermission(Perms(
+                    WRITE_STORAGE,
+                    PERMISSION_WRITE_EXT_REQUEST_CODE
+                ))
 
-        return (hasPermission(INTERNET)
-                && hasPermission(FOREGROUND_SERVICE)
-                && hasPermission(WRITE_STORAGE))
+        return (hasPermission(Perms(INTERNET))
+                && hasPermission(Perms(FOREGROUND_SERVICE))
+                && (hasPermission(Perms(WRITE_STORAGE))
+                    || hasPermission(Perms(READ_STORAGE))
+                ))
     }
-    private fun hasPermission(perms: String): Boolean {
-        return when (perms) {
+    private fun hasPermission(perms: Perms): Boolean {
+        return try {
+            EasyPermissions.hasPermissions(this, perms.permission)
+        } catch (e: Exception) {
+            Timber.wtf(RuntimeException("$e $perms But Why?"))
+            false
+        }
+
+        /*return when (perms) {
             Manifest.permission.INTERNET ->
                 EasyPermissions.hasPermissions(this, perms)
             Manifest.permission.FOREGROUND_SERVICE ->
@@ -106,40 +129,61 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             Manifest.permission.READ_EXTERNAL_STORAGE ->
                 EasyPermissions.hasPermissions(this, perms)
             else -> false
-        }
+        }*/
     }
-    private fun requestPermission(perms: String) {
+    private fun requestPermission(perms: Perms) {
         Timber.d("requestPermission: $perms")
-        when (perms) {
+        EasyPermissions.requestPermissions(
+            this,
+            "This App Need $perms",
+            perms.requestId,
+            perms.permission
+        )
+        /*when (perms.permission) {
             Manifest.permission.INTERNET ->
                 EasyPermissions.requestPermissions(
                     this,
                     "This App Need Internet Permission",
                     PERMISSION_INTERNET_REQUEST_CODE,
-                    perms
+                    perms.permission
                 )
             Manifest.permission.FOREGROUND_SERVICE ->
                 EasyPermissions.requestPermissions(
                     this,
                     "This App Need Foreground Permission",
                     PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
-                    perms
+                    perms.permission
                 )
             Manifest.permission.WRITE_EXTERNAL_STORAGE ->
                 EasyPermissions.requestPermissions(
                     this,
                     "This App Need Write Storage Permission",
                     PERMISSION_WRITE_EXT_REQUEST_CODE,
-                    perms
+                    perms.permission
                 )
             Manifest.permission.READ_EXTERNAL_STORAGE ->
                 EasyPermissions.requestPermissions(
                     this,
                     "This App Need Read Storage Permission",
                     PERMISSION_READ_EXT_REQUEST_CODE,
-                    perms
+                    perms.permission
                 )
             else -> Unit
+        }*/
+    }
+    private fun permissionScreen() {
+        binding.apply {
+            bottomNavigationView.visibility = View.GONE
+            navHostContainer.visibility = View.GONE
+            seekBar.visibility = View.GONE
+            btnGrantPermission.visibility = View.VISIBLE
+        }
+        binding.run {
+            btnGrantPermission.setOnClickListener {
+                if (checkPermission()) {
+                    restartApp()
+                }
+            }
         }
     }
 
@@ -152,28 +196,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             toast("Permission Needed!")
         }
     }
-
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
         if (checkPermission()) {
             toast("Permission Granted!, Restarting...")
             restartApp()
         }
     }
-
-    private fun permissionScreen() {
-        binding.apply {
-            bottomNavigationView.visibility = View.GONE
-            navHostContainer.visibility = View.GONE
-            seekBar.visibility = View.GONE
-            btnGrantPermission.visibility = View.VISIBLE
-            btnGrantPermission.setOnClickListener {
-                if (checkPermission()) {
-                    restartApp()
-                }
-            }
-        }
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -184,19 +212,20 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     private fun toast(
-        msg: String = "Coming Soon!",
-        short: Boolean = true
+        msg: String = "",
+        short: Boolean = true,
+        blockable: Boolean = true
     ) = CoroutineScope(Dispatchers.Main.immediate).launch {
-        if (msg == curToast) return@launch
-        if (curToast.isNotEmpty()) {
-            curToast = ""
-            return@launch
+        if (blockable) {
+            if (msg == curToast) return@launch
+            if (curToast.isNotEmpty()) {
+                curToast = ""
+                return@launch
+            }
         }
-        if (short) Toast.makeText(this@MainActivity,
-            msg,
+        if (short) Toast.makeText(this@MainActivity, msg,
             Toast.LENGTH_SHORT).show()
-        else Toast.makeText(this@MainActivity,
-            msg,
+        else Toast.makeText(this@MainActivity, msg,
             Toast.LENGTH_LONG).show()
 
         curToast = msg
@@ -205,7 +234,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     private fun restartApp() {
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.Main.immediate).launch {
             toast("App will be restarted shortly...")
             delay(1000)
             val resIntent = Intent(this@MainActivity, MainActivity::class.java)
@@ -214,9 +243,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
+
 }
 
 

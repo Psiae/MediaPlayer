@@ -11,14 +11,18 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_queue_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_settings_application_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_dark.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main.xml" value="0.17" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main2.xml" value="0.15989583333333332" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_home.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_library.xml" value="0.20833333333333334" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_playlist.xml" value="0.20833333333333334" />
-        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_song.xml" value="0.1" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_song.xml" value="0.15" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_song.xml" value="0.29130434782608694" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_bottom.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_music_search.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_song.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_song_toolbar.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_notewave.xml" value="0.2203125" />
       </map>
     </option>

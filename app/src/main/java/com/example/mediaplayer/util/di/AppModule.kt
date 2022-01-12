@@ -4,6 +4,7 @@ import android.content.Context
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.mediaplayer.view.adapter.SongAdapter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,9 +23,11 @@ object AppModule {
     ) = Glide.with(context).setDefaultRequestOptions(RequestOptions()
         .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
 
+    @Singleton
+    @Provides
     fun provideAppContext(
-        @ApplicationContext Context: Context
-    ) = Context
+        @ApplicationContext context: Context
+    ) = context
 
 
 }

@@ -16,4 +16,9 @@
     <string name="grant_permission">GRANT PERMISSION</string>
     <string name="check_permission">Check Permission</string>
 
+    <string name="example">Example</string>
+    <string name="unknown">Unknown</string>
+    <string name="sort">Sort</string>
+    <string name="sort_order">Sort order</string>
+
 </resources>

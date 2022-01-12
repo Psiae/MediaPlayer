@@ -9,7 +9,11 @@
         android:id="@+id/navBottomSong"
         android:name="com.example.mediaplayer.view.fragments.SongFragment"
         android:label="fragment_song"
-        tools:layout="@layout/fragment_song" />
+        tools:layout="@layout/fragment_song" >
+        <action
+            android:id="@+id/action_navBottomSong_to_navBottomLibrary"
+            app:destination="@id/navBottomLibrary" />
+    </fragment>
 
     <fragment
         android:id="@+id/navBottomHome"
