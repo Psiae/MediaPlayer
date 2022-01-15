@@ -5,13 +5,14 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
+import com.example.mediaplayer.util.*
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.INTERNET
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
@@ -20,6 +21,7 @@ import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.ext.*
+import com.example.mediaplayer.viewmodel.SongViewModel
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,6 +35,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+
+    private val songViewModel: SongViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +64,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         // shows permissionScreen if permission is not granted
         if (!checkPermission()) {
             permissionScreen()
-        } else curToast = ""
+        } else {
+            curToast = ""
+            setupSongVM()
+        }
+    }
+
+    private fun setupSongVM() {
+        songViewModel.run {
+            getDeviceSong()
+            songList.observe(this@MainActivity) { songList ->
+                Timber.d(songList.toString())
+            }
+        }
     }
 
     /**
@@ -69,11 +85,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.navBottomHome -> if (homeConstructing) toast("Coming Soon!")
-                R.id.navBottomSong -> if (songConstructing) toast("Coming Soon!")
-                R.id.navBottomPlaylist -> if (playlistConstructing) toast("Coming Soon!")
-                R.id.navBottomLibrary -> if (libraryConstructing) toast("Coming Soon!")
-                R.id.navBottomSettings -> if (settingsConstructing) toast("Coming Soon!")
+                R.id.navBottomHome -> if (homeConstructing)
+                    toast(this,"Coming Soon!")
+                R.id.navBottomSong -> if (songConstructing)
+                    toast(this, "Coming Soon!")
+                R.id.navBottomPlaylist -> if (playlistConstructing)
+                    toast(this,"Coming Soon!")
+                R.id.navBottomLibrary -> if (libraryConstructing)
+                    toast(this,"Coming Soon!")
+                R.id.navBottomSettings -> if (settingsConstructing)
+                    toast(this,"Coming Soon!")
             }
         }
     }
@@ -182,7 +203,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         binding.run {
             btnGrantPermission.setOnClickListener {
                 if (checkPermission()) {
-                    restartApp()
+                    restartApp(false)
                 }
             }
         }
@@ -190,17 +211,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            toast("Permission Denied!")
+            toast(this,"Permission Denied!")
             SettingsDialog.Builder(this).build().show()
         }
         if (EasyPermissions.somePermissionDenied(this, perms.first())) {
-            toast("Permission Needed!")
+            toast(this,"Permission Needed!")
         }
     }
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
         if (checkPermission()) {
-            toast("Permission Granted!, Restarting...")
-            restartApp()
+            toast(this,"Permission Granted!, Restarting...", blockable = false)
+            restartApp(true)
         }
     }
     override fun onRequestPermissionsResult(
@@ -212,38 +233,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    private fun toast(
-        msg: String = "",
-        short: Boolean = true,
-        blockable: Boolean = true
-    ) = CoroutineScope(Dispatchers.Main.immediate).launch {
-        if (blockable) {
-            if (msg == curToast) return@launch
-            if (curToast.isNotEmpty()) {
-                curToast = ""
-                return@launch
-            }
-        }
-        if (short) Toast.makeText(this@MainActivity, msg,
-            Toast.LENGTH_SHORT).show()
-        else Toast.makeText(this@MainActivity, msg,
-            Toast.LENGTH_LONG).show()
-
-        curToast = msg
-        if (short) delay(2000) else delay(3500)
-        curToast = ""
-    }
-
-    private fun restartApp() {
+    private fun restartApp(blockable: Boolean) {
         CoroutineScope(Dispatchers.Main.immediate).launch {
-            toast("App will be restarted shortly...")
+            toast(this@MainActivity,
+                "App will be restarted shortly...",
+                short = false,
+                blockable = blockable
+            )
             delay(1000)
             val resIntent = Intent(this@MainActivity, MainActivity::class.java)
             finishAffinity()
             startActivity(resIntent)
         }
     }
-
 
 }
 

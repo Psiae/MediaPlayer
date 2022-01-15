@@ -1,9 +1,11 @@
 package com.example.mediaplayer.util.di
 
+import android.app.Application
 import android.content.Context
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.mediaplayer.MPApplication
 import com.example.mediaplayer.view.adapter.SongAdapter
 import dagger.Module
 import dagger.Provides

@@ -4,9 +4,11 @@
 
     <group android:id="@+id/songMenu">
         <item
+            android:id="@+id/menuSort"
             android:title="@string/sort_order">
         </item>
         <item
+            android:id="@+id/menuSettings"
             android:title="@string/settings">
         </item>
     </group>

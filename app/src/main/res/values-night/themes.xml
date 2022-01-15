@@ -10,7 +10,12 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/darkBackground</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="Q">false</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:fitsSystemWindows">true</item>
         <!-- Customize your theme here. -->
 
     </style>
@@ -28,7 +33,7 @@
     </style>
 
     <style name="ItemBackground">
-        <item name="android:background">@color/darkBackground</item>
+        <item name="android:background">@drawable/splash_image_24_dark</item>
     </style>
 
     <style name="Circular">

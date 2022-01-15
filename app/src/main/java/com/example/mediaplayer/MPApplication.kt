@@ -2,6 +2,7 @@ package com.example.mediaplayer
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -17,4 +18,6 @@ class MPApplication : Application() {
             Timber.plant(Timber.DebugTree())
         } else Log.w("Application", "Timber not Planted, ${BuildConfig.DEBUG}")
     }
+
+
 }

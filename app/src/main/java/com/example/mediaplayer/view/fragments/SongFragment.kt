@@ -6,23 +6,29 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
+import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class SongFragment : Fragment() {
 
     @Inject
     lateinit var songAdapter: SongAdapter
-    lateinit var songViewModel: SongViewModel
+
+    private lateinit var songViewModel: SongViewModel
+    private lateinit var navController: NavController
 
     private var _binding: FragmentSongBinding? = null
     private val binding: FragmentSongBinding
@@ -33,7 +39,7 @@ class SongFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         if (_binding == null) {
             _binding = FragmentSongBinding.inflate(inflater, container, false)
@@ -47,6 +53,7 @@ class SongFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         songViewModel = ViewModelProvider(requireActivity())[SongViewModel::class.java]
+        navController = requireActivity().findNavController(R.id.navHostContainer)
 
         setupView()
         setupSongAdapter()
@@ -62,30 +69,58 @@ class SongFragment : Fragment() {
 
     private fun observeSongList() {
         songViewModel.songList.observe(viewLifecycleOwner) {
-            songAdapter.songList = it
+            Timber.d(it.toString())
+            songAdapter.songList = it.toList()
         }
     }
 
     private fun setupView() {
         binding.apply {
-            songToolbar.inflateMenu(R.menu.menu_song_toolbar)
+            songToolbar.apply {
+                inflateMenu(R.menu.menu_song_toolbar)
+                setOnMenuItemClickListener { menu ->
+                    when (menu.itemId) {
+                        R.id.menuSort -> {
+                            toast(requireContext(), "Sorted")
+                            val list = songAdapter.songList
+                            val asc = list.sortedBy { it.title.lowercase() }
+                            val desc = list.sortedByDescending { it.title.lowercase() }
+                            songAdapter.songList = if (list.toList() == asc) desc else asc
+                            true
+                        }
+                        R.id.menuSettings -> {
+                            toast(requireContext(), "Settings Menu")
+                            try {
+                                navController.navigate(R.id.navBottomSettings)
+                            } catch (e: Exception) {
+                                toast(requireContext(), "Coming Soon!", blockable = false)
+                            }
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            }
         }
         binding.run {}
     }
+
     private fun setupSongAdapter() {
-        val songList = listOf(
-            Song(),
-            Song(title = "Summit"),
-            Song(title = "Summit", artist = "Rei"),
-            Song(title = "Summit", artist = "Rei", album = "Romancer"),
-            Song(
-                title = "Summit",
-                artist = "Rei",
-                album = "Romancer",
-                imageUri = testImageUrl
-            ),
-        )
-        songViewModel.postSongList(songList)
+        if (songViewModel.songList.value?.isEmpty() == true) {
+            val songList = mutableListOf(
+                Song(),
+                Song(title = "Summit"),
+                Song(title = "Summit", artist = "Rei"),
+                Song(title = "Summit", artist = "Rei", album = "Romancer"),
+                Song(
+                    title = "Summit",
+                    artist = "Rei",
+                    album = "Romancer",
+                    imageUri = testImageUrl
+                ),
+            )
+            songViewModel.postSongList(songList)
+        }
     }
     private fun setupRecyclerView () {
         binding.rvSongList.apply {
