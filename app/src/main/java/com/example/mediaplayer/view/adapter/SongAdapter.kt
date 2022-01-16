@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
@@ -15,6 +16,7 @@ import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffSongCallback
 import com.example.mediaplayer.util.ext.toast
 import com.google.android.material.imageview.ShapeableImageView
+import timber.log.Timber
 import javax.inject.Inject
 
 class SongAdapter @Inject constructor(
@@ -61,10 +63,9 @@ class SongAdapter @Inject constructor(
             val albumId: Long = song.albumId
             val dateAdded: Int = song.dateAdded
             val isLocal: Boolean = song.isLocal
-            var imageUri: String = song.imageUri
-            val location: String = song.mediaPath
+            val imageUri: String = song.imageUri
             val length: Long = song.length
-            val mediaId: String = song.mediaId
+            val mediaId: Long = song.mediaId
             val path: String = song.mediaPath
             val startFrom: Int = song.startFrom
             val title: String = song.title
@@ -73,6 +74,9 @@ class SongAdapter @Inject constructor(
             val bullet = 0x2022.toChar()
             binding.run {
                 root.setOnClickListener {
+                    onSongItemClickListener?.let { click ->
+                        click(song)
+                    }
                     toast(context,
                         msg = path
                     )
@@ -87,7 +91,7 @@ class SongAdapter @Inject constructor(
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-                    } else glide.load(imageUri)
+                    } else glide.load(imageUri.toUri())
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
@@ -95,31 +99,9 @@ class SongAdapter @Inject constructor(
 
                 }
 
-                /*if (imageUri.isNotEmpty()) {
+                if (imageUri.isNotEmpty()) {
                     glide.asDrawable()
                         .load(imageUri)
-                        .listener(object : RequestListener<Drawable> {
-                            override fun onLoadFailed(
-                                e: GlideException?,
-                                model: Any?,
-                                target: Target<Drawable>?,
-                                isFirstResource: Boolean,
-                            ): Boolean {
-                                loadHolder(ivSongImage)
-                                return true
-                            }
-
-                            override fun onResourceReady(
-                                resource: Drawable?,
-                                model: Any?,
-                                target: Target<Drawable>?,
-                                dataSource: DataSource?,
-                                isFirstResource: Boolean,
-                            ): Boolean {
-                                return false
-                            }
-
-                        })
                         .transition(DrawableTransitionOptions.withCrossFade())
                         .centerInside()
                         .placeholder(R.drawable.ic_player_24)
@@ -127,7 +109,7 @@ class SongAdapter @Inject constructor(
                         Timber.d("${ivSongImage.drawable}")
                 } else {
                     loadHolder(ivSongImage)
-                }*/
+                }
             }
 
             binding.apply {
@@ -138,6 +120,12 @@ class SongAdapter @Inject constructor(
                     "${if (artist.isNotEmpty()) artist else "<Artist>"} $bullet ${if (album.isNotEmpty()) album else "<Album>"}"
             }
         }
+    }
+
+    var onSongItemClickListener: ( (Song) -> Unit )? = null
+
+    fun setOnSongClickListener(listener: (Song) -> Unit ) {
+        onSongItemClickListener = listener
     }
 
     fun loadHolder (image: ShapeableImageView) {

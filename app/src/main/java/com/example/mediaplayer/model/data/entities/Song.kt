@@ -11,7 +11,7 @@ data class Song(
     val imageUri: String = "",
     val isLocal: Boolean = true,
     val length: Long = 0L,
-    val mediaId: String = "",
+    val mediaId: Long = 0L,
     val mediaPath: String = "",
     val startFrom: Int = 0,
     var title: String = "",

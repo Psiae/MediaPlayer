@@ -2,7 +2,6 @@ package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
@@ -35,7 +34,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
-
     private val songViewModel: SongViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +41,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Timber.d(songViewModel.toString())
 
         curToast = "default"
 
@@ -68,6 +68,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             curToast = ""
             setupSongVM()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        songViewModel.getDeviceSong()
     }
 
     private fun setupSongVM() {
@@ -112,7 +117,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             ))
 
         if (!hasPermission(Perms(FOREGROUND_SERVICE))
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            && VersionHelper.isOreo())
                 requestPermission(Perms(
                     FOREGROUND_SERVICE,
                     PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,

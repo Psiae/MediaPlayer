@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_navBottomHome_to_navBottomLibrary"
             app:destination="@id/navBottomLibrary" />
+        <action
+            android:id="@+id/action_navBottomHome_to_folderFragment"
+            app:destination="@id/folderFragment" />
     </fragment>
     <fragment
         android:id="@+id/navBottomLibrary"
@@ -40,4 +43,8 @@
         android:name="com.example.mediaplayer.view.fragments.PlaylistFragment"
         android:label="PlaylistFragment"
         tools:layout="@layout/fragment_playlist"/>
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="com.example.mediaplayer.view.fragments.FolderFragment"
+        android:label="FolderFragment" />
 </navigation>

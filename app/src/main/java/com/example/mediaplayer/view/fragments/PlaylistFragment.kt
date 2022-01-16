@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.mediaplayer.databinding.FragmentHomeBinding
 import com.example.mediaplayer.databinding.FragmentPlaylistBinding
 import timber.log.Timber
 

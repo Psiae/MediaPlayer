@@ -1,7 +1,6 @@
 package com.example.mediaplayer.util.ext
 
 import android.content.Context
-import android.os.Build
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +10,7 @@ import kotlinx.coroutines.launch
 var homeConstructing = true
 var songConstructing = false
 var playlistConstructing = true
-var libraryConstructing = true
+var libraryConstructing = false
 var settingsConstructing = true
 
 var curToast = "default"

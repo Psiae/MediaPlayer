@@ -55,6 +55,23 @@ class SongFragment : Fragment() {
         songViewModel = ViewModelProvider(requireActivity())[SongViewModel::class.java]
         navController = requireActivity().findNavController(R.id.navHostContainer)
 
+
+        songAdapter.setOnSongClickListener {
+            /*val player = SimpleExoPlayer.Builder(requireContext()).build()
+            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.mediaId)
+            val sourceFactory = DefaultDataSource.Factory(requireContext())
+            val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
+            Timber.d("$mediaSource $uri $it")
+            player.setMediaSource(mediaSource)
+            player.prepare()
+            player.play()
+            binding.pvSong.apply {
+                setPlayer(player)
+                visibility = View.VISIBLE
+            }*/
+        }
+
         setupView()
         setupSongAdapter()
         setupRecyclerView()
