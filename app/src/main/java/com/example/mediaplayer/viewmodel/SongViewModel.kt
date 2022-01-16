@@ -43,9 +43,6 @@ class SongViewModel @Inject constructor(
     fun getDeviceSong() {
         CoroutineScope(Dispatchers.IO).launch {
             val music = queryDeviceMusic()
-            withContext(Dispatchers.Main) {
-                _songList.value = music
-            }
         }
     }
 
@@ -170,6 +167,7 @@ class SongViewModel @Inject constructor(
             e.printStackTrace()
         }
         withContext(Dispatchers.Main.immediate) {
+            _songList.value = deviceMusicList
             _folderList.value = folderList
         }
         return deviceMusicList

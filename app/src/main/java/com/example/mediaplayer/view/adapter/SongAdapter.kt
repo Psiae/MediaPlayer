@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.net.toUri
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
@@ -37,6 +36,7 @@ class SongAdapter @Inject constructor(
             }
             differ.submitList(submit)
         }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
         return SongViewHolder(ItemSongBinding.inflate(
@@ -71,8 +71,10 @@ class SongAdapter @Inject constructor(
             val title: String = song.title
             val year: Int = song.year
 
+            val animation = android.view.animation.AnimationUtils.loadAnimation(this@SongAdapter.context, R.anim.anim_slidein)
             val bullet = 0x2022.toChar()
             binding.run {
+                root.startAnimation(animation)
                 root.setOnClickListener {
                     onSongItemClickListener?.let { click ->
                         click(song)
@@ -91,12 +93,11 @@ class SongAdapter @Inject constructor(
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-                    } else glide.load(imageUri.toUri())
+                    } else glide.load(imageUri)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-
                 }
 
                 if (imageUri.isNotEmpty()) {

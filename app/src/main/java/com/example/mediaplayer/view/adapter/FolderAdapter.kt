@@ -20,7 +20,11 @@ class FolderAdapter @Inject constructor (
 
     var folderList: List<Folder>
         get() = differ.currentList
-        set(value) = differ.submitList(value)
+        set(value) {
+            val submit = value.sortedBy { it.title }
+            differ.submitList(submit)
+        }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
         return FolderViewHolder(ItemFolderBinding.inflate(

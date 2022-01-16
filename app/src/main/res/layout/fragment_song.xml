@@ -16,7 +16,8 @@
         app:layout_constraintTop_toBottomOf="@+id/songToolbar"
         android:scrollbars="vertical"
         android:scrollbarStyle="outsideOverlay"
-        android:fadeScrollbars="true">
+        android:fadeScrollbars="true"
+        android:layoutAnimation="@anim/layout_anim">
     </androidx.recyclerview.widget.RecyclerView>
 
     <com.google.android.material.appbar.MaterialToolbar
