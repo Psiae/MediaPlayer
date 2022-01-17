@@ -93,23 +93,15 @@ class SongAdapter @Inject constructor(
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-                    } /*else glide.load(imageUri)
+                    } else glide.load(R.drawable.splash_image_24_trasparent)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
-                            .placeholder(R.drawable.splash_image_24_dark)
-                            .into(ivSongImage)*/
-                }
-
-                if (imageUri.isNotEmpty()) {
-                    glide.asDrawable()
-                        .load(imageUri)
+                            .into(ivSongImage)
+                } else {
+                    glide.load(imageUri)
                         .transition(DrawableTransitionOptions.withCrossFade())
                         .centerInside()
-                        .placeholder(R.drawable.ic_player_24)
                         .into(ivSongImage)
-                        Timber.d("${ivSongImage.drawable}")
-                } else {
-                    loadHolder(ivSongImage)
                 }
             }
 

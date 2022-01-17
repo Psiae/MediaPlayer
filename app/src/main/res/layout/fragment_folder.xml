@@ -13,7 +13,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tbLib"
         android:scrollbars="vertical"
-        android:scrollbarStyle="outsideOverlay"
         android:fadeScrollbars="true">
     </androidx.recyclerview.widget.RecyclerView>
 

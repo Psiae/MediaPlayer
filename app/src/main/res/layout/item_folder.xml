@@ -17,7 +17,6 @@
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/RoundedSquare"
         app:srcCompat="@drawable/ic_baseline_folder_24"
         tools:visibility="visible" />
 

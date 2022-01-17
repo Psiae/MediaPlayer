@@ -55,15 +55,26 @@
 
     <style name="folderBackground">
         <item name="android:background">@color/darkBackground</item>
+        <item name="shapeAppearanceOverlay">@style/Circular</item>
     </style>
 
     <style name="ItemBackground">
         <item name="android:background">@drawable/splash_image_24</item>
         <item name="android:scaleType">centerInside</item>
+        <item name="shapeAppearanceOverlay">@style/Circular</item>
+    </style>
+
+    <style name="songItemShape">
+        <item name="shapeAppearanceOverlay">@style/Circular</item>
     </style>
 
     <style name="Circular">
         <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="RounderTopSquare">
+        <item name="cornerSize">10%</item>
+        <item name="strokeWidth">5dp</item>
     </style>
 
     <style name="RoundedSquare">

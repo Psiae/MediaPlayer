@@ -72,6 +72,11 @@ class FolderFragment: Fragment() {
                 it.mediaPath == songViewModel.curFolder.value!!.title
             }
         }
+        songViewModel.navHeight.observe(viewLifecycleOwner) {
+            binding.rvLib.clipToPadding = false
+            binding.rvLib.setPadding(0,0,0, it)
+            Timber.d("${binding.rvLib.paddingBottom} $it")
+        }
     }
 
     override fun onDestroy() {

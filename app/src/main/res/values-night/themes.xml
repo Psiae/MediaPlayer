@@ -60,6 +60,11 @@
     <style name="ItemBackground">
         <item name="android:background">@drawable/splash_image_24_dark</item>
         <item name="android:scaleType">centerInside</item>
+        <item name="shapeAppearanceOverlay">@style/RoundedSquare</item>
+    </style>
+
+    <style name="songItemShape">
+        <item name="shapeAppearanceOverlay">@style/RoundedSquare</item>
     </style>
 
     <style name="Circular">
