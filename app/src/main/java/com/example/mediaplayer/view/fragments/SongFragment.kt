@@ -7,12 +7,16 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
+import com.example.mediaplayer.util.ext.padding
 import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
@@ -32,7 +36,7 @@ class SongFragment : Fragment() {
 
     private var _binding: FragmentSongBinding? = null
     private val binding: FragmentSongBinding
-    get() = _binding!!
+        get() = _binding!!
 
 
 
@@ -55,8 +59,9 @@ class SongFragment : Fragment() {
         songViewModel = ViewModelProvider(requireActivity())[SongViewModel::class.java]
         navController = requireActivity().findNavController(R.id.navHostContainer)
 
-
         songAdapter.setOnSongClickListener {
+            findNavController().navigate(R.id.action_navBottomSong_to_exoplayerFragment)
+
             /*val player = SimpleExoPlayer.Builder(requireContext()).build()
             val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.mediaId)
             val sourceFactory = DefaultDataSource.Factory(requireContext())
@@ -89,6 +94,10 @@ class SongFragment : Fragment() {
             Timber.d(it.toString())
             songAdapter.songList = it.toList()
         }
+        songViewModel.navHeight.observe(viewLifecycleOwner) {
+            binding.rvSongList.setPadding(0,0,0, it)
+            Timber.d("${binding.rvSongList.paddingBottom} $it")
+        }
     }
 
     private fun setupView() {
@@ -119,7 +128,10 @@ class SongFragment : Fragment() {
                 }
             }
         }
-        binding.run {}
+        binding.run {
+
+        }
+
     }
 
     private fun setupSongAdapter() {

@@ -4,10 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private lateinit var navController: NavController
     private val songViewModel: SongViewModel by viewModels()
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
@@ -53,11 +56,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         setDestinationListener(navController)
 
         // View setup
-        binding.apply {
+        binding.run {
             bottomNavigationView.apply {
                 setupWithNavController(navController)
                 setOnItemReselectedListener { }
             }
+            sbSeekbar.setOnTouchListener { _, _ ->
+                true
+            }
+            sbSeekbar.progress = 20
         }
 
         // Permission check
@@ -89,17 +96,26 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      */
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
+            val height = binding.textView.measuredHeight
+            if (height != 0) {
+                songViewModel.navHeight.value = height
+            }
+
             when (destination.id) {
-                R.id.navBottomHome -> if (homeConstructing)
-                    toast(this,"Coming Soon!")
-                R.id.navBottomSong -> if (songConstructing)
-                    toast(this, "Coming Soon!")
-                R.id.navBottomPlaylist -> if (playlistConstructing)
-                    toast(this,"Coming Soon!")
-                R.id.navBottomLibrary -> if (libraryConstructing)
-                    toast(this,"Coming Soon!")
-                R.id.navBottomSettings -> if (settingsConstructing)
-                    toast(this,"Coming Soon!")
+                R.id.navBottomHome -> binding.bottomNavigationView.visibility = View.VISIBLE
+                R.id.navBottomSong -> {
+                    binding.bottomNavigationView.visibility = View.VISIBLE
+                    binding.clPager.visibility = View.VISIBLE
+                    binding.navHostContainer.layoutParams.height = 0
+                }
+                R.id.navBottomPlaylist -> binding.bottomNavigationView.visibility = View.VISIBLE
+                R.id.navBottomLibrary -> binding.bottomNavigationView.visibility = View.VISIBLE
+                R.id.navBottomSettings -> binding.bottomNavigationView.visibility = View.VISIBLE
+                R.id.exoplayerFragment -> {
+                    binding.bottomNavigationView.visibility = View.GONE
+                    binding.clPager.visibility = View.GONE
+                    binding.navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                }
             }
         }
     }
@@ -202,7 +218,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         binding.apply {
             bottomNavigationView.visibility = View.GONE
             navHostContainer.visibility = View.GONE
-            seekBar.visibility = View.GONE
             btnGrantPermission.visibility = View.VISIBLE
         }
         binding.run {

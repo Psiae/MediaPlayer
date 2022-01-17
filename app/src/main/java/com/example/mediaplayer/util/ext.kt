@@ -15,6 +15,9 @@ var settingsConstructing = true
 
 var curToast = "default"
 
+var padding: Int = 0
+
+
 fun toast(context: Context,
           msg: String = "",
           short: Boolean = true,

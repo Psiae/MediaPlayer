@@ -9,16 +9,16 @@
         android:id="@+id/rvSongList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_above="@id/guideline23"
+        android:fadeScrollbars="true"
+        android:layoutAnimation="@anim/layout_anim"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/songToolbar"
-        android:scrollbars="vertical"
-        android:scrollbarStyle="outsideOverlay"
-        android:fadeScrollbars="true"
-        android:layoutAnimation="@anim/layout_anim">
-    </androidx.recyclerview.widget.RecyclerView>
+        android:clipToPadding="false"
+        />
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/songToolbar"
@@ -31,16 +31,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:title="Song" />
 
-    <com.google.android.exoplayer2.ui.PlayerView
-        android:id="@+id/pvSong"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/songToolbar"
-        android:visibility="gone"/>
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline6"
         android:layout_width="wrap_content"
@@ -48,5 +38,11 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.07" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline23"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.83" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

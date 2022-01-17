@@ -13,6 +13,12 @@
         <action
             android:id="@+id/action_navBottomSong_to_navBottomLibrary"
             app:destination="@id/navBottomLibrary" />
+        <action
+            android:id="@+id/action_navBottomSong_to_exoplayerFragment"
+            app:destination="@id/exoplayerFragment"
+            app:enterAnim="@anim/anim_slidein_up"
+            app:exitAnim="@anim/anim_stay_100"
+            app:popExitAnim="@anim/anim_slideout_down"/>
     </fragment>
 
     <fragment
@@ -32,6 +38,9 @@
         <action
             android:id="@+id/action_navBottomHome_to_folderFragment"
             app:destination="@id/folderFragment" />
+        <action
+            android:id="@+id/action_navBottomHome_to_exoplayerFragment"
+            app:destination="@id/exoplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/navBottomLibrary"
@@ -47,4 +56,8 @@
         android:id="@+id/folderFragment"
         android:name="com.example.mediaplayer.view.fragments.FolderFragment"
         android:label="FolderFragment" />
+    <fragment
+        android:id="@+id/exoplayerFragment"
+        android:name="com.example.mediaplayer.view.fragments.ExoplayerFragment"
+        android:label="ExoplayerFragment" />
 </navigation>

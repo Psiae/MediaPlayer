@@ -36,6 +36,8 @@ class SongViewModel @Inject constructor(
     val folderList: MutableLiveData<MutableList<Folder>>
         get() = _folderList
 
+    val navHeight = MutableLiveData<Int>()
+
     fun postSongList(list: MutableList<Song>) {
         _songList.postValue(list)
     }
