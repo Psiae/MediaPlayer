@@ -93,11 +93,11 @@ class SongAdapter @Inject constructor(
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-                    } else glide.load(imageUri)
+                    } /*else glide.load(imageUri)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
-                            .into(ivSongImage)
+                            .into(ivSongImage)*/
                 }
 
                 if (imageUri.isNotEmpty()) {

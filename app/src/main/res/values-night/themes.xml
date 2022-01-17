@@ -20,6 +20,26 @@
 
     </style>
 
+    <style name="playbuttonSrc">
+        <item name="srcCompat">@drawable/ic_play_24</item>
+    </style>
+
+    <style name="favoriteButtonBorderSrc">
+        <item name="srcCompat">
+            @drawable/ic_favorite_border_24
+        </item>
+    </style>
+
+    <style name="playlistButtonSrc">
+        <item name="srcCompat">
+            @drawable/ic_playlist_play_24
+        </item>
+    </style>
+
+    <style name="bnvColor">
+        <item name="android:background">#F4000000</item>
+    </style>
+
     <style name="toolbarColor">
         <item name="android:background">@color/black</item>
     </style>
@@ -38,6 +58,7 @@
 
     <style name="ItemBackground">
         <item name="android:background">@drawable/splash_image_24_dark</item>
+        <item name="android:scaleType">centerInside</item>
     </style>
 
     <style name="Circular">

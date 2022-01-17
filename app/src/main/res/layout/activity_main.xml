@@ -58,6 +58,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clPager"
         style="@style/layoutBackground"
+        android:elevation="10dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
@@ -90,33 +91,33 @@
 
         <ImageButton
             android:id="@+id/ibFavorite"
+            style="@style/favoriteButtonBorderSrc"
             android:layout_width="40dp"
             android:layout_height="35dp"
             android:layout_margin="5dp"
-            android:background="@color/darkBackground"
-            android:src="@drawable/ic_favorite_border_24"
+            android:background="@null"
             app:layout_constraintBottom_toTopOf="@+id/sbSeekbar"
             app:layout_constraintEnd_toStartOf="@id/ibPlayPause"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/ibPlayPause"
+            style="@style/playbuttonSrc"
             android:layout_width="40dp"
             android:layout_height="35dp"
             android:layout_margin="5dp"
-            android:background="@color/darkBackground"
-            android:src="@drawable/ic_play_24"
+            android:background="@null"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintEnd_toEndOf="@id/guideline22"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <ImageButton
             android:id="@+id/ibPlaylist"
+            style="@style/playlistButtonSrc"
             android:layout_width="40dp"
             android:layout_height="35dp"
             android:layout_margin="5dp"
-            android:background="@color/darkBackground"
-            android:src="@drawable/ic_playlist_play_24"
+            android:background="@null"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintEnd_toStartOf="@+id/ibFavorite"
             app:layout_constraintTop_toTopOf="parent" />
@@ -169,9 +170,9 @@
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#EE000000"
+        style="@style/bnvColor"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:elevation="0dp"
-        app:itemIconTint="@color/lightBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -183,7 +184,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.815" />
+        app:layout_constraintGuide_percent="0.82" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
