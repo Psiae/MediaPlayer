@@ -38,6 +38,7 @@
 
     <style name="bnvColor">
         <item name="android:background">#F4000000</item>
+        <item name="elevation">5dp</item>
     </style>
 
     <style name="toolbarColor">

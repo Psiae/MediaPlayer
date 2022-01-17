@@ -61,10 +61,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 setupWithNavController(navController)
                 setOnItemReselectedListener { }
             }
-            sbSeekbar.setOnTouchListener { _, _ ->
-                true
-            }
+            sbSeekbar.setOnTouchListener { _, _ -> true }
             sbSeekbar.progress = 20
+            sivCurImage.setOnClickListener {
+                toast(this@MainActivity, "Image Clicked")
+            }
         }
 
         // Permission check
