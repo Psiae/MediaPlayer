@@ -1,9 +1,7 @@
 package com.example.mediaplayer.view.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -103,7 +101,9 @@ class SongFragment : Fragment() {
     private fun setupView() {
         binding.apply {
             songToolbar.apply {
+                menu.clear()
                 inflateMenu(R.menu.menu_song_toolbar)
+                Timber.d("songToolbar Inflated")
                 setOnMenuItemClickListener { menu ->
                     when (menu.itemId) {
                         R.id.menuSort -> {
