@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+
     private val songViewModel: SongViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,12 +92,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             ))
 
         if (!hasPermission(Perms(FOREGROUND_SERVICE))
-            && VersionHelper.isOreo())
-            requestPermission(Perms(
+            && VersionHelper.isPie())
+                requestPermission(Perms(
                 FOREGROUND_SERVICE,
                 PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
                 "Foreground Service"
-            ))
+                ))
 
         if (!hasPermission(Perms(WRITE_STORAGE))
             || !hasPermission(Perms(READ_STORAGE)))
@@ -106,11 +107,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 "Write External Storage"
             ))
 
-        return (hasPermission(Perms(INTERNET))
-                && hasPermission(Perms(FOREGROUND_SERVICE))
-                && (hasPermission(Perms(WRITE_STORAGE))
-                || hasPermission(Perms(READ_STORAGE))
-                ))
+        return if (VersionHelper.isPie()) {
+            (hasPermission(Perms(INTERNET))
+                    && hasPermission(Perms(FOREGROUND_SERVICE))
+                    && (hasPermission(Perms(WRITE_STORAGE)) || hasPermission(Perms(READ_STORAGE))))
+        } else {
+            (hasPermission(Perms(INTERNET))
+                    && (hasPermission(Perms(WRITE_STORAGE)) || hasPermission(Perms(READ_STORAGE))))
+        }
     }
     private fun hasPermission(perms: Perms): Boolean {
         return try {
@@ -149,10 +153,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             toast(this,"Permission Denied!")
             SettingsDialog.Builder(this).build().show()
+            Timber.d("$perms")
         }
         if (EasyPermissions.somePermissionDenied(this, perms.first())) {
             toast(this,"Permission Needed!")
         }
+
     }
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
         if (checkPermission()) {
@@ -249,7 +255,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      */
     private fun setupSongVM() {
         songViewModel.run {
-            getDeviceSong()
+            getDeviceSong("setupSongVM")
             songList.observe(this@MainActivity) { songList ->
                 songAdapter.songList = songList
             }
@@ -286,8 +292,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
     override fun onResume() {
         super.onResume()
-        Timber.d("getDeviceSong")
-        songViewModel.getDeviceSong()
+        songViewModel.getDeviceSong("MainActivity onResume")
     }
     override fun onDestroy() {
         super.onDestroy()

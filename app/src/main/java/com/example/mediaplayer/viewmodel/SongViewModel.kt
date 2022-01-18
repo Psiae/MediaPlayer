@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.mediaplayer.model.data.entities.Folder
@@ -25,22 +26,34 @@ class SongViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _curFolder = MutableLiveData<Folder>()
-    val curFolder: MutableLiveData<Folder>
+    val curFolder: LiveData<Folder>
         get() = _curFolder
 
     private val _songList = MutableLiveData<MutableList<Song>>()
-    val songList: MutableLiveData<MutableList<Song>>
+    val songList: LiveData<MutableList<Song>>
         get() = _songList
 
     private val _folderList = MutableLiveData<MutableList<Folder>>()
-    val folderList: MutableLiveData<MutableList<Folder>>
+    val folderList: LiveData<MutableList<Folder>>
         get() = _folderList
 
     val navHeight = MutableLiveData<Int>()
 
-    fun getDeviceSong() {
+    private val _isFetching = MutableLiveData(false)
+
+    fun setCurFolder(folder: Folder) {
+        _curFolder.value = folder
+    }
+
+    fun getDeviceSong(msg: String = "unknown") {
+        if (_isFetching.value!!) return
+
+        Timber.d("getDeviceSong by $msg")
+        _isFetching.value = true
+
         CoroutineScope(Dispatchers.IO).launch {
-            val music = queryDeviceMusic()
+            queryDeviceMusic()
+            _isFetching.postValue(false)
         }
     }
 
@@ -72,7 +85,7 @@ class SongViewModel @Inject constructor(
                 mediaPathId,
             )
 
-            val selection = "${MediaStore.Audio.Media.IS_MUSIC} = 1"
+            val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
             val selectOrder = MediaStore.Audio.Media.DEFAULT_SORT_ORDER
             val musicCursor = context.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 projection, selection, null, selectOrder
@@ -127,8 +140,7 @@ class SongViewModel @Inject constructor(
                             if (filePath != "0") filePath else "/"
                         }
 
-                    val file = File(audioPath)
-                    val uris = Uri.fromFile(file)
+                    val folderPath = if (VersionHelper.isQ()) folder else File(folder).parent
 
                     deviceMusicList.add(Song(
                         album,
@@ -147,11 +159,11 @@ class SongViewModel @Inject constructor(
                         year,
                     ))
 
-                    if (!folderList.contains(Folder(audioPath, 0, folder))) {
+                    if (!folderList.contains(Folder(audioPath, 0, folderPath))) {
                         folderList.add(Folder(
                             title = audioPath,
                             size = 0,
-                            path = folder
+                            path = folderPath
                             )
                         )
                     }

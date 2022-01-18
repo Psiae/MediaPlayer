@@ -50,7 +50,7 @@ class LibraryFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         folderAdapter.setOnFolderClicked {
-            songViewModel.curFolder.value = it
+            songViewModel.setCurFolder(it)
             binding.run {
                 findNavController().navigate(R.id.folderFragment)
             }

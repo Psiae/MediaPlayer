@@ -23,7 +23,7 @@ class SongAdapter (
     private val context: Context
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
-    private val differ = AsyncListDiffer(this@SongAdapter, diffSongCallback)
+    val differ = AsyncListDiffer(this@SongAdapter, diffSongCallback)
 
     var songList: List<Song>
         get() = differ.currentList

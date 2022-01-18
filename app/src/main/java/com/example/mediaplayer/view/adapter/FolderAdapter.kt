@@ -21,7 +21,9 @@ class FolderAdapter (
     var folderList: List<Folder>
         get() = differ.currentList
         set(value) {
-            val submit = value.sortedBy { it.title }
+
+            val submit = value
+                .sortedBy { it.title }
             differ.submitList(submit)
         }
 

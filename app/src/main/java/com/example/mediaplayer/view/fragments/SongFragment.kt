@@ -8,8 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -74,6 +72,11 @@ class SongFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        songViewModel.getDeviceSong("songFragment onResume")
+    }
+
     private fun play(song: Song) {
         val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
         val sourceFactory = DefaultDataSource.Factory(requireContext())
@@ -120,13 +123,21 @@ class SongFragment : Fragment() {
                             }
                             true
                         }
+
                         else -> false
                     }
                 }
             }
         }
-        binding.run {}
-
+        binding.run {
+            Timber.d("BindingRun")
+            songAdapter.differ.addListListener { prev, cur ->
+                when (prev) {
+                    cur -> Unit
+                    else -> rvSongList.scrollToPosition(0)
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView () {
@@ -142,3 +153,4 @@ class SongFragment : Fragment() {
         if (_binding == null) Timber.d("SongFragment Destroyed")
     }
 }
+

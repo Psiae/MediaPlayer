@@ -20,5 +20,6 @@
     <string name="unknown">Unknown</string>
     <string name="sort">Sort</string>
     <string name="sort_order">Sort order</string>
+    <string name="search">Search</string>
 
 </resources>

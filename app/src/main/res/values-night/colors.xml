@@ -18,4 +18,5 @@
 
     <color name="widgetColor">@color/white</color>
     <color name="playpause">@color/white</color>
+    <color name="searchColor">@color/white</color>
 </resources>
