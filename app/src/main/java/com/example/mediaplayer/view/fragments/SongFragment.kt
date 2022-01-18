@@ -1,97 +1,90 @@
 package com.example.mediaplayer.view.fragments
 
+import android.content.ContentUris
 import android.os.Bundle
-import android.view.*
+import android.provider.MediaStore
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.navOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.model.data.remote.testImageUrl
-import com.example.mediaplayer.util.ext.padding
 import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Named
 
 
 @AndroidEntryPoint
 class SongFragment : Fragment() {
 
     @Inject
+    @Named("songAdapter")
     lateinit var songAdapter: SongAdapter
 
-    private lateinit var songViewModel: SongViewModel
+    private val songViewModel: SongViewModel by viewModels()
     private lateinit var navController: NavController
+
+    @Inject
+    lateinit var player: ExoPlayer
 
     private var _binding: FragmentSongBinding? = null
     private val binding: FragmentSongBinding
         get() = _binding!!
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        if (_binding == null) {
-            _binding = FragmentSongBinding.inflate(inflater, container, false)
-            Timber.d("SongFragment Inflated")
-        }
-
+        _binding = FragmentSongBinding.inflate(inflater, container, false)
+        Timber.d("SongFragment Inflated")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        songViewModel = ViewModelProvider(requireActivity())[SongViewModel::class.java]
         navController = requireActivity().findNavController(R.id.navHostContainer)
-
-        songAdapter.setOnSongClickListener {
-            findNavController().navigate(R.id.action_navBottomSong_to_exoplayerFragment)
-
-            /*val player = SimpleExoPlayer.Builder(requireContext()).build()
-            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.mediaId)
-            val sourceFactory = DefaultDataSource.Factory(requireContext())
-            val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-                .createMediaSource(MediaItem.fromUri(uri))
-            Timber.d("$mediaSource $uri $it")
-            player.setMediaSource(mediaSource)
-            player.prepare()
-            player.play()
-            binding.pvSong.apply {
-                setPlayer(player)
-                visibility = View.VISIBLE
-            }*/
+        songAdapter.setOnSongClickListener { song ->
+            play(song)
         }
-
-        setupView()
-        setupSongAdapter()
-        setupRecyclerView()
-        observeSongList()
+        CoroutineScope(Dispatchers.Main).launch {
+            setupView()
+            setupRecyclerView()
+            delay(100)
+            binding.songProgressBar.visibility = View.GONE
+            observeSongList()
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-        if (_binding == null) Timber.d("SongFragment Destroyed")
+    private fun play(song: Song) {
+        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
+        val sourceFactory = DefaultDataSource.Factory(requireContext())
+        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri))
+        Timber.d("$mediaSource $uri $song $player")
+        player.setMediaSource(mediaSource)
+        player.prepare()
+        player.playWhenReady = true
     }
 
     private fun observeSongList() {
-        songViewModel.songList.observe(viewLifecycleOwner) {
-            Timber.d(it.toString())
-            songAdapter.songList = it.toList()
-        }
         songViewModel.navHeight.observe(viewLifecycleOwner) {
             binding.rvSongList.setPadding(0,0,0, it)
             Timber.d("${binding.rvSongList.paddingBottom} $it")
@@ -128,33 +121,20 @@ class SongFragment : Fragment() {
                 }
             }
         }
-        binding.run {
-
-        }
+        binding.run {}
 
     }
 
-    private fun setupSongAdapter() {
-        if (songViewModel.songList.value?.isEmpty() == true) {
-            val songList = mutableListOf(
-                Song(),
-                Song(title = "Summit"),
-                Song(title = "Summit", artist = "Rei"),
-                Song(title = "Summit", artist = "Rei", album = "Romancer"),
-                Song(
-                    title = "Summit",
-                    artist = "Rei",
-                    album = "Romancer",
-                    imageUri = testImageUrl
-                ),
-            )
-            songViewModel.postSongList(songList)
-        }
-    }
     private fun setupRecyclerView () {
         binding.rvSongList.apply {
             adapter = songAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+        if (_binding == null) Timber.d("SongFragment Destroyed")
     }
 }

@@ -19,18 +19,14 @@ class PlaylistFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (_binding == null) {
-            _binding = FragmentPlaylistBinding.inflate(inflater, container, false)
-            Timber.d("FragmentPlaylistBinding Inflated")
-        }
+        _binding = FragmentPlaylistBinding.inflate(inflater, container, false)
+        Timber.d("FragmentPlaylistBinding Inflated")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.apply {
-
-        }
+        binding.apply {}
     }
 
     override fun onDestroy() {

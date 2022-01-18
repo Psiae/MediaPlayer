@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.mediaplayer.databinding.FragmentExoplayerBinding
+import com.example.mediaplayer.databinding.FragmentSongBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -21,16 +22,13 @@ class ExoplayerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (_binding == null) {
-            _binding = FragmentExoplayerBinding.inflate(inflater, container, false)
-            Timber.d("${ExoplayerFragment::class.java.simpleName} Inflated")
-        }
+        _binding = FragmentExoplayerBinding.inflate(inflater, container, false)
+        Timber.d("ExoPlayerFragmentInflated")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
     }
 
     override fun onDestroy() {
@@ -38,5 +36,4 @@ class ExoplayerFragment : Fragment() {
         _binding = null
         if (_binding == null) Timber.d("ExoplayerFragment Destroyed")
     }
-
 }

@@ -24,6 +24,10 @@
         <item name="srcCompat">@drawable/ic_play_24</item>
     </style>
 
+    <style name="pauseButtonSrc">
+        <item name="srcCompat">@drawable/ic_pause_24</item>
+    </style>
+
     <style name="favoriteButtonBorderSrc">
         <item name="srcCompat">
             @drawable/ic_favorite_border_24
@@ -37,7 +41,7 @@
     </style>
 
     <style name="bnvColor">
-        <item name="android:background">#F4000000</item>
+        <item name="android:background">#E9000000</item>
         <item name="elevation">5dp</item>
     </style>
 

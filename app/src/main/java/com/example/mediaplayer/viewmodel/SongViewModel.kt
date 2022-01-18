@@ -38,10 +38,6 @@ class SongViewModel @Inject constructor(
 
     val navHeight = MutableLiveData<Int>()
 
-    fun postSongList(list: MutableList<Song>) {
-        _songList.postValue(list)
-    }
-
     fun getDeviceSong() {
         CoroutineScope(Dispatchers.IO).launch {
             val music = queryDeviceMusic()

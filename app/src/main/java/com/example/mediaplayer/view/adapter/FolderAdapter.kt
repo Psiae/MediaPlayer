@@ -11,7 +11,7 @@ import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.util.diffFolderCallback
 import javax.inject.Inject
 
-class FolderAdapter @Inject constructor (
+class FolderAdapter (
     private val glide: RequestManager,
     private val context: Context
 ): RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
@@ -24,7 +24,6 @@ class FolderAdapter @Inject constructor (
             val submit = value.sortedBy { it.title }
             differ.submitList(submit)
         }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
         return FolderViewHolder(ItemFolderBinding.inflate(
@@ -67,6 +66,4 @@ class FolderAdapter @Inject constructor (
     fun setOnFolderClicked(listener: ( (Folder) -> Unit )) {
         onFolderClickListener = listener
     }
-
-
 }

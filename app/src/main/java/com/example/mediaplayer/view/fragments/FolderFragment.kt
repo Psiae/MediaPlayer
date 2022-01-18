@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,16 +16,19 @@ import com.example.mediaplayer.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Named
 
 @AndroidEntryPoint
 class FolderFragment: Fragment() {
 
     @Inject
+    @Named("folderAdapter")
     lateinit var folderAdapter: FolderAdapter
     @Inject
+    @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
 
-    private lateinit var songViewModel: SongViewModel
+    private val songViewModel: SongViewModel by viewModels()
 
     private var _binding: FragmentFolderBinding? = null
     private val binding: FragmentFolderBinding
@@ -35,20 +39,15 @@ class FolderFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        if (_binding == null) {
-            _binding = FragmentFolderBinding.inflate(inflater, container, false)
-            Timber.d("${FolderFragment::class.java.simpleName} Inflated")
-        }
+        _binding = FragmentFolderBinding.inflate(inflater, container, false)
+        Timber.d("FolderFragment Inflated")
         return binding.root
     }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        songViewModel = ViewModelProvider(requireActivity())[SongViewModel::class.java]
 
         setupView()
         subToObserver()
-
     }
 
     private fun setupView() {
@@ -56,7 +55,7 @@ class FolderFragment: Fragment() {
             tbLib.setNavigationOnClickListener {
                 findNavController().popBackStack()
             }
-            rvLib.apply {
+            rvLib.run {
                 adapter = songAdapter
                 layoutManager = LinearLayoutManager(requireContext())
             }
@@ -68,8 +67,8 @@ class FolderFragment: Fragment() {
             binding.tbLib.title = it.title
         }
         songViewModel.songList.observe(viewLifecycleOwner) {
-            songAdapter.songList = it.filter {
-                it.mediaPath == songViewModel.curFolder.value!!.title
+            songAdapter.songList = it.filter { song ->
+                song.mediaPath == songViewModel.curFolder.value!!.title
             }
         }
         songViewModel.navHeight.observe(viewLifecycleOwner) {

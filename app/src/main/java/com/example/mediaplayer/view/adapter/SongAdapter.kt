@@ -18,7 +18,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import timber.log.Timber
 import javax.inject.Inject
 
-class SongAdapter @Inject constructor(
+class SongAdapter (
     private val glide: RequestManager,
     private val context: Context
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
@@ -36,7 +36,6 @@ class SongAdapter @Inject constructor(
             }
             differ.submitList(submit)
         }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
         return SongViewHolder(ItemSongBinding.inflate(
@@ -119,9 +118,5 @@ class SongAdapter @Inject constructor(
 
     fun setOnSongClickListener(listener: (Song) -> Unit ) {
         onSongItemClickListener = listener
-    }
-
-    fun loadHolder (image: ShapeableImageView) {
-        image.visibility = View.GONE
     }
 }

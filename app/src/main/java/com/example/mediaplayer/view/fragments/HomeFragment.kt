@@ -21,11 +21,8 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        if (_binding == null) {
-            _binding = FragmentHomeBinding.inflate(inflater, container, false)
-            Timber.d("HomeFragment Inflated")
-        }
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        Timber.d("HomeFragment Inflated")
         return binding.root
     }
 

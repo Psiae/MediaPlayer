@@ -10,3 +10,11 @@ object VersionHelper {
     fun isR() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
     fun isSnowCone() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
+
+var isPaused = false
+
+data class Perms(
+    val permission: String,
+    val requestId: Int = 130,
+    val msg: String? = null
+)

@@ -18,4 +18,5 @@
     <color name="cacaca">#CACACA</color>
 
     <color name="widgetColor">@color/black</color>
+    <color name="playpause">@color/darkBackground</color>
 </resources>
