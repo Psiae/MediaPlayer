@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -28,7 +29,7 @@ class FolderFragment: Fragment() {
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
 
-    private val songViewModel: SongViewModel by viewModels()
+    private val songViewModel: SongViewModel by activityViewModels()
 
     private var _binding: FragmentFolderBinding? = null
     private val binding: FragmentFolderBinding
@@ -45,7 +46,6 @@ class FolderFragment: Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupView()
         subToObserver()
     }
@@ -67,9 +67,11 @@ class FolderFragment: Fragment() {
             binding.tbLib.title = it.title
         }
         songViewModel.songList.observe(viewLifecycleOwner) {
+            Timber.d("$it ${songAdapter.songList} ${songViewModel.curFolder}")
             songAdapter.songList = it.filter { song ->
                 song.mediaPath == songViewModel.curFolder.value!!.title
             }
+            Timber.d("$it ${songAdapter.songList} ${songViewModel.curFolder}")
         }
         songViewModel.navHeight.observe(viewLifecycleOwner) {
             binding.rvLib.clipToPadding = false

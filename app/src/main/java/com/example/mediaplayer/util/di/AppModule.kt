@@ -30,7 +30,7 @@ object AppModule {
     fun provideGlideInstance(
         @ApplicationContext context: Context
     ) = Glide.with(context).setDefaultRequestOptions(RequestOptions()
-        .diskCacheStrategy(DiskCacheStrategy.DATA))
+        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
 
     @Singleton
     @Provides

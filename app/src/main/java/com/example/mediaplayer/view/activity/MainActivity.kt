@@ -286,6 +286,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
     override fun onResume() {
         super.onResume()
+        Timber.d("getDeviceSong")
         songViewModel.getDeviceSong()
     }
     override fun onDestroy() {

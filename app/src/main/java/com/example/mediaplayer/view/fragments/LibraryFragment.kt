@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -30,7 +31,7 @@ class LibraryFragment: Fragment() {
     @Named("songAdapter")
     lateinit var songAdapter: SongAdapter
 
-    private val songViewModel: SongViewModel by viewModels()
+    private val songViewModel: SongViewModel by activityViewModels()
 
     private var _binding: FragmentLibraryBinding? = null
     private val binding: FragmentLibraryBinding
@@ -48,7 +49,6 @@ class LibraryFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         folderAdapter.setOnFolderClicked {
             songViewModel.curFolder.value = it
             binding.run {
@@ -70,10 +70,6 @@ class LibraryFragment: Fragment() {
             adapter = folderAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     private fun subToObserver() {

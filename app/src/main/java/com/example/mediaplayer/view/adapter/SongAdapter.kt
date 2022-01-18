@@ -70,7 +70,7 @@ class SongAdapter (
             val title: String = song.title
             val year: Int = song.year
 
-            val animation = android.view.animation.AnimationUtils.loadAnimation(this@SongAdapter.context, R.anim.anim_slidein_left)
+            val animation = android.view.animation.AnimationUtils.loadAnimation(this@SongAdapter.context, R.anim.anim_slidein_down)
             val bullet = 0x2022.toChar()
             binding.run {
                 root.startAnimation(animation)

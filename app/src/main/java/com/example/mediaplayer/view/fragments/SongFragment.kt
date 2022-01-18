@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -36,10 +37,10 @@ import javax.inject.Named
 class SongFragment : Fragment() {
 
     @Inject
-    @Named("songAdapter")
+    @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
 
-    private val songViewModel: SongViewModel by viewModels()
+    private val songViewModel: SongViewModel by activityViewModels()
     private lateinit var navController: NavController
 
     @Inject
@@ -88,6 +89,9 @@ class SongFragment : Fragment() {
         songViewModel.navHeight.observe(viewLifecycleOwner) {
             binding.rvSongList.setPadding(0,0,0, it)
             Timber.d("${binding.rvSongList.paddingBottom} $it")
+        }
+        songViewModel.songList.observe(viewLifecycleOwner) {
+            songAdapter.songList = it
         }
     }
 
