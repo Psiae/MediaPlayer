@@ -25,6 +25,9 @@ class SongViewModel @Inject constructor(
     private val context: Context
 ) : ViewModel() {
 
+    val navHeight = MutableLiveData<Int>()
+    val isPlaying = MutableLiveData<Boolean>(false)
+
     private val _curFolder = MutableLiveData<Folder>()
     val curFolder: LiveData<Folder>
         get() = _curFolder
@@ -36,8 +39,6 @@ class SongViewModel @Inject constructor(
     private val _folderList = MutableLiveData<MutableList<Folder>>()
     val folderList: LiveData<MutableList<Folder>>
         get() = _folderList
-
-    val navHeight = MutableLiveData<Int>()
 
     private val _isFetching = MutableLiveData(false)
 
@@ -110,12 +111,12 @@ class SongViewModel @Inject constructor(
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DISPLAY_NAME)
                 val durationIndex =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
-                val pathIndex =
-                    cursor.getColumnIndexOrThrow(mediaPath)
                 val titleIndex =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.TITLE)
                 val yearIndex =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.YEAR)
+                val pathIndex =
+                    cursor.getColumnIndexOrThrow(mediaPath)
                 val folderIndex =
                     cursor.getColumnIndexOrThrow(mediaPathId)
 
@@ -129,9 +130,9 @@ class SongViewModel @Inject constructor(
                     val dateModified = cursor.getString(dateModifiedIndex)
                     val displayName = cursor.getString(displayNameIndex)
                     val duration = cursor.getString(durationIndex)
-                    val path = cursor.getString(pathIndex)
                     val title = cursor.getString(titleIndex)
                     val year = cursor.getInt(yearIndex)
+                    val path = cursor.getString(pathIndex)
                     val folder = cursor.getString(folderIndex)
 
                     val audioPath =

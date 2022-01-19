@@ -209,15 +209,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 navController.navigate(R.id.exoplayerFragment)
             }
             ibPlayPause.setOnClickListener {
-                isPaused = if (!isPaused) {
+                songViewModel.isPlaying.value = if (songViewModel.isPlaying.value!!) {
                     player.pause()
-                    player.pause()
-                    ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
-                    true
+                    false
                 } else {
                     player.play()
-                    ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)
-                    false
+                    true
                 }
             }
         }
@@ -256,6 +253,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setupSongVM() {
         songViewModel.run {
             getDeviceSong("setupSongVM")
+            isPlaying.observe(this@MainActivity) {
+                if (it) binding.ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)
+                else binding.ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
+            }
             songList.observe(this@MainActivity) { songList ->
                 songAdapter.songList = songList
             }

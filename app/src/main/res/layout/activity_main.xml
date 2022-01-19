@@ -57,16 +57,15 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clPager"
+        style="@style/layoutBackground"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        style="@style/layoutBackground"
-        android:elevation="5dp"
         android:clickable="true"
+        android:elevation="5dp"
         android:focusable="true"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2">
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/sivCurImage"
@@ -128,13 +127,13 @@
             android:id="@+id/sbSeekbar"
             android:layout_width="0dp"
             android:layout_height="5dp"
+            android:clickable="true"
             android:elevation="5dp"
+            android:focusable="true"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
             android:splitTrack="false"
             android:thumbTint="#00000000"
-            android:clickable="true"
-            android:focusable="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -171,11 +170,11 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
+        style="@style/bnvColor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/bnvColor"
-        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:elevation="0dp"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -223,6 +222,13 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.96" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.92" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

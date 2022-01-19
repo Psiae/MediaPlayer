@@ -11,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.appcompat.widget.SearchView
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
@@ -32,7 +33,7 @@ import javax.inject.Named
 
 
 @AndroidEntryPoint
-class SongFragment : Fragment() {
+class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     @Inject
     @Named("songAdapterNS")
@@ -86,6 +87,7 @@ class SongFragment : Fragment() {
         player.setMediaSource(mediaSource)
         player.prepare()
         player.playWhenReady = true
+        songViewModel.isPlaying.value = true
     }
 
     private fun observeSongList() {
@@ -100,9 +102,16 @@ class SongFragment : Fragment() {
 
     private fun setupView() {
         binding.apply {
-            songToolbar.apply {
+            songToolbar.run {
                 menu.clear()
                 inflateMenu(R.menu.menu_song_toolbar)
+
+                val search = menu.findItem(R.id.menuSearch).actionView as SearchView
+                search.apply {
+                    isSubmitButtonEnabled = true
+                    setOnQueryTextListener(this@SongFragment)
+                }
+
                 Timber.d("songToolbar Inflated")
                 setOnMenuItemClickListener { menu ->
                     when (menu.itemId) {
@@ -115,7 +124,6 @@ class SongFragment : Fragment() {
                             true
                         }
                         R.id.menuSettings -> {
-                            toast(requireContext(), "Settings Menu")
                             try {
                                 navController.navigate(R.id.navBottomSettings)
                             } catch (e: Exception) {
@@ -151,6 +159,24 @@ class SongFragment : Fragment() {
         super.onDestroy()
         _binding = null
         if (_binding == null) Timber.d("SongFragment Destroyed")
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return true
+    }
+
+    override fun onQueryTextChange(query: String?): Boolean {
+        if (!query.isNullOrEmpty()) {
+            val list = songViewModel.songList.value!!
+                .filter { it.title.lowercase().contains(query.lowercase().trim())
+                        || it.album.lowercase() == query.lowercase().trim()
+                        || it.artist.lowercase() == query.lowercase().trim()
+            }
+            songAdapter.songList = list
+        } else {
+            songAdapter.songList = songViewModel.songList.value!!
+        }
+        return true
     }
 }
 
