@@ -8,12 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
-import com.example.mediaplayer.model.data.entities.Folder
+import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.*
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.INTERNET
@@ -25,6 +29,7 @@ import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.ext.*
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
+import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.vmadalin.easypermissions.EasyPermissions
@@ -40,6 +45,10 @@ import javax.inject.Named
 @SuppressLint("LogNotTimber")
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
+    companion object {
+        val TAG = MainActivity::class.java.simpleName
+    }
+
     @Inject
     @Named("songAdapter")
     lateinit var songAdapter: SongAdapter
@@ -49,7 +58,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     lateinit var folderAdapter: FolderAdapter
 
     @Inject
+    lateinit var swipeAdapter: SwipeAdapter
+
+    @Inject
     lateinit var player: ExoPlayer
+
+    @Inject
+    lateinit var glide: RequestManager
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
@@ -64,24 +79,29 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         /* navController & Destination setup */
         setupNavController()
+
+        // Permission check
+        checkPermission()
+
         /* View setup */
         setupView()
 
-        /* Permission check */
-        if (!checkPermission()) {
-            setToaster()
-            permissionScreen()
-        }
-
-        /* toaster Setup*/
+        // toaster Setup
         setToaster()
-        /* setup ViewModel & Observer */
+
+        // setup ViewModel & Observer
         setupSongVM()
+
+        lifecycleScope.launch {
+            delay(1500)
+            getControlHeight()
+        }
     }
 
     /**
      * Permission Setup
      */
+
     @SuppressLint("InlinedApi")
     private fun checkPermission(): Boolean {
         if (!hasPermission(Perms(INTERNET)))
@@ -91,14 +111,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 "Internet"
             ))
 
-        if (!hasPermission(Perms(FOREGROUND_SERVICE))
-            && VersionHelper.isPie())
-                requestPermission(Perms(
-                FOREGROUND_SERVICE,
-                PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
-                "Foreground Service"
-                ))
-
         if (!hasPermission(Perms(WRITE_STORAGE))
             || !hasPermission(Perms(READ_STORAGE)))
             requestPermission(Perms(
@@ -107,17 +119,28 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 "Write External Storage"
             ))
 
+        if (!hasPermission(Perms(FOREGROUND_SERVICE))
+            && VersionHelper.isPie())
+            requestPermission(Perms(
+                FOREGROUND_SERVICE,
+                PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
+                "Foreground Service"
+            ))
+
         return if (VersionHelper.isPie()) {
-            (hasPermission(Perms(INTERNET))
+                (hasPermission(Perms(INTERNET))
                     && hasPermission(Perms(FOREGROUND_SERVICE))
-                    && (hasPermission(Perms(WRITE_STORAGE)) || hasPermission(Perms(READ_STORAGE))))
+                    && (hasPermission(Perms(WRITE_STORAGE))
+                        || hasPermission(Perms(READ_STORAGE))))
         } else {
-            (hasPermission(Perms(INTERNET))
-                    && (hasPermission(Perms(WRITE_STORAGE)) || hasPermission(Perms(READ_STORAGE))))
+                (hasPermission(Perms(INTERNET))
+                        && (hasPermission(Perms(WRITE_STORAGE))
+                        || hasPermission(Perms(READ_STORAGE))))
         }
     }
     private fun hasPermission(perms: Perms): Boolean {
         return try {
+            Timber.d("hasPermission ?: $perms")
             EasyPermissions.hasPermissions(this, perms.permission)
         } catch (e: Exception) {
             Timber.wtf(RuntimeException("$e $perms"))
@@ -136,12 +159,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
     private fun permissionScreen() {
         binding.apply {
-            bottomNavigationView.visibility = View.GONE
-            navHostContainer.visibility = View.GONE
-            btnGrantPermission.visibility = View.VISIBLE
             clPager.visibility = View.GONE
-        }
-        binding.run {
+            navHostContainer.visibility = View.GONE
+            bottomNavigationView.visibility = View.GONE
+            btnGrantPermission.visibility = View.VISIBLE
             btnGrantPermission.setOnClickListener {
                 if (checkPermission()) {
                     restartApp(false)
@@ -158,7 +179,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         if (EasyPermissions.somePermissionDenied(this, perms.first())) {
             toast(this,"Permission Needed!")
         }
-
+        permissionScreen()
     }
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
         if (checkPermission()) {
@@ -170,7 +191,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+        EasyPermissions.onRequestPermissionsResult(requestCode,
+            permissions, grantResults, this
+        )
     }
 
     /**
@@ -198,6 +221,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupView() {
         binding.apply {
+            bottomNavigationView.apply {
+                setupWithNavController(navController)
+                setOnItemReselectedListener { }
+            }
             sbSeekbar.apply {
                 setOnTouchListener { _, _ -> true }
                 progress = 20
@@ -205,31 +232,27 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             sivCurImage.setOnClickListener {
                 toast(this@MainActivity, "Image Clicked")
             }
-            viewPager2.setOnClickListener {
-                navController.navigate(R.id.exoplayerFragment)
+            viewPager2.apply {
+                adapter = swipeAdapter
             }
             ibPlayPause.setOnClickListener {
-                songViewModel.isPlaying.value = if (songViewModel.isPlaying.value!!) {
-                    player.pause()
-                    false
-                } else {
-                    player.play()
-                    true
-                }
+                songViewModel.isPlaying.value =
+                    if (songViewModel.isPlaying.value!!) {
+                        player.pause()
+                        false
+                    } else {
+                        player.play()
+                        true
+                    }
             }
-        }
-        binding.run {
-            bottomNavigationView.run {
-                setupWithNavController(navController)
-                setOnItemReselectedListener { }
-            }
-            getControlHeight()
         }
     }
-    private fun setToaster() = run { curToast = "" }
+
+    private fun setToaster() = apply { curToast = "" }
     private fun getControlHeight() {
-        if (binding.textView.measuredHeight != 0)
-            songViewModel.navHeight.value = binding.textView.measuredHeight
+        songViewModel.navHeight.value =
+            if (binding.dummy.measuredHeight != 0) binding.dummy.measuredHeight
+        else return
     }
     private fun setControl(fullscreen: Boolean = false) {
         if (fullscreen) {
@@ -251,39 +274,51 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      * ViewModel & Data Provider
      */
     private fun setupSongVM() {
-        songViewModel.run {
-            getDeviceSong("setupSongVM")
+        songViewModel.apply {
             isPlaying.observe(this@MainActivity) {
                 if (it) binding.ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)
                 else binding.ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
             }
-            songList.observe(this@MainActivity) { songList ->
-                songAdapter.songList = songList
+            songList.observe(this@MainActivity) {
+                swipeAdapter.songList = it
             }
-            folderList.observe(this@MainActivity) {folderList ->
-                Timber.d(folderList.toString())
-                val sizedList = mutableListOf<Folder>()
-                folderList.forEach { folder ->
-                    val filtered = songAdapter.songList.filter {
-                        it.mediaPath == folder.title
-                    }
-                    folder.size = filtered.size
-                    sizedList.add(folder)
-                }
-                Timber.d(sizedList.toString())
-                folderAdapter.folderList = sizedList
+            curPlayingSong.observe(this@MainActivity) {
+                it?.let {
+                    val itemIndex = swipeAdapter.songList.indexOf(it)
+                    binding.viewPager2.currentItem = itemIndex
+                    glideCurSong(it)
+
+                } ?: glideCurSong(swipeAdapter.songList[0])
             }
         }
     }
 
+    private fun glideCurSong(it: Song) {
+        Timber.d("glide $it")
+        binding.apply {
+            if (it.artist.lowercase() == "rei"
+                || it.album.lowercase() == "romancer"
+                || it.album.lowercase() == "summit"
+            ) {
+                glide.load(testImageUrl)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .centerInside()
+                    .placeholder(R.drawable.splash_image_24_dark)
+                    .into(sivCurImage)
+            } else glide.load(R.drawable.splash_image_24_trasparent)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .centerInside()
+                .into(sivCurImage)
+        }
+    }
+
     /**
-     * Behaviour
+     * Behavior
      */
     private fun restartApp(blockable: Boolean)
     = CoroutineScope(Dispatchers.Main.immediate).launch {
             toast(this@MainActivity,
                 "App will be restarted shortly...",
-                short = true,
                 blockable = blockable
             )
             delay(1000)
@@ -291,9 +326,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             finishAffinity()
             startActivity(resIntent)
     }
+
     override fun onResume() {
         super.onResume()
-        songViewModel.getDeviceSong("MainActivity onResume")
+        CoroutineScope(Dispatchers.IO).launch {
+            songViewModel.getDeviceSong("MainActivity onResume")
+        }
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -308,6 +346,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     fun brainException(msg: String) {
         Log.wtf("WTF", "BrainException occurred: $msg", throw RuntimeException())
     }
+
 }
 
 

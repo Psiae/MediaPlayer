@@ -26,6 +26,6 @@
         android:id="@+id/navBottomSettings"
         android:title="@string/settings"
         android:icon="@drawable/ic_settings_white"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="never"/>
 
 </menu>

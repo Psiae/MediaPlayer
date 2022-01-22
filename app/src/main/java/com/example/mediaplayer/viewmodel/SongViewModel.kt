@@ -2,7 +2,6 @@ package com.example.mediaplayer.viewmodel
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,10 +10,7 @@ import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -26,19 +22,29 @@ class SongViewModel @Inject constructor(
 ) : ViewModel() {
 
     val navHeight = MutableLiveData<Int>()
+    val curPlayingSong = MutableLiveData<Song>()
     val isPlaying = MutableLiveData<Boolean>(false)
 
     private val _curFolder = MutableLiveData<Folder>()
     val curFolder: LiveData<Folder>
-        get() = _curFolder
+        get() {
+            Timber.d("curFolder liveData")
+            return _curFolder
+        }
 
     private val _songList = MutableLiveData<MutableList<Song>>()
     val songList: LiveData<MutableList<Song>>
-        get() = _songList
+        get() {
+            Timber.d("songList liveData")
+            return _songList
+        }
 
     private val _folderList = MutableLiveData<MutableList<Folder>>()
     val folderList: LiveData<MutableList<Folder>>
-        get() = _folderList
+        get() {
+            Timber.d("folderList liveData")
+            return _folderList
+        }
 
     private val _isFetching = MutableLiveData(false)
 
@@ -46,13 +52,14 @@ class SongViewModel @Inject constructor(
         _curFolder.value = folder
     }
 
-    fun getDeviceSong(msg: String = "unknown") {
+    suspend fun getDeviceSong(msg: String = "unknown") {
+        delay(100)
         if (_isFetching.value!!) return
-
-        Timber.d("getDeviceSong by $msg")
-        _isFetching.value = true
-
+        withContext(Dispatchers.Main) {
+            _isFetching.value = true
+        }
         CoroutineScope(Dispatchers.IO).launch {
+            Timber.d("getDeviceSong by $msg")
             queryDeviceMusic()
             _isFetching.postValue(false)
         }
@@ -72,23 +79,24 @@ class SongViewModel @Inject constructor(
                 else MediaStore.Audio.AudioColumns.DATA
 
             val projection = arrayOf(
-                MediaStore.Audio.AudioColumns._ID, //1
-                MediaStore.Audio.AudioColumns.ALBUM, //2
-                MediaStore.Audio.AudioColumns.ALBUM_ID, //3
-                MediaStore.Audio.AudioColumns.ARTIST, //4
-                MediaStore.Audio.AudioColumns.DATE_ADDED, //5
-                MediaStore.Audio.AudioColumns.DATE_MODIFIED, //6
-                MediaStore.Audio.AudioColumns.DISPLAY_NAME, //7
-                MediaStore.Audio.AudioColumns.DURATION, //8
-                mediaPath, //9
-                MediaStore.Audio.AudioColumns.TITLE, // 10
-                MediaStore.Audio.AudioColumns.YEAR, // 11
-                mediaPathId,
+                MediaStore.Audio.AudioColumns._ID,              //1
+                MediaStore.Audio.AudioColumns.ALBUM,            //2
+                MediaStore.Audio.AudioColumns.ALBUM_ID,         //3
+                MediaStore.Audio.AudioColumns.ARTIST,           //4
+                MediaStore.Audio.AudioColumns.DATE_ADDED,       //5
+                MediaStore.Audio.AudioColumns.DATE_MODIFIED,    //6
+                MediaStore.Audio.AudioColumns.DISPLAY_NAME,     //7
+                MediaStore.Audio.AudioColumns.DURATION,         //8
+                MediaStore.Audio.AudioColumns.TITLE,            //9
+                MediaStore.Audio.AudioColumns.YEAR,             //10
+                mediaPath,                                      //11
+                mediaPathId                                     //12
             )
 
-            val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+            val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0" // or 1
             val selectOrder = MediaStore.Audio.Media.DEFAULT_SORT_ORDER
-            val musicCursor = context.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            val musicCursor = context.contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 projection, selection, null, selectOrder
             )
 
@@ -136,7 +144,8 @@ class SongViewModel @Inject constructor(
                     val folder = cursor.getString(folderIndex)
 
                     val audioPath =
-                        if (VersionHelper.isQ()) path ?: "/" else {
+                        if (VersionHelper.isQ()) path ?: "/"
+                        else {
                             val filePath = File(path).parentFile?.name ?: "/"
                             if (filePath != "0") filePath else "/"
                         }

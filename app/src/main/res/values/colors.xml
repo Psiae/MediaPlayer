@@ -10,6 +10,7 @@
 
 
 
+    <color name="transparent">#00000000</color>
     <color name="mediumDarkBackground">#303030</color>
     <color name="darkBackground">#202020</color>
     <color name="lightBackground">#F2404040</color>
@@ -17,6 +18,10 @@
     <color name="seekbarColor">#FF6200EE</color>
     <color name="cacaca">#CACACA</color>
 
+    <color name="bnvColor">@color/white</color>
+    <color name="navigatorColor">@color/white</color>
+    <color name="widgetBackground">@color/white</color>
+    <color name="widgetBackgroundMax">@color/white</color>
     <color name="widgetColor">@color/black</color>
     <color name="playpause">@color/darkBackground</color>
     <color name="searchColor">@color/darkBackground</color>

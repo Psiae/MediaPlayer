@@ -9,7 +9,6 @@ import com.bumptech.glide.RequestManager
 import com.example.mediaplayer.databinding.ItemFolderBinding
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.util.diffFolderCallback
-import javax.inject.Inject
 
 class FolderAdapter (
     private val glide: RequestManager,
@@ -21,7 +20,6 @@ class FolderAdapter (
     var folderList: List<Folder>
         get() = differ.currentList
         set(value) {
-
             val submit = value
                 .sortedBy { it.title }
             differ.submitList(submit)

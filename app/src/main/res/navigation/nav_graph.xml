@@ -54,9 +54,11 @@
     <fragment
         android:id="@+id/folderFragment"
         android:name="com.example.mediaplayer.view.fragments.FolderFragment"
-        android:label="FolderFragment" />
+        android:label="FolderFragment"
+        tools:layout="@layout/fragment_folder"/>
     <fragment
         android:id="@+id/exoplayerFragment"
         android:name="com.example.mediaplayer.view.fragments.ExoplayerFragment"
-        android:label="ExoplayerFragment" />
+        android:label="ExoplayerFragment"
+        tools:layout="@layout/fragment_exoplayer"/>
 </navigation>

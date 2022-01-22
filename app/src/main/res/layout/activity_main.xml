@@ -15,13 +15,13 @@
         app:layout_constraintGuide_percent="0.83" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/dummy"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:text=""
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline24"
+        app:layout_constraintTop_toTopOf="@id/clPager"
         android:visibility="invisible"/>
 
     <androidx.constraintlayout.widget.Guideline
@@ -59,7 +59,7 @@
         android:id="@+id/clPager"
         style="@style/layoutBackground"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:clickable="true"
         android:elevation="5dp"
         android:focusable="true"
@@ -71,20 +71,21 @@
             android:id="@+id/sivCurImage"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_margin="12dp"
-            android:background="@color/lightBackground"
+            android:layout_margin="10dp"
+            android:background="@color/widgetBackground"
             android:scaleType="center"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/RoundedSquare"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="2dp" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             app:layout_constraintBottom_toBottomOf="@+id/sivCurImage"
             app:layout_constraintEnd_toStartOf="@+id/ibPlaylist"
             app:layout_constraintStart_toEndOf="@+id/sivCurImage"
@@ -93,8 +94,8 @@
         <ImageButton
             android:id="@+id/ibFavorite"
             style="@style/favoriteButtonBorderSrc"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:layout_constraintBottom_toTopOf="@+id/sbSeekbar"
             app:layout_constraintEnd_toStartOf="@id/ibPlayPause"
@@ -104,8 +105,8 @@
         <ImageButton
             android:id="@+id/ibPlayPause"
             style="@style/playbuttonSrc"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintEnd_toEndOf="@id/guideline22"
@@ -115,8 +116,8 @@
         <ImageButton
             android:id="@+id/ibPlaylist"
             style="@style/playlistButtonSrc"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintEnd_toStartOf="@+id/ibFavorite"
@@ -128,10 +129,13 @@
             android:layout_width="0dp"
             android:layout_height="5dp"
             android:clickable="true"
-            android:elevation="5dp"
             android:focusable="true"
+            android:paddingTop="0dp"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
+            android:paddingBottom="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="0dp"
             android:splitTrack="false"
             android:thumbTint="#00000000"
             app:layout_constraintBottom_toBottomOf="parent"

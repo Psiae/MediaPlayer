@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.mediaplayer.databinding.FragmentExoplayerBinding
 import com.example.mediaplayer.databinding.FragmentSongBinding
@@ -12,6 +13,10 @@ import timber.log.Timber
 
 @AndroidEntryPoint
 class ExoplayerFragment : Fragment() {
+
+    companion object {
+        val TAG = FolderFragment::class.java.simpleName
+    }
 
     private var _binding: FragmentExoplayerBinding? = null
     private val binding: FragmentExoplayerBinding

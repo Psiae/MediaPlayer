@@ -18,15 +18,15 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/tbLib"
-        style="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+        android:background="@color/transparent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:elevation="3dp"
+        android:elevation="1dp"
+        android:translationY="-5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Library" />
-
+        app:title="@string/library" />
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"

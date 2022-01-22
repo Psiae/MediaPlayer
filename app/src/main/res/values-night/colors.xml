@@ -9,6 +9,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="transparent">#00000000</color>
     <color name="mediumDarkBackground">#303030</color>
     <color name="darkBackground">#202020</color>
     <color name="lightBackground">#404040</color>
@@ -16,6 +17,10 @@
     <color name="seekbarColor">#FF6200EE</color>
     <color name="cacaca">#CACACA</color>
 
+    <color name="bnvColor">#E6000000</color>
+    <color name="navigatorColor">#000000</color>
+    <color name="widgetBackground">@color/darkBackground</color>
+    <color name="widgetBackgroundMax">@color/black</color>
     <color name="widgetColor">@color/white</color>
     <color name="playpause">@color/white</color>
     <color name="searchColor">@color/white</color>

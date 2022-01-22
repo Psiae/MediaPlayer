@@ -16,9 +16,9 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="P">true</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:fitsSystemWindows">true</item>
+        <item name="titleTextStyle">@id/title</item>
         <!-- Customize your theme here. -->
     </style>
-
 
     <style name="playbuttonSrc">
         <item name="srcCompat">@drawable/ic_play_24_dark</item>

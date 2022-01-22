@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.*
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
@@ -14,9 +15,6 @@ import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffSongCallback
 import com.example.mediaplayer.util.ext.toast
-import com.google.android.material.imageview.ShapeableImageView
-import timber.log.Timber
-import javax.inject.Inject
 
 class SongAdapter (
     private val glide: RequestManager,
@@ -56,7 +54,7 @@ class SongAdapter (
         private val binding: ItemSongBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bindItem (song: Song) {
+        fun bindItem(song: Song) {
             val artist: String = song.artist
             val album: String = song.album
             val albumId: Long = song.albumId
@@ -69,33 +67,34 @@ class SongAdapter (
             val startFrom: Int = song.startFrom
             val title: String = song.title
             val year: Int = song.year
-
-            val animation = android.view.animation.AnimationUtils.loadAnimation(this@SongAdapter.context, R.anim.anim_slidein_down)
+            val animation = AnimationUtils.loadAnimation(
+                this@SongAdapter.context, R.anim.anim_slidein_down
+            )
             val bullet = 0x2022.toChar()
-            binding.run {
+
+            binding.apply {
                 root.startAnimation(animation)
                 root.setOnClickListener {
-                    onSongItemClickListener?.let { click ->
+                    onItemClickListener?.let { click ->
                         click(song)
                     }
-                    toast(context,
-                        msg = path
-                    )
+                    toast(context, msg = path)
                 }
 
                 if (imageUri.isEmpty()) {
                     if (artist.lowercase() == "rei"
                         || album.lowercase() == "romancer"
-                        || album.lowercase() == "summit") {
+                        || album.lowercase() == "summit"
+                    ) {
                         glide.load(testImageUrl)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
                     } else glide.load(R.drawable.splash_image_24_trasparent)
-                            .transition(DrawableTransitionOptions.withCrossFade())
-                            .centerInside()
-                            .into(ivSongImage)
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .centerInside()
+                        .into(ivSongImage)
                 } else {
                     glide.load(imageUri)
                         .transition(DrawableTransitionOptions.withCrossFade())
@@ -103,6 +102,7 @@ class SongAdapter (
                         .into(ivSongImage)
                 }
             }
+            val item = song
 
             binding.apply {
                 ivSongImage.visibility =
@@ -110,13 +110,21 @@ class SongAdapter (
                 tvTitle.text = if (title.isNotEmpty()) title else "Unknown"
                 tvSecondaryTitle.text =
                     "${if (artist.isNotEmpty()) artist else "<Artist>"} $bullet ${if (album.isNotEmpty()) album else "<Album>"}"
+
+
+
+                binding.root.setOnClickListener {
+                    onItemClickListener?.let { passedMethod ->
+                        passedMethod(item)              // function passed by fragment in this case
+                                                        // I want to use item from my adapter
+                    } ?: toast(context, "msg")     // do something else
+                }                                       // if the method is not passed yet
             }
         }
     }
+    var onItemClickListener: ((Song) -> Unit)? = null // variable that have the function
 
-    var onSongItemClickListener: ( (Song) -> Unit )? = null
-
-    fun setOnSongClickListener(listener: (Song) -> Unit ) {
-        onSongItemClickListener = listener
+    fun setItemClickListener(listener: (Song) -> Unit) { // method to set the function
+        onItemClickListener = listener
     }
 }

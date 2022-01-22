@@ -10,10 +10,11 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/darkBackground</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/transparent</item>
+        <item name="android:navigationBarColor">@color/bnvColor</item>
+        <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:enforceStatusBarContrast" tools:targetApi="Q">false</item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:fitsSystemWindows">true</item>
         <!-- Customize your theme here. -->
@@ -41,7 +42,7 @@
     </style>
 
     <style name="bnvColor">
-        <item name="android:background">#E9000000</item>
+        <item name="android:background">@color/bnvColor</item>
         <item name="elevation">5dp</item>
     </style>
 
@@ -82,5 +83,6 @@
     <style name="splashScreenTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_image_dark</item>
         <item name="android:statusBarColor">@color/darkBackground</item>
+        <item name="android:navigationBarColor">@color/darkBackground</item>
     </style>
 </resources>

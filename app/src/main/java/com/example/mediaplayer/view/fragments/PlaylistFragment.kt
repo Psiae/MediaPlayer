@@ -10,6 +10,10 @@ import timber.log.Timber
 
 class PlaylistFragment: Fragment() {
 
+    companion object {
+        val TAG = PlaylistFragment::class.java.simpleName
+    }
+
     private var _binding: FragmentPlaylistBinding? = null
     private val binding: FragmentPlaylistBinding
         get() = _binding!!
@@ -28,6 +32,8 @@ class PlaylistFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {}
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()

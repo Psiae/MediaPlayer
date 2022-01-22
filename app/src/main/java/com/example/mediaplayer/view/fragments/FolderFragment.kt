@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
@@ -21,6 +19,10 @@ import javax.inject.Named
 
 @AndroidEntryPoint
 class FolderFragment: Fragment() {
+
+    companion object {
+        val TAG = FolderFragment::class.java.simpleName
+    }
 
     @Inject
     @Named("folderAdapter")
@@ -48,6 +50,7 @@ class FolderFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupView()
         subToObserver()
+
     }
 
     private fun setupView() {
@@ -55,7 +58,7 @@ class FolderFragment: Fragment() {
             tbLib.setNavigationOnClickListener {
                 findNavController().popBackStack()
             }
-            rvLib.run {
+            rvLib.apply {
                 adapter = songAdapter
                 layoutManager = LinearLayoutManager(requireContext())
             }
@@ -67,11 +70,10 @@ class FolderFragment: Fragment() {
             binding.tbLib.title = it.title
         }
         songViewModel.songList.observe(viewLifecycleOwner) {
-            Timber.d("$it ${songAdapter.songList} ${songViewModel.curFolder}")
+            val title = songViewModel.curFolder.value!!.title
             songAdapter.songList = it.filter { song ->
-                song.mediaPath == songViewModel.curFolder.value!!.title
+                song.mediaPath == title
             }
-            Timber.d("$it ${songAdapter.songList} ${songViewModel.curFolder}")
         }
         songViewModel.navHeight.observe(viewLifecycleOwner) {
             binding.rvLib.clipToPadding = false

@@ -13,20 +13,20 @@ fun toast(context: Context,
           short: Boolean = true,
           blockable: Boolean = true
 ) = CoroutineScope(Dispatchers.Main.immediate).launch {
-        if (blockable) {
-            if (msg == curToast) return@launch
-            if (curToast.isNotEmpty()) {
-                curToast = ""
-                return@launch
-            }
+    if (blockable) {
+        if (msg == curToast) return@launch
+        if (curToast.isNotEmpty()) {
+            curToast = ""
+            return@launch
         }
-        curToast = msg
-        if (short) {
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-            delay(2000)
-        } else {
-            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-            delay(3500)
-        }
-        curToast = ""
     }
+    curToast = msg
+    if (short) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        delay(2000)
+    } else {
+        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        delay(3500)
+    }
+    curToast = ""
+}

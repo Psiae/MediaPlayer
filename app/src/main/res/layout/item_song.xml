@@ -11,9 +11,8 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivSongImage"
         style="@style/ItemBackground"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="3dp"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:scaleType="center"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"

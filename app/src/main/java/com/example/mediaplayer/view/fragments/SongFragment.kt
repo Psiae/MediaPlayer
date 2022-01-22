@@ -6,12 +6,13 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.appcompat.widget.SearchView
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
@@ -23,7 +24,6 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -35,15 +35,18 @@ import javax.inject.Named
 @AndroidEntryPoint
 class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
+    companion object {
+        val TAG: String = SongFragment::class.java.simpleName
+    }
+
     @Inject
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
+    @Inject
+    lateinit var player: ExoPlayer
 
     private val songViewModel: SongViewModel by activityViewModels()
     private lateinit var navController: NavController
-
-    @Inject
-    lateinit var player: ExoPlayer
 
     private var _binding: FragmentSongBinding? = null
     private val binding: FragmentSongBinding
@@ -55,27 +58,28 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         savedInstanceState: Bundle?,
     ): View? {
         _binding = FragmentSongBinding.inflate(inflater, container, false)
+        binding.songProgressBar.visibility = View.VISIBLE
         Timber.d("SongFragment Inflated")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
-        songAdapter.setOnSongClickListener { song ->
-            play(song)
-        }
-        CoroutineScope(Dispatchers.Main).launch {
-            setupView()
-            setupRecyclerView()
-            delay(100)
+        setupView()
+        lifecycleScope.launch {
+            delay(250)
             binding.songProgressBar.visibility = View.GONE
+            setupRecyclerView()
             observeSongList()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        songViewModel.getDeviceSong("songFragment onResume")
+        lifecycleScope.launch(Dispatchers.IO) {
+            songViewModel.getDeviceSong("SongFragment onResume")
+        }
     }
 
     private fun play(song: Song) {
@@ -87,6 +91,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         player.setMediaSource(mediaSource)
         player.prepare()
         player.playWhenReady = true
+        songViewModel.curPlayingSong.value = song
         songViewModel.isPlaying.value = true
     }
 
@@ -102,7 +107,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private fun setupView() {
         binding.apply {
-            songToolbar.run {
+            songToolbar.apply {
                 menu.clear()
                 inflateMenu(R.menu.menu_song_toolbar)
 
@@ -121,6 +126,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                             val asc = list.sortedBy { it.title.lowercase() }
                             val desc = list.sortedByDescending { it.title.lowercase() }
                             songAdapter.songList = if (list.toList() == asc) desc else asc
+
                             true
                         }
                         R.id.menuSettings -> {
@@ -129,6 +135,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                             } catch (e: Exception) {
                                 toast(requireContext(), "Coming Soon!", blockable = false)
                             }
+
                             true
                         }
 
@@ -137,12 +144,11 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 }
             }
         }
-        binding.run {
-            Timber.d("BindingRun")
-            songAdapter.differ.addListListener { prev, cur ->
-                when (prev) {
-                    cur -> Unit
-                    else -> rvSongList.scrollToPosition(0)
+        songAdapter.differ.addListListener { prev, cur ->
+            when (prev) {
+                cur -> Unit
+                else -> {
+                    binding.rvSongList.scrollToPosition(5)
                 }
             }
         }
@@ -150,15 +156,22 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private fun setupRecyclerView () {
         binding.rvSongList.apply {
+            songAdapter.setItemClickListener { song ->
+
+
+
+                /*val index = songAdapter.songList.indexOfFirst {
+                    it.title == song.title
+                }
+                val centerOfScreen = this.width / 2
+                val layout = this.layoutManager as LinearLayoutManager
+                layout.scrollToPositionWithOffset(index, centerOfScreen)
+                Timber.d("$index")*/
+                play(song)
+            }
             adapter = songAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-        if (_binding == null) Timber.d("SongFragment Destroyed")
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
@@ -174,7 +187,12 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
             }
             songAdapter.songList = list
         } else {
-            songAdapter.songList = songViewModel.songList.value!!
+            lifecycleScope.launch(Dispatchers.IO) {
+                delay(200)
+                if (query.isNullOrEmpty()) {
+                    songAdapter.songList = songViewModel.songList.value!!
+                }
+            }
         }
         return true
     }
