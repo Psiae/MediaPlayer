@@ -22,10 +22,10 @@
         android:title="@string/library"
         android:icon="@drawable/ic_music_library_white"
         app:showAsAction="ifRoom"/>
-    <item
+<!--    <item
         android:id="@+id/navBottomSettings"
         android:title="@string/settings"
         android:icon="@drawable/ic_settings_white"
-        app:showAsAction="never"/>
+        app:showAsAction="never"/>-->
 
 </menu>

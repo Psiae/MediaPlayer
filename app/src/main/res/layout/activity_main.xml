@@ -71,14 +71,17 @@
             android:id="@+id/sivCurImage"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_margin="10dp"
+            android:layout_marginStart="7.5dp"
+            android:layout_marginTop="7.5dp"
+            android:layout_marginBottom="7.5dp"
+            android:layout_marginEnd="7.5dp"
             android:background="@color/widgetBackground"
             android:scaleType="center"
             app:layout_constraintBottom_toTopOf="@id/sbSeekbar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/RoundedSquare"
-            app:strokeWidth="2dp" />
+            app:strokeWidth="2.5dp" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager2"

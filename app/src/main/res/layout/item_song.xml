@@ -5,14 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="5dp"
-    android:elevation="10dp"
+    android:layout_marginStart="2.5dp"
+    android:layout_marginEnd="2.5dp"
+    android:elevation="5dp"
     app:layout_goneMarginBaseline="2dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivSongImage"
         style="@style/ItemBackground"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:scaleType="center"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +33,6 @@
         android:paddingEnd="10dp"
         android:text="@string/example"
         android:textSize="16sp"
-        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tvSecondaryTitle"
         app:layout_constraintEnd_toStartOf="@+id/guideline14"
         app:layout_constraintStart_toEndOf="@+id/ivSongImage"

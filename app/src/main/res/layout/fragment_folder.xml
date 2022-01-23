@@ -26,7 +26,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
-        app:title="Folder" />
+        app:title="Folder"
+        app:titleCentered="true"/>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline3"

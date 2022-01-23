@@ -10,9 +10,9 @@
     <application
         android:name=".MPApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher_player"
+        android:icon="@mipmap/ic_launcher_rainote"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_player_round"
+        android:roundIcon="@mipmap/ic_launcher_rainote_round"
         android:supportsRtl="true"
         android:theme="@style/splashScreenTheme">
         <activity

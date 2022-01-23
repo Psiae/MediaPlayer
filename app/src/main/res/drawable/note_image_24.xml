@@ -2,10 +2,10 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:drawable="@color/white"/>
+        android:drawable="@color/mediumDarkBackground"/>
     <item
-        android:drawable="@drawable/rainote"
-        android:height="120dp"
-        android:width="120dp"
+        android:drawable="@drawable/ic_music_note_white"
+        android:height="50dp"
+        android:width="50dp"
         android:gravity="center" />
 </layer-list>

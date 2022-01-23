@@ -2,7 +2,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:drawable="@drawable/player"
+        android:drawable="@drawable/rainote"
         android:height="24dp"
         android:width="24dp"
         android:gravity="center" />

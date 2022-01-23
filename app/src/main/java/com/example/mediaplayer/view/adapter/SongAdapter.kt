@@ -85,16 +85,19 @@ class SongAdapter (
                     if (artist.lowercase() == "rei"
                         || album.lowercase() == "romancer"
                         || album.lowercase() == "summit"
-                    ) {
+                    )  {
                         glide.load(testImageUrl)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
-                    } else glide.load(R.drawable.splash_image_24_trasparent)
-                        .transition(DrawableTransitionOptions.withCrossFade())
-                        .centerInside()
-                        .into(ivSongImage)
+                    } else {
+                        glide.load(R.drawable.ic_music_note_light)
+                            .transition(DrawableTransitionOptions.withCrossFade())
+                            .centerInside()
+                            .into(ivSongImage)
+                    }
+
                 } else {
                     glide.load(imageUri)
                         .transition(DrawableTransitionOptions.withCrossFade())
@@ -102,7 +105,6 @@ class SongAdapter (
                         .into(ivSongImage)
                 }
             }
-            val item = song
 
             binding.apply {
                 ivSongImage.visibility =
@@ -115,7 +117,7 @@ class SongAdapter (
 
                 binding.root.setOnClickListener {
                     onItemClickListener?.let { passedMethod ->
-                        passedMethod(item)              // function passed by fragment in this case
+                        passedMethod(song)              // function passed by fragment in this case
                                                         // I want to use item from my adapter
                     } ?: toast(context, "msg")     // do something else
                 }                                       // if the method is not passed yet

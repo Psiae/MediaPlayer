@@ -205,6 +205,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         navController = navHostFragment.navController
         setDestinationListener(navController)
     }
+
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             getControlHeight()
@@ -213,11 +214,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 R.id.navBottomSong -> setControl()
                 R.id.navBottomPlaylist -> setControl()
                 R.id.navBottomLibrary -> setControl()
-                R.id.navBottomSettings -> setControl()
+                /*R.id.navBottomSettings -> setControl()*/
                 R.id.exoplayerFragment -> setControl(fullscreen = true)
             }
         }
     }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupView() {
         binding.apply {
@@ -303,9 +305,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 glide.load(testImageUrl)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .centerInside()
-                    .placeholder(R.drawable.splash_image_24_dark)
+                    .placeholder(R.drawable.splash_image_24_trasparent)
                     .into(sivCurImage)
-            } else glide.load(R.drawable.splash_image_24_trasparent)
+            } else glide.load(R.drawable.ic_music_note_light)
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .centerInside()
                 .into(sivCurImage)

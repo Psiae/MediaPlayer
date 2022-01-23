@@ -21,5 +21,11 @@
     <string name="sort">Sort</string>
     <string name="sort_order">Sort order</string>
     <string name="search">Search</string>
+    <string name="good_evening">Good Evening</string>
+    <string name="history">History</string>
+    <string name="favorite">Favorite</string>
+    <string name="most_played">Most Played</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="good_afternoon">Good Afternoon</string>
 
 </resources>

@@ -20,6 +20,24 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="HomeMenuButton" parent="Theme.MaterialComponents">
+        <item name="android:padding">10dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.MaterialComponents.Body2</item>
+        <item name="shapeAppearanceOverlay">@style/RoundedSquare</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="backgroundTint">@color/materialButtonWidget</item>
+        <item name="android:textColor">@color/widgetColor</item>
+        <item name="iconTint">@color/widgetColor</item>
+        <item name="android:outlineProvider">background</item>
+
+    </style>
+
+    <style name="RoundedsquareExtra">
+        <item name="cornerSize">30%</item>
+    </style>
+
     <style name="playbuttonSrc">
         <item name="srcCompat">@drawable/ic_play_24_dark</item>
     </style>
@@ -58,14 +76,14 @@
     </style>
 
     <style name="folderBackground">
-        <item name="android:background">@color/darkBackground</item>
-        <item name="shapeAppearanceOverlay">@style/Circular</item>
+        <item name="android:background">@color/lighterBackground</item>
+        <item name="shapeAppearanceOverlay">@style/RoundedSquare</item>
     </style>
 
     <style name="ItemBackground">
-        <item name="android:background">@drawable/splash_image_24</item>
+        <item name="android:background">@color/lightBackground</item>
         <item name="android:scaleType">centerInside</item>
-        <item name="shapeAppearanceOverlay">@style/Circular</item>
+        <item name="shapeAppearanceOverlay">@style/RoundedSquare</item>
     </style>
 
     <style name="songItemShape">
@@ -77,7 +95,8 @@
     </style>
 
     <style name="RounderTopSquare">
-        <item name="cornerSize">10%</item>
+        <item name="cornerSizeTopLeft">10%</item>
+        <item name="cornerSizeTopRight">10%</item>
         <item name="strokeWidth">5dp</item>
     </style>
 

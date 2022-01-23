@@ -8,12 +8,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-
-
     <color name="transparent">#00000000</color>
     <color name="mediumDarkBackground">#303030</color>
     <color name="darkBackground">#202020</color>
-    <color name="lightBackground">#F2404040</color>
+    <color name="lightBackground">#2F404040</color>
+    <color name="lighterBackground">#F2404040</color>
+
+    <color name="materialButtonWidget">#FFFFFFFF</color>
 
     <color name="seekbarColor">#FF6200EE</color>
     <color name="cacaca">#CACACA</color>

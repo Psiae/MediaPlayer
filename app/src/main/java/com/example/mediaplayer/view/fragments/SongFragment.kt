@@ -3,6 +3,7 @@ package com.example.mediaplayer.view.fragments
 import android.content.ContentUris
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -131,7 +132,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                         }
                         R.id.menuSettings -> {
                             try {
-                                navController.navigate(R.id.navBottomSettings)
+                                /*navController.navigate(R.id.navBottomSettings)*/
                             } catch (e: Exception) {
                                 toast(requireContext(), "Coming Soon!", blockable = false)
                             }
@@ -143,6 +144,8 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                     }
                 }
             }
+
+            Log.wtf(null, "message")
         }
         songAdapter.differ.addListListener { prev, cur ->
             when (prev) {

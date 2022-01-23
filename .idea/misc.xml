@@ -7,6 +7,7 @@
         <entry key="..\:/Users/Kyle/.gradle/caches/transforms-3/3e7ff88cb77c82c726435b73f391eeaf/transformed/jetified-exoplayer-ui-2.16.1/res/layout/exo_player_view.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_baseline_arrow_back_24.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_baseline_folder_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_baseline_music_note_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_favorite_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_favorite_30.xml" value="0.2203125" />
@@ -14,8 +15,15 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_favorite_border_24_dark.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_favorite_border_30.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_favorite_corder_30.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_history_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_home_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_launcher_background.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_library_white.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_black.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_dark.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_light.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_medark.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_transparent.xml" value="0.23229166666666667" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_queue_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_pause_24.xml" value="0.2203125" />
@@ -36,17 +44,18 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_playlist_play_30.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_search_24_widget.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_settings_application_white.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/note_image_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_dark.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_trasparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_widget.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_dark.xml" value="0.2203125" />
-        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main.xml" value="0.1349124613800206" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main2.xml" value="0.15989583333333332" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_exoplayer.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_folder.xml" value="0.20416666666666666" />
-        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_home.xml" value="0.2" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_home.xml" value="0.22" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_library.xml" value="0.1" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_playing.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/fragment_playlist.xml" value="0.20833333333333334" />
@@ -54,7 +63,7 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_folder.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_pager.xml" value="0.25" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_pager_list.xml" value="0.20416666666666666" />
-        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_song.xml" value="0.18840579710144928" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_song.xml" value="0.33" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/item_swipe.xml" value="0.2" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_bottom.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_home.xml" value="0.20416666666666666" />
@@ -63,6 +72,8 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_song_toolbar.xml" value="0.1" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_notewave.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_player_round.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_rainote.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_rainote_round.xml" value="0.2203125" />
       </map>
     </option>
   </component>
