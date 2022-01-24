@@ -4,7 +4,6 @@
     android:id="@+id/crlHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="0dp"
     android:background="@color/transparent"
     android:elevation="0dp"
     android:fitsSystemWindows="false">
@@ -24,7 +23,7 @@
             android:elevation="0dp"
             app:titleEnabled="false"
             app:contentScrim="@color/transparent"
-            app:layout_scrollFlags="scroll|snap">
+            app:layout_scrollFlags="scroll|snap|enterAlways">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/tbLib"
@@ -53,20 +52,19 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cslHomeNested"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cv1"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_margin="5dp"
+                app:cardBackgroundColor="@color/widgetBackground"
                 app:cardElevation="10dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintDimensionRatio="16:9"
+                app:layout_constraintDimensionRatio="18:9"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:cardBackgroundColor="@color/widgetBackground">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/cslCv1"
@@ -75,18 +73,18 @@
                     android:padding="5dp">
 
                     <TextView
-                        android:id="@+id/textView2"
+                        android:id="@+id/tvWelcome"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        app:layout_constraintDimensionRatio="30:9"
+                        android:alpha="1"
+                        android:gravity="center_vertical"
                         android:paddingStart="5dp"
                         android:paddingEnd="5dp"
-                        android:gravity="center_vertical"
                         android:text="@string/good_evening"
                         android:textColor="@color/widgetColor"
                         android:textSize="23sp"
-                        android:alpha="0.8"
                         android:textStyle="bold"
+                        app:layout_constraintDimensionRatio="30:9"
                         app:layout_constraintEnd_toEndOf="@+id/ibCV1"
                         app:layout_constraintStart_toStartOf="@+id/ibCV1"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -94,58 +92,128 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/ibCV1"
                         style="@style/HomeMenuButton"
+                        android:layout_marginStart="5dp"
                         android:layout_marginTop="5dp"
                         android:layout_marginEnd="5dp"
-                        android:layout_marginStart="5dp"
+                        android:text="@string/history"
+                        app:icon="@drawable/ic_history_24"
                         app:layout_constraintBottom_toTopOf="@+id/ibCV2"
                         app:layout_constraintEnd_toStartOf="@+id/ibCV3"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textView2"
-                        app:icon="@drawable/ic_history_24"
-                        android:text="@string/history"/>
+                        app:layout_constraintTop_toBottomOf="@+id/tvWelcome" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/ibCV2"
                         style="@style/HomeMenuButton"
-                        android:layout_marginBottom="5dp"
-                        android:layout_marginEnd="5dp"
                         android:layout_marginStart="5dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="@string/most_played"
+                        app:icon="@drawable/ic_baseline_trending_up_24"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/ibCV4"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/ibCV1"
-                        android:text="@string/most_played"
-                        app:icon="@drawable/ic_baseline_trending_up_24"/>
+                        app:layout_constraintTop_toBottomOf="@+id/ibCV1" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/ibCV3"
                         style="@style/HomeMenuButton"
-                        android:layout_marginTop="5dp"
                         android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
                         android:layout_marginEnd="5dp"
+                        android:text="@string/favorite"
+                        app:icon="@drawable/ic_favorite_border_24"
                         app:layout_constraintBottom_toTopOf="@+id/ibCV4"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/ibCV1"
-                        app:layout_constraintTop_toBottomOf="@+id/textView2"
-                        android:text="@string/favorite"
-                        app:icon="@drawable/ic_favorite_border_24"/>
+                        app:layout_constraintTop_toBottomOf="@+id/tvWelcome" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/ibCV4"
                         style="@style/HomeMenuButton"
-                        android:layout_marginBottom="5dp"
                         android:layout_marginStart="5dp"
                         android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:text="@string/shuffle"
+                        app:icon="@drawable/ic_baseline_shuffle_24"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/ibCV2"
-                        app:layout_constraintTop_toBottomOf="@+id/ibCV3"
-                        app:icon="@drawable/ic_baseline_shuffle_24"
-                        android:text="@string/shuffle"/>
+                        app:layout_constraintTop_toBottomOf="@+id/ibCV3" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvSuggest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/suggestions"
+                android:textColor="@color/widgetColor"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/cv1"
+                app:layout_constraintTop_toBottomOf="@id/cv1" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSuggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/tvSuggest"
+                app:layout_constraintTop_toBottomOf="@id/tvSuggest" />
+
+            <TextView
+                android:id="@+id/tvArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/artist"
+                android:textColor="@color/widgetColor"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/cv1"
+                app:layout_constraintTop_toBottomOf="@id/rvSuggestion" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/tvSuggest"
+                app:layout_constraintTop_toBottomOf="@id/tvArtist" />
+
+            <TextView
+                android:id="@+id/tvAlbum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/album"
+                android:textColor="@color/widgetColor"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/cv1"
+                app:layout_constraintTop_toBottomOf="@id/rvArtist" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAlbum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/tvSuggest"
+                app:layout_constraintTop_toBottomOf="@id/tvAlbum" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

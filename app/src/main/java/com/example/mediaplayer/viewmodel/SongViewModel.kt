@@ -6,6 +6,8 @@ import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.mediaplayer.model.data.entities.Album
+import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
@@ -24,6 +26,41 @@ class SongViewModel @Inject constructor(
     val navHeight = MutableLiveData<Int>()
     val curPlayingSong = MutableLiveData<Song>()
     val isPlaying = MutableLiveData<Boolean>(false)
+
+    private val _shuffles = MutableLiveData<List<Song>>()
+    val shuffles: LiveData<List<Song>>
+        get() {
+            Timber.d("curShuffle liveData")
+            return _shuffles
+        }
+
+    private val _artistList = MutableLiveData<List<Artist>>()
+    val artistList: LiveData<List<Artist>>
+        get() {
+            Timber.d("artistList liveData")
+            return _artistList
+        }
+
+    private val _curArtist = MutableLiveData<Artist>()
+    val curArtist: LiveData<Artist>
+        get() {
+            Timber.d("curArtist liveData")
+            return _curArtist
+        }
+
+    private val _albumList = MutableLiveData<List<Album>>()
+    val albumList: LiveData<List<Album>>
+        get() {
+            Timber.d("listAlbum liveData")
+            return _albumList
+        }
+
+    private val _curAlbum = MutableLiveData<Album>()
+    val curAlbum: LiveData<Album>
+        get() {
+            Timber.d("curArtist liveData")
+            return _curAlbum
+        }
 
     private val _curFolder = MutableLiveData<Folder>()
     val curFolder: LiveData<Folder>
@@ -47,6 +84,11 @@ class SongViewModel @Inject constructor(
         }
 
     private val _isFetching = MutableLiveData(false)
+
+    suspend fun getShuffledSong(take: Int) {
+        val list = queryDeviceMusic()
+        _shuffles.value = list.shuffled().take(take)
+    }
 
     fun setCurFolder(folder: Folder) {
         _curFolder.value = folder
@@ -177,6 +219,7 @@ class SongViewModel @Inject constructor(
                             )
                         )
                     }
+
                     Timber.d("$folderList $audioPath $folder")
                     Timber.d("Added : ${deviceMusicList.last()} $path")
                 }
@@ -186,9 +229,21 @@ class SongViewModel @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        val artistSong = deviceMusicList.groupBy { it.artist }.entries.map { (artist, song) ->
+            Artist(artist, song)
+        }
+
+        val albumSong = deviceMusicList.groupBy { it.album }.entries.map { (album, song) ->
+            Album(album, song)
+        }
+
+
         withContext(Dispatchers.Main.immediate) {
             _songList.value = deviceMusicList
             _folderList.value = folderList
+            _albumList.value = albumSong
+            _artistList.value = artistSong
         }
         return deviceMusicList
     }

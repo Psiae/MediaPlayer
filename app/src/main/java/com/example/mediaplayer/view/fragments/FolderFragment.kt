@@ -25,7 +25,7 @@ class FolderFragment: Fragment() {
     }
 
     @Inject
-    @Named("folderAdapter")
+    @Named("folderAdapterNS")
     lateinit var folderAdapter: FolderAdapter
     @Inject
     @Named("songAdapterNS")

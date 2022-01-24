@@ -92,7 +92,7 @@ class SongAdapter (
                             .placeholder(R.drawable.splash_image_24_dark)
                             .into(ivSongImage)
                     } else {
-                        glide.load(R.drawable.ic_music_note_light)
+                        glide.load(R.drawable.splash_image_24_transparent)
                             .transition(DrawableTransitionOptions.withCrossFade())
                             .centerInside()
                             .into(ivSongImage)

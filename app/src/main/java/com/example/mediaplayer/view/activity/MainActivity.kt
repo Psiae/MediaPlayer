@@ -48,15 +48,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     companion object {
         val TAG = MainActivity::class.java.simpleName
     }
-
-    @Inject
-    @Named("songAdapter")
-    lateinit var songAdapter: SongAdapter
-
-    @Inject
-    @Named("folderAdapter")
-    lateinit var folderAdapter: FolderAdapter
-
+    
     @Inject
     lateinit var swipeAdapter: SwipeAdapter
 
@@ -101,6 +93,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     /**
      * Permission Setup
      */
+
 
     @SuppressLint("InlinedApi")
     private fun checkPermission(): Boolean {
@@ -290,7 +283,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     binding.viewPager2.currentItem = itemIndex
                     glideCurSong(it)
 
-                } ?: glideCurSong(swipeAdapter.songList[0])
+                }/* ?: glideCurSong(swipeAdapter.songList[0])*/
+            }
+            CoroutineScope(Dispatchers.Main).launch {
+                getShuffledSong(20)
             }
         }
     }
@@ -305,9 +301,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 glide.load(testImageUrl)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .centerInside()
-                    .placeholder(R.drawable.splash_image_24_trasparent)
+                    .placeholder(R.drawable.splash_image_24_transparent)
                     .into(sivCurImage)
-            } else glide.load(R.drawable.ic_music_note_light)
+            } else glide.load(R.drawable.splash_image_24_transparent)
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .centerInside()
                 .into(sivCurImage)

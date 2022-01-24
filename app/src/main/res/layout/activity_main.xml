@@ -53,7 +53,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/clPager"
         app:layout_constraintEnd_toEndOf="@+id/navHostContainer"
         app:layout_constraintStart_toStartOf="@+id/navHostContainer"
-        app:layout_constraintTop_toTopOf="@+id/guideline5" />
+        app:layout_constraintTop_toTopOf="@+id/guideline5"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clPager"

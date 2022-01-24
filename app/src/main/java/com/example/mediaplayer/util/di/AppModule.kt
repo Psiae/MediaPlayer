@@ -5,8 +5,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.example.mediaplayer.view.adapter.FolderAdapter
-import com.example.mediaplayer.view.adapter.SongAdapter
+import com.example.mediaplayer.view.adapter.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -22,6 +21,8 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    // Will migrate some to ServiceComponent
 
     @Singleton
     @Provides
@@ -59,14 +60,6 @@ object AppModule {
         @ApplicationContext context: Context
     ) = DefaultDataSource.Factory(context)
 
-    @Singleton
-    @Named("songAdapter")
-    @Provides
-    fun provideSongAdapter(
-        @ApplicationContext context: Context,
-        glide: RequestManager
-    ) = SongAdapter(glide, context)
-
     @Named("songAdapterNS")
     @Provides
     fun provideSongAdapterNS(
@@ -74,18 +67,31 @@ object AppModule {
         glide: RequestManager
     ) = SongAdapter(glide, context)
 
-    @Singleton
-    @Named("folderAdapter")
-    @Provides
-    fun provideFolderAdapter(
-        @ApplicationContext context: Context,
-        glide: RequestManager
-    ) = FolderAdapter(glide, context)
-
     @Named("folderAdapterNS")
     @Provides
     fun provideFolderAdapterNS(
         @ApplicationContext context: Context,
         glide: RequestManager
     ) = FolderAdapter(glide, context)
+
+    @Named("homeAdapterNS")
+    @Provides
+    fun provideHomeAdapterNS(
+        @ApplicationContext context: Context,
+        glide: RequestManager
+    ) = HomeAdapter(glide, context)
+
+    @Named("albumAdapterNS")
+    @Provides
+    fun provideAlbumAdapterNS(
+        @ApplicationContext context: Context,
+        glide: RequestManager
+    ) = AlbumAdapter(glide, context)
+
+    @Named("artistAdapterNS")
+    @Provides
+    fun provideArtistAdapterNS(
+        @ApplicationContext context: Context,
+        glide: RequestManager
+    ) = ArtistAdapter(glide, context)
 }

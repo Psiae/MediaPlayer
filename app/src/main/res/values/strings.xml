@@ -27,5 +27,8 @@
     <string name="most_played">Most Played</string>
     <string name="shuffle">Shuffle</string>
     <string name="good_afternoon">Good Afternoon</string>
+    <string name="suggestions">Suggestions</string>
+    <string name="artist">Artist</string>
+    <string name="album">Album</string>
 
 </resources>

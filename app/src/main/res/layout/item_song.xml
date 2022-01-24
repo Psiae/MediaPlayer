@@ -16,9 +16,11 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:scaleType="center"
+        android:elevation="5dp"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/splash_image_24_transparent"
         tools:visibility="visible" />
 
     <com.google.android.material.textview.MaterialTextView
