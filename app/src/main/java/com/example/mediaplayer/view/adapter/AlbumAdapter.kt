@@ -51,9 +51,20 @@ class AlbumAdapter(
         fun bindItems(item: Album) {
             val name = item.name
             val song = item.song
+            val firstSong = song.first { it.album == name }
 
             binding.apply {
-                mtvTitle.text = "$name"
+                mtvTitle.text = name
+
+                glide.asDrawable()
+                    .load(when (name) {
+                        "rei" -> testImageUrl
+                        else -> firstSong.imageUri
+                    })
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .placeholder(R.drawable.splash_image_48_transparent)
+                    .error(R.drawable.splash_image_48_transparent)
+                    .into(sivItemImage)
             }
         }
     }

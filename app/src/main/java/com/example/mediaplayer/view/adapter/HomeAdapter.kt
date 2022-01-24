@@ -12,6 +12,7 @@ import com.example.mediaplayer.databinding.ItemHomeBinding
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffSongCallback
+import timber.log.Timber
 
 class HomeAdapter(
     private val glide: RequestManager,
@@ -52,32 +53,20 @@ class HomeAdapter(
             val artist = item.artist
             val album = item.album
 
+            Timber.d("uri: $imageUri")
             binding.apply {
                 mtvTitle.text = title
 
-                if (imageUri.isEmpty()) {
-                    if (artist.lowercase() == "rei"
-                        || album.lowercase() == "romancer"
-                        || album.lowercase() == "summit"
-                    )  {
-                        glide.load(testImageUrl)
-                            .transition(DrawableTransitionOptions.withCrossFade())
-                            .centerInside()
-                            .placeholder(R.drawable.splash_image_24_dark)
-                            .into(sivItemImage)
-                    } else {
-                        glide.load(R.drawable.splash_image_72_transparent)
-                            .transition(DrawableTransitionOptions.withCrossFade())
-                            .centerInside()
-                            .into(sivItemImage)
-                    }
+                glide.asDrawable()
+                    .load(when (artist) {
+                        "rei" -> testImageUrl
+                        else -> item.imageUri
+                    })
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .placeholder(R.drawable.splash_image_48_transparent)
+                    .error(R.drawable.splash_image_48_transparent)
+                    .into(sivItemImage)
 
-                } else {
-                    glide.load(imageUri)
-                        .transition(DrawableTransitionOptions.withCrossFade())
-                        .centerInside()
-                        .into(sivItemImage)
-                }
             }
         }
     }

@@ -285,7 +285,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
                 }/* ?: glideCurSong(swipeAdapter.songList[0])*/
             }
-            CoroutineScope(Dispatchers.Main).launch {
+            lifecycleScope.launch {
                 getShuffledSong(20)
             }
         }
@@ -327,7 +327,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     override fun onResume() {
         super.onResume()
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             songViewModel.getDeviceSong("MainActivity onResume")
         }
     }

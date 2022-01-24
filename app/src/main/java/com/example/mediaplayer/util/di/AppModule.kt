@@ -5,6 +5,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.mediaplayer.R
 import com.example.mediaplayer.view.adapter.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
@@ -28,8 +29,10 @@ object AppModule {
     @Provides
     fun provideGlideInstance(
         @ApplicationContext context: Context
-    ) = Glide.with(context).setDefaultRequestOptions(RequestOptions()
-        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
+    ) = Glide.with(context).setDefaultRequestOptions(
+        RequestOptions()
+            .placeholder(R.drawable.splash_image_24_transparent)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
 
     @Singleton
     @Provides

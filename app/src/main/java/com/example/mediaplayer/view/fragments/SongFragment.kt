@@ -45,6 +45,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     @Inject
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
+
     @Inject
     lateinit var player: ExoPlayer
 

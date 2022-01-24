@@ -72,8 +72,8 @@ class HomeFragment : Fragment() {
 
         lifecycleScope.launch {
             setupRecyclerView()
-            setupObserver()
         }
+        setupObserver()
     }
 
     private fun setupView() {
@@ -116,7 +116,6 @@ class HomeFragment : Fragment() {
             shuffles.observe(viewLifecycleOwner) {
                 suggestAdapter.itemList = it
             }
-            songList.observe(viewLifecycleOwner) {}
             artistList.observe(viewLifecycleOwner) {
                 artistAdapter.itemList = it
             }
@@ -146,7 +145,7 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch(Dispatchers.IO) {
-            songViewModel.getDeviceSong()
+            songViewModel.getDeviceSong("HomeFragment")
         }
     }
 

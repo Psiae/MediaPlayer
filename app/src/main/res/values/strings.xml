@@ -31,4 +31,8 @@
     <string name="artist">Artist</string>
     <string name="album">Album</string>
 
+    <!-- Services -->
+    <string name="media_player">Media Player</string>
+    <string name="currently_playing">Currently Playing</string>
+
 </resources>

@@ -23,8 +23,8 @@
             android:id="@+id/sivItemImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerInside"
             android:background="@color/transparent"
+            android:scaleType="fitXY"
             android:src="@drawable/splash_image_72_transparent" />
 
     </androidx.cardview.widget.CardView>

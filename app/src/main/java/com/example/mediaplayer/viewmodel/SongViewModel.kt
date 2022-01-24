@@ -1,15 +1,16 @@
 package com.example.mediaplayer.viewmodel
 
 import android.annotation.SuppressLint
+import android.content.ContentUris
 import android.content.Context
+import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.mediaplayer.model.data.entities.Album
-import com.example.mediaplayer.model.data.entities.Artist
-import com.example.mediaplayer.model.data.entities.Folder
-import com.example.mediaplayer.model.data.entities.Song
+import androidx.lifecycle.viewModelScope
+import com.example.mediaplayer.model.data.entities.*
 import com.example.mediaplayer.util.VersionHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -100,7 +101,7 @@ class SongViewModel @Inject constructor(
         withContext(Dispatchers.Main) {
             _isFetching.value = true
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             Timber.d("getDeviceSong by $msg")
             queryDeviceMusic()
             _isFetching.postValue(false)
@@ -193,6 +194,8 @@ class SongViewModel @Inject constructor(
                         }
 
                     val folderPath = if (VersionHelper.isQ()) folder else File(folder).parent
+                    val imagePath = Uri.parse("content://media/external/audio/albumart")
+                    val imageUri = ContentUris.withAppendedId(imagePath, albumId)
 
                     deviceMusicList.add(Song(
                         album,
@@ -201,7 +204,7 @@ class SongViewModel @Inject constructor(
                         dateAdded.toInt(),
                         dateModified.toInt(),
                         displayName,
-                        imageUri = "",
+                        imageUri = imageUri.toString(),
                         isLocal = true,
                         duration.toLong(),
                         songId,
@@ -230,14 +233,21 @@ class SongViewModel @Inject constructor(
             e.printStackTrace()
         }
 
-        val artistSong = deviceMusicList.groupBy { it.artist }.entries.map { (artist, song) ->
-            Artist(artist, song)
-        }
+        val listOfAlbum = mutableListOf<String>()
+        val listOfArtist = mutableListOf<String>()
 
         val albumSong = deviceMusicList.groupBy { it.album }.entries.map { (album, song) ->
+            listOfAlbum.add(album)
             Album(album, song)
         }
 
+        val artistSong = deviceMusicList.groupBy { it.artist }.entries.map { (artist, song) ->
+            listOfArtist.add(artist)
+            Artist(artist, song)
+        }
+
+
+        Timber.d("artist: $listOfArtist \n album: $listOfAlbum")
 
         withContext(Dispatchers.Main.immediate) {
             _songList.value = deviceMusicList
