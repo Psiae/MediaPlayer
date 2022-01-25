@@ -17,6 +17,13 @@ Working On:
 - Exoplayer Services
 - Better UI / UX
 
+Plans :
+- History, Favorite, Playlist, Album Image Changer with Room & DataStore. `> ID3v2 If Possible`
+- Video Player support with                                               `> PiP, Brightness by Scroll, Volume by Scroll, Seekbar Preview`
+- Media Streaming with Firebase.                                          `> Got Firebase Storage Limit so might be just Downloadable Instead`
+- Google & Others Login handled by Firebase.                              `> Might add Local Account but most likely not `
+- Custom Theming
+
 Credits :
 - Building feature-rich media apps with ExoPlayer (Google I/O '18)
 - Uamp
