@@ -7,5 +7,5 @@ Currently only support Audio playback without controller & Audio Query with Medi
 Credits : - Building feature-rich media apps with ExoPlayer (Google I/O '18)
           - Uamp
           - Spotify Clone
-          - GoPlayer
+          - Music-Player-GO
           - RetroMusicPlayer
