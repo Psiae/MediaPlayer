@@ -15,6 +15,7 @@ Working On:
 - PlayerNotificationManager
 - MediaMetadataCompat
 - Exoplayer Services
+- Better UI / UX
 
 Credits :
 - Building feature-rich media apps with ExoPlayer (Google I/O '18)
