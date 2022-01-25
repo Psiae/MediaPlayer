@@ -16,6 +16,7 @@ import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffArtistCallback
+import com.google.android.material.shape.CornerFamily
 
 class ArtistAdapter(
     private val glide: RequestManager,
@@ -43,7 +44,7 @@ class ArtistAdapter(
     }
 
     override fun getItemCount(): Int {
-        return if (itemList.size <= 20) itemList.size else 20
+        return itemList.size
     }
 
     inner class HomeViewHolder(
@@ -57,7 +58,10 @@ class ArtistAdapter(
 
             binding.apply {
                 mtvTitle.text = name
-
+                cardView.shapeAppearanceModel =
+                    cardView.shapeAppearanceModel.toBuilder()
+                        .setAllCorners(CornerFamily.ROUNDED, 360F)
+                        .build()
                 glide.asDrawable()
                     .load(firstArtist.imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())

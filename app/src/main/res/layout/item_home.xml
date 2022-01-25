@@ -6,27 +6,28 @@
     android:layout_height="wrap_content"
     android:background="@color/transparent">
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
 
         android:id="@+id/cardView"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_margin="10dp"
-        app:cardElevation="10dp"
+        android:backgroundTint="@color/widgetBackground"
         app:cardCornerRadius="15dp"
+        app:cardElevation="10dp"
         app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:backgroundTint="@color/widgetBackground">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/sivItemImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/transparent"
-            android:scaleType="centerCrop"/>
+            android:scaleType="centerCrop" />
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/mtvTitle"

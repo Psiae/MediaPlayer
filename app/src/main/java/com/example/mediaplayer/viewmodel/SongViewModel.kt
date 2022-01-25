@@ -96,7 +96,6 @@ class SongViewModel @Inject constructor(
     }
 
     suspend fun getDeviceSong(msg: String = "unknown") {
-        delay(100)
         if (_isFetching.value!!) return
         withContext(Dispatchers.Main) {
             _isFetching.value = true

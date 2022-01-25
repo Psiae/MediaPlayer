@@ -41,7 +41,7 @@ class AlbumAdapter(
     }
 
     override fun getItemCount(): Int {
-        return if (itemList.size <= 20) itemList.size else 20
+        return itemList.size
     }
 
     inner class HomeViewHolder(

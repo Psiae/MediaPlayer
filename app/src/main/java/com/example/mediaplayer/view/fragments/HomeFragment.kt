@@ -20,6 +20,7 @@ import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
@@ -69,8 +70,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
         setupView()
-
         lifecycleScope.launch {
+            delay(100)
             setupRecyclerView()
         }
         setupObserver()
@@ -145,6 +146,7 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch(Dispatchers.IO) {
+            delay(100)
             songViewModel.getDeviceSong("HomeFragment")
         }
     }

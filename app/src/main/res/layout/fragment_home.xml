@@ -159,6 +159,8 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvSuggestion"
+                android:minWidth="140dp"
+                android:minHeight="140dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -182,6 +184,8 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvArtist"
+                android:minWidth="140dp"
+                android:minHeight="140dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -205,6 +209,8 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvAlbum"
+                android:minWidth="140dp"
+                android:minHeight="140dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
