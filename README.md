@@ -14,7 +14,7 @@ Working On:
 - MediaServiceBrowserCompat
 - PlayerNotificationManager
 - MediaMetadataCompat
-- Exoplayer Services
+- Exoplayer Services with MediaSessionCompat
 - Better UI / UX
 
 Plans :
