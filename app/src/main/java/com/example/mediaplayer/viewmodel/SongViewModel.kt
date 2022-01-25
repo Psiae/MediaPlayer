@@ -103,7 +103,10 @@ class SongViewModel @Inject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             Timber.d("getDeviceSong by $msg")
-            queryDeviceMusic()
+            val music = queryDeviceMusic()
+            withContext(Dispatchers.Main) {
+                _songList.value = music
+            }
             _isFetching.postValue(false)
         }
     }
@@ -180,7 +183,7 @@ class SongViewModel @Inject constructor(
                     val dateAdded = cursor.getString(dateAddedIndex)
                     val dateModified = cursor.getString(dateModifiedIndex)
                     val displayName = cursor.getString(displayNameIndex)
-                    val duration = cursor.getString(durationIndex)
+                    val duration = cursor.getLong(durationIndex)
                     val title = cursor.getString(titleIndex)
                     val year = cursor.getInt(yearIndex)
                     val path = cursor.getString(pathIndex)
@@ -197,22 +200,24 @@ class SongViewModel @Inject constructor(
                     val imagePath = Uri.parse("content://media/external/audio/albumart")
                     val imageUri = ContentUris.withAppendedId(imagePath, albumId)
 
-                    deviceMusicList.add(Song(
-                        album,
-                        albumId,
-                        artist,
-                        dateAdded.toInt(),
-                        dateModified.toInt(),
-                        displayName,
-                        imageUri = imageUri.toString(),
-                        isLocal = true,
-                        duration.toLong(),
-                        songId,
-                        audioPath,
-                        startFrom = 0,
-                        title,
-                        year,
-                    ))
+                    if (duration != 0L) {
+                        deviceMusicList.add(Song(
+                            album = album,
+                            albumId = albumId,
+                            artist = artist,
+                            dateAdded = dateAdded.toInt(),
+                            dateModified = dateModified.toInt(),
+                            displayName = displayName,
+                            imageUri = imageUri.toString(),
+                            isLocal = true,
+                            length = duration,
+                            mediaId = songId,
+                            mediaPath = audioPath,
+                            startFrom = 0,
+                            title = title,
+                            year = year,
+                        ))
+                    }
 
                     if (!folderList.contains(Folder(audioPath, 0, folderPath))) {
                         folderList.add(Folder(
@@ -250,7 +255,6 @@ class SongViewModel @Inject constructor(
         Timber.d("artist: $listOfArtist \n album: $listOfAlbum")
 
         withContext(Dispatchers.Main.immediate) {
-            _songList.value = deviceMusicList
             _folderList.value = folderList
             _albumList.value = albumSong
             _artistList.value = artistSong

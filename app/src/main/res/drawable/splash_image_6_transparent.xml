@@ -3,7 +3,7 @@
 
     <item
         android:drawable="@drawable/rainote"
-        android:height="72dp"
-        android:width="72dp"
+        android:height="6dp"
+        android:width="6dp"
         android:gravity="center" />
 </layer-list>

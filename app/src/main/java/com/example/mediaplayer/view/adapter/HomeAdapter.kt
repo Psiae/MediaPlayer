@@ -58,15 +58,10 @@ class HomeAdapter(
                 mtvTitle.text = title
 
                 glide.asDrawable()
-                    .load(when (artist) {
-                        "rei" -> testImageUrl
-                        else -> item.imageUri
-                    })
+                    .load(imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())
-                    .placeholder(R.drawable.splash_image_48_transparent)
-                    .error(R.drawable.splash_image_48_transparent)
+                    .error(R.drawable.ic_music_library_transparent)
                     .into(sivItemImage)
-
             }
         }
     }

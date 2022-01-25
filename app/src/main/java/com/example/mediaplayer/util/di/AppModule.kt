@@ -31,8 +31,7 @@ object AppModule {
         @ApplicationContext context: Context
     ) = Glide.with(context).setDefaultRequestOptions(
         RequestOptions()
-            .placeholder(R.drawable.splash_image_24_transparent)
-            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC))
+            .diskCacheStrategy(DiskCacheStrategy.NONE))
 
     @Singleton
     @Provides

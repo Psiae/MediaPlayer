@@ -15,6 +15,7 @@ import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffSongCallback
 import com.example.mediaplayer.util.ext.toast
+import timber.log.Timber
 
 class SongAdapter (
     private val glide: RequestManager,
@@ -80,30 +81,12 @@ class SongAdapter (
                     }
                     toast(context, msg = path)
                 }
-
-                if (imageUri.isEmpty()) {
-                    if (artist.lowercase() == "rei"
-                        || album.lowercase() == "romancer"
-                        || album.lowercase() == "summit"
-                    )  {
-                        glide.load(testImageUrl)
-                            .transition(DrawableTransitionOptions.withCrossFade())
-                            .centerInside()
-                            .placeholder(R.drawable.splash_image_24_dark)
-                            .into(ivSongImage)
-                    } else {
-                        glide.load(R.drawable.splash_image_24_transparent)
-                            .transition(DrawableTransitionOptions.withCrossFade())
-                            .centerInside()
-                            .into(ivSongImage)
-                    }
-
-                } else {
-                    glide.load(imageUri)
-                        .transition(DrawableTransitionOptions.withCrossFade())
-                        .centerInside()
-                        .into(ivSongImage)
-                }
+                Timber.d("Uri: $imageUri")
+                glide.asDrawable()
+                    .load(imageUri)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .error(R.drawable.ic_music_library_transparent)
+                    .into(ivSongImage)
             }
 
             binding.apply {
@@ -111,7 +94,7 @@ class SongAdapter (
                     if (song.artist.isEmpty() && song.album.isEmpty()) View.GONE else View.VISIBLE
                 tvTitle.text = if (title.isNotEmpty()) title else "Unknown"
                 tvSecondaryTitle.text =
-                    "${if (artist.isNotEmpty()) artist else "<Artist>"} $bullet ${if (album.isNotEmpty()) album else "<Album>"}"
+                    "${if (artist.isNotEmpty()) artist else "<Artist>"}"
 
 
 

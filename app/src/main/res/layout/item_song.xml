@@ -15,19 +15,19 @@
         style="@style/ItemBackground"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:scaleType="center"
+        android:scaleType="centerCrop"
         android:elevation="5dp"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:src="@drawable/splash_image_24_transparent"
-        tools:visibility="visible" />
+        tools:visibility="visible"/>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tvTitle"
         style="@style/textColor"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:maxLines="1"
         android:layout_marginTop="4dp"
         android:gravity="start"
         android:paddingStart="10dp"

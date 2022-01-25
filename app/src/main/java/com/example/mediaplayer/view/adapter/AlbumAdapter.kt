@@ -25,7 +25,7 @@ class AlbumAdapter(
     var itemList: List<Album>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct()
+            val submit = value.distinct().sortedBy { it.name }
             differ.submitList(submit)
         }
 
@@ -57,13 +57,9 @@ class AlbumAdapter(
                 mtvTitle.text = name
 
                 glide.asDrawable()
-                    .load(when (name) {
-                        "rei" -> testImageUrl
-                        else -> firstSong.imageUri
-                    })
+                    .load(firstSong.imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())
-                    .placeholder(R.drawable.splash_image_48_transparent)
-                    .error(R.drawable.splash_image_48_transparent)
+                    .error(R.drawable.ic_music_library_transparent)
                     .into(sivItemImage)
             }
         }

@@ -163,8 +163,6 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         binding.rvSongList.apply {
             songAdapter.setItemClickListener { song ->
 
-
-
                 /*val index = songAdapter.songList.indexOfFirst {
                     it.title == song.title
                 }
@@ -186,10 +184,11 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     override fun onQueryTextChange(query: String?): Boolean {
         if (!query.isNullOrEmpty()) {
             val list = songViewModel.songList.value!!
-                .filter { it.title.lowercase().contains(query.lowercase().trim())
+                .filter {
+                    it.title.lowercase().contains(query.lowercase().trim())
                         || it.album.lowercase() == query.lowercase().trim()
                         || it.artist.lowercase() == query.lowercase().trim()
-            }
+                }
             songAdapter.songList = list
         } else {
             lifecycleScope.launch(Dispatchers.IO) {

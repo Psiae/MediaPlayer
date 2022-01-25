@@ -1,13 +1,19 @@
 package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationManager
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
@@ -32,6 +38,7 @@ import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -88,6 +95,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             delay(1500)
             getControlHeight()
         }
+    }
+
+    val obj = object : ConnectivityManager.NetworkCallback() {
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder(this@MainActivity, Constants.NOTIFICATION_CHANNEL_ID)
+            }
+            NotificationCompat.Builder(this@MainActivity, Constants.NOTIFICATION_CHANNEL_ID)
+        }
+
     }
 
     /**
@@ -294,18 +312,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun glideCurSong(it: Song) {
         Timber.d("glide $it")
         binding.apply {
-            if (it.artist.lowercase() == "rei"
-                || it.album.lowercase() == "romancer"
-                || it.album.lowercase() == "summit"
-            ) {
-                glide.load(testImageUrl)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .centerInside()
-                    .placeholder(R.drawable.splash_image_24_transparent)
-                    .into(sivCurImage)
-            } else glide.load(R.drawable.splash_image_24_transparent)
+            glide.asDrawable()
+                .load(it.imageUri)
                 .transition(DrawableTransitionOptions.withCrossFade())
-                .centerInside()
+                .error(R.drawable.ic_music_library_transparent)
                 .into(sivCurImage)
         }
     }

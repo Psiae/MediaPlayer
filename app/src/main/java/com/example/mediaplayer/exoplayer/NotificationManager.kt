@@ -14,8 +14,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.util.NotificationUtil.IMPORTANCE_HIGH
 
-/*
-class NotificationManager(
+/*class NotificationManager(
     private val context: Context,
     private val newSongCallback: () -> Unit,
     sessionToken: MediaSessionCompat.Token,
@@ -35,7 +34,7 @@ class NotificationManager(
             setChannelNameResourceId(R.string.media_player)
             setChannelDescriptionResourceId(R.string.currently_playing)
             setNotificationListener(notificationListener)
-            // MediaDescriptionAdapter
+            setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
             this.setChannelImportance(IMPORTANCE_HIGH)
         }.build()
     }
@@ -64,6 +63,7 @@ class NotificationManager(
             player: Player,
             callback: PlayerNotificationManager.BitmapCallback,
         ): Bitmap? {
+
         }
     }
 }*/

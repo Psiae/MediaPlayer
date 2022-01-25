@@ -27,7 +27,7 @@ class ArtistAdapter(
     var itemList: List<Artist>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct()
+            val submit = value.distinct().sortedBy { it.name }
             differ.submitList(submit)
         }
 
@@ -59,13 +59,9 @@ class ArtistAdapter(
                 mtvTitle.text = name
 
                 glide.asDrawable()
-                    .load(when (name) {
-                        "rei" -> testImageUrl
-                        else -> firstArtist.imageUri
-                    })
+                    .load(firstArtist.imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())
-                    .placeholder(R.drawable.splash_image_48_transparent)
-                    .error(R.drawable.splash_image_48_transparent)
+                    .error(R.drawable.ic_music_library_transparent)
                     .into(sivItemImage)
             }
         }

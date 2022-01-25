@@ -18,6 +18,7 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_history_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_home_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_launcher_background.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_library_transparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_library_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_black.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_music_note_dark.xml" value="0.2203125" />
@@ -46,11 +47,14 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/ic_settings_application_white.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/note_image_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_12_transparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_dark.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_transparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_trasparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_24_widget.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_48_trasparent.xml" value="0.2203125" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_6_transparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_72_trasparent.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/drawable/splash_image_dark.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/layout/activity_main.xml" value="0.21629213483146068" />
@@ -73,6 +77,7 @@
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_music_search.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_song.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/menu/menu_song_toolbar.xml" value="0.1" />
+        <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_notewave.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_player_round.xml" value="0.2203125" />
         <entry key="..\:/Users/Kyle/AndroidStudioProjects/MediaPlayer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_rainote.xml" value="0.2203125" />
