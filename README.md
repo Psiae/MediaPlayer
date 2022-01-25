@@ -8,7 +8,7 @@ Features :
 - MediaStore Audio Files Scan
 - Simple Playback with Play/Pause
 - Folder Path
-- Viewpager display currently playing song along with Images
+- Viewpager display currently playing song along with Album Images
 
 Working On:
 - MediaServiceBrowserCompat
