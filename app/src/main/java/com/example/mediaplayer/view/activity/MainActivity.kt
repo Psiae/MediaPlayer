@@ -3,11 +3,13 @@ package com.example.mediaplayer.view.activity
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
+import android.content.ContentUris
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -38,7 +40,10 @@ import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -288,6 +293,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      */
     private fun setupSongVM() {
         songViewModel.apply {
+
+
             isPlaying.observe(this@MainActivity) {
                 if (it) binding.ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)
                 else binding.ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
@@ -296,22 +303,32 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 swipeAdapter.songList = it
             }
             curPlayingSong.observe(this@MainActivity) {
+                Timber.d("cur play: $it")
                 it?.let {
                     val itemIndex = swipeAdapter.songList.indexOf(it)
                     binding.viewPager2.currentItem = itemIndex
                     glideCurSong(it)
-
-                }/* ?: glideCurSong(swipeAdapter.songList[0])*/
+                }
             }
             lifecycleScope.launch {
+                Timber.d("MainActivity Shuffle")
                 getShuffledSong(20)
             }
         }
     }
 
-    private fun glideCurSong(it: Song) {
+    private fun glideCurSong(it: Song, prepare: Boolean = false) {
         Timber.d("glide $it")
+        if (prepare) {
+            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.mediaId)
+            val sourceFactory = DefaultDataSource.Factory(this.applicationContext)
+            val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
+            player.setMediaSource(mediaSource)
+            player.prepare()
+        }
         binding.apply {
+            Timber.d("glideCurrentSong")
             glide.asDrawable()
                 .load(it.imageUri)
                 .transition(DrawableTransitionOptions.withCrossFade())
@@ -341,6 +358,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             songViewModel.getDeviceSong("MainActivity onResume")
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
         Timber.d("MainActivity Destroyed")

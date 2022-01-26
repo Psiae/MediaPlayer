@@ -34,5 +34,6 @@
     <!-- Services -->
     <string name="media_player">Media Player</string>
     <string name="currently_playing">Currently Playing</string>
+    <string name="android_10_song_should_be_inside_the_music_folder">Android 10 Song Should Be Inside The MUSIC Folder</string>
 
 </resources>

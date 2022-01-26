@@ -25,7 +25,7 @@ class AlbumAdapter(
     var itemList: List<Album>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct().sortedBy { it.name }
+            val submit = value.distinct().sortedBy { it.name.lowercase() }
             differ.submitList(submit)
         }
 

@@ -12,6 +12,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentHomeBinding
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.view.adapter.AlbumAdapter
 import com.example.mediaplayer.view.adapter.ArtistAdapter
@@ -114,6 +115,11 @@ class HomeFragment : Fragment() {
 
     private fun setupObserver() {
         songViewModel.apply {
+            songList.observe(viewLifecycleOwner) {
+                if (it.isNullOrEmpty()) {
+                    clearShuffle("homeObserver")
+                }
+            }
             shuffles.observe(viewLifecycleOwner) {
                 suggestAdapter.itemList = it
             }
@@ -127,6 +133,13 @@ class HomeFragment : Fragment() {
                 binding.nsvHome.setPadding(0,0,0, it + 30)
                 binding.nsvHome.clipToPadding = false
                 Timber.d("${binding.nsvHome} $it")
+            }
+            val shuffle = shuffles.value
+            if (shuffle.isNullOrEmpty()) {
+                lifecycleScope.launch {
+                    Timber.d("home shuffle : $shuffle")
+                    getShuffledSong(20)
+                }
             }
         }
     }
@@ -151,9 +164,13 @@ class HomeFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        _binding = null
         if (_binding == null) Timber.d("HomeFragment Destroyed")
     }
 

@@ -87,8 +87,13 @@ class SongViewModel @Inject constructor(
     private val _isFetching = MutableLiveData(false)
 
     suspend fun getShuffledSong(take: Int) {
-        val list = queryDeviceMusic()
-        _shuffles.value = list.shuffled().take(take)
+        _shuffles.value = _songList.value?.shuffled()?.take(take)
+            ?: queryDeviceMusic().shuffled().take(take)
+    }
+
+    fun clearShuffle(msg: String) {
+        Timber.d(msg)
+        _shuffles.value = emptyList()
     }
 
     fun setCurFolder(folder: Folder) {
@@ -216,7 +221,7 @@ class SongViewModel @Inject constructor(
                             title = title,
                             year = year,
                         ))
-                    }
+                    } else Timber.d("$title ignored, duration : $duration")
 
                     if (!folderList.contains(Folder(audioPath, 0, folderPath))) {
                         folderList.add(Folder(

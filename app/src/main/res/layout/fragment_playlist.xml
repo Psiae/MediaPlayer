@@ -24,7 +24,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/recyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/under_construction" />
+        app:srcCompat="@drawable/under_constructions" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline3"

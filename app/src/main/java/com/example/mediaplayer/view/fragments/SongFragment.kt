@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.activity.MainActivity
 import com.example.mediaplayer.view.adapter.SongAdapter
@@ -106,6 +107,9 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         }
         songViewModel.songList.observe(viewLifecycleOwner) {
             songAdapter.songList = it
+            if (it.isNullOrEmpty() && VersionHelper.isQ()) {
+                binding.tvNoSong.visibility = View.VISIBLE
+            } else binding.tvNoSong.visibility = View.GONE
         }
     }
 
