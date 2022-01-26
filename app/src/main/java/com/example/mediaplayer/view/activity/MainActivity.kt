@@ -96,17 +96,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
-    val obj = object : ConnectivityManager.NetworkCallback() {
-        override fun onLost(network: Network) {
-            super.onLost(network)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Notification.Builder(this@MainActivity, Constants.NOTIFICATION_CHANNEL_ID)
-            }
-            NotificationCompat.Builder(this@MainActivity, Constants.NOTIFICATION_CHANNEL_ID)
-        }
-
-    }
-
     /**
      * Permission Setup
      */

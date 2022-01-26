@@ -9,9 +9,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentHomeBinding
+import com.example.mediaplayer.model.data.entities.Album
+import com.example.mediaplayer.model.data.entities.Artist
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.view.adapter.AlbumAdapter
 import com.example.mediaplayer.view.adapter.ArtistAdapter
@@ -31,7 +35,7 @@ import javax.inject.Named
 class HomeFragment : Fragment() {
 
     companion object {
-        val TAG = HomeFragment::class.java.simpleName
+        val TAG: String? = HomeFragment::class.java.simpleName // Not nullable but Complains
     }
 
     @Inject
@@ -49,8 +53,12 @@ class HomeFragment : Fragment() {
     @Named("artistAdapterNS")
     lateinit var artistAdapter: ArtistAdapter
 
-    lateinit var navController: NavController
-    val songViewModel: SongViewModel by activityViewModels()
+    private lateinit var suggestListener: AsyncListDiffer.ListListener<Song>
+    private lateinit var artistListener: AsyncListDiffer.ListListener<Artist>
+    private lateinit var albumListener: AsyncListDiffer.ListListener<Album>
+
+    private lateinit var navController: NavController
+    private val songViewModel: SongViewModel by activityViewModels()
 
     private var _binding: FragmentHomeBinding? = null
     private val binding: FragmentHomeBinding
@@ -71,6 +79,7 @@ class HomeFragment : Fragment() {
         navController = requireActivity().findNavController(R.id.navHostContainer)
         setupView()
         lifecycleScope.launch {
+            delay(200)
             setupRecyclerView()
         }
         setupObserver()
@@ -84,9 +93,20 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.apply {
+
+            suggestListener = AsyncListDiffer.ListListener { cur , prev ->
+                if (cur == prev) Unit else rvSuggestion.scrollToPosition(0)
+            }
+            albumListener = AsyncListDiffer.ListListener { cur, prev ->
+                if (cur == prev) Unit else rvAlbum.scrollToPosition(0)
+            }
+            artistListener = AsyncListDiffer.ListListener { cur, prev ->
+                if (cur == prev) Unit else rvArtist.scrollToPosition(0)
+            }
+
             rvSuggestion.apply {
                 adapter = suggestAdapter.also {
-                    it.differ.addListListener { _, _ -> rvSuggestion.scrollToPosition(0) }
+                    it.differ.addListListener(suggestListener)
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -94,7 +114,7 @@ class HomeFragment : Fragment() {
             }
             rvAlbum.apply {
                 adapter = albumAdapter.also {
-                    it.differ.addListListener { _, _ -> rvSuggestion.scrollToPosition(0) }
+                    it.differ.addListListener(albumListener)
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -102,7 +122,7 @@ class HomeFragment : Fragment() {
             }
             rvArtist.apply {
                 adapter = artistAdapter.also {
-                    it.differ.addListListener { _, _ -> rvSuggestion.scrollToPosition(0) }
+                    it.differ.addListListener(artistListener)
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -169,11 +189,13 @@ class HomeFragment : Fragment() {
                 rvArtist.adapter = null
                 rvAlbum.adapter = null
                 rvSuggestion.adapter = null
+
+                artistAdapter.differ.removeListListener(artistListener)
+                albumAdapter.differ.removeListListener(albumListener)
+                suggestAdapter.differ.removeListListener(suggestListener)
             }
         }
-        artistAdapter.differ.removeListListener { _ , _ ->  }
-        albumAdapter.differ.removeListListener { _ , _ ->  }
-        suggestAdapter.differ.removeListListener { _ , _ -> }
+        _binding!!.crlHome.removeAllViews()
         _binding = null
     }
 
