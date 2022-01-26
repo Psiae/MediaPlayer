@@ -18,8 +18,11 @@ local.properties
 .log
 *.apk
 output.json
+.idea
 .idea/
+/.idea/
 *.jks
 *.keystore
 google-services.json
 *.hprof
+
