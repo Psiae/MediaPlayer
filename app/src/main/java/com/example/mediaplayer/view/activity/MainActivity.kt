@@ -286,8 +286,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      * ViewModel & Data Provider
      */
     private fun setupSongVM() {
-        songViewModel.apply {
 
+        songViewModel.apply {
 
             isPlaying.observe(this@MainActivity) {
                 if (it) binding.ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)

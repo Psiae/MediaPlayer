@@ -71,7 +71,6 @@ class HomeFragment : Fragment() {
         navController = requireActivity().findNavController(R.id.navHostContainer)
         setupView()
         lifecycleScope.launch {
-            delay(100)
             setupRecyclerView()
         }
         setupObserver()
@@ -165,6 +164,16 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        with (binding) {
+            this.apply {
+                rvArtist.adapter = null
+                rvAlbum.adapter = null
+                rvSuggestion.adapter = null
+            }
+        }
+        artistAdapter.differ.removeListListener { _ , _ ->  }
+        albumAdapter.differ.removeListListener { _ , _ ->  }
+        suggestAdapter.differ.removeListListener { _ , _ -> }
         _binding = null
     }
 

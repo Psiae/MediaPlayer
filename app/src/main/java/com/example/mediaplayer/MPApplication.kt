@@ -11,6 +11,7 @@ class MPApplication : Application() {
 
     @SuppressLint("LogNotTimber")
     override fun onCreate() {
+        // Plant Timber if the BuildConfig is DEBUG
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
