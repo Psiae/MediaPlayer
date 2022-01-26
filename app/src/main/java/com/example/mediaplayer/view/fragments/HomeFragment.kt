@@ -12,7 +12,6 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentHomeBinding
-import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.view.adapter.AlbumAdapter
 import com.example.mediaplayer.view.adapter.ArtistAdapter

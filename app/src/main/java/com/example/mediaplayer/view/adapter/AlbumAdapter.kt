@@ -10,10 +10,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ItemHomeBinding
 import com.example.mediaplayer.model.data.entities.Album
-import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffAlbumCallback
-import com.example.mediaplayer.util.diffSongCallback
 
 class AlbumAdapter(
     private val glide: RequestManager,

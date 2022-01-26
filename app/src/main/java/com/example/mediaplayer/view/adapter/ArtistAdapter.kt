@@ -13,7 +13,6 @@ import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.diffArtistCallback
 import com.google.android.material.shape.CornerFamily
-import kotlin.math.floor
 
 class ArtistAdapter(
     private val glide: RequestManager,

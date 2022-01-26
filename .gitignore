@@ -14,3 +14,12 @@
 .cxx
 local.properties
 /app/src/main/java/com/example/mediaplayer/model/data/remote/API.kt
+
+.log
+*.apk
+output.json
+.idea/
+*.jks
+*.keystore
+google-services.json
+*.hprof

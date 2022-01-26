@@ -12,7 +12,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ItemSongBinding
 import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.diffSongCallback
 import com.example.mediaplayer.util.ext.toast
 import timber.log.Timber

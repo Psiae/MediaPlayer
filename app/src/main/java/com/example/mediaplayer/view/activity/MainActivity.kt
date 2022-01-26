@@ -2,7 +2,6 @@ package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
 import android.app.Notification
-import android.app.NotificationManager
 import android.content.ContentUris
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -25,7 +24,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.model.data.remote.testImageUrl
 import com.example.mediaplayer.util.*
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.INTERNET
@@ -35,14 +33,11 @@ import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.ext.*
-import com.example.mediaplayer.view.adapter.FolderAdapter
-import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
@@ -51,7 +46,6 @@ import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
-import javax.inject.Named
 
 @AndroidEntryPoint
 @SuppressLint("LogNotTimber")
