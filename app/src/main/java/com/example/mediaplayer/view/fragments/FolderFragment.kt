@@ -12,6 +12,7 @@ import com.example.mediaplayer.databinding.FragmentFolderBinding
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -48,9 +49,14 @@ class FolderFragment: Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
+            it.duration = 500L
+        }
+        exitTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
+            it.duration = 500L
+        }
         setupView()
         subToObserver()
-
     }
 
     private fun setupView() {
