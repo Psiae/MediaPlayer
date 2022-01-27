@@ -98,6 +98,7 @@ class SongAdapter (
 
 
                 binding.root.setOnClickListener {
+                    root.transitionName = song.mediaId.toString()
                     onItemClickListener?.let { passedMethod ->
                         passedMethod(song)              // function passed by fragment in this case
                                                         // I want to use item from my adapter

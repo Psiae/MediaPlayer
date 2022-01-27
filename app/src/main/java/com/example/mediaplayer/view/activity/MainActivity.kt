@@ -1,12 +1,8 @@
 package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.content.ContentUris
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.Network
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -14,10 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.*
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.RequestManager
@@ -25,7 +19,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.util.*
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.INTERNET
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
@@ -33,21 +26,25 @@ import com.example.mediaplayer.util.Constants.PERMISSION_INTERNET_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
-import com.example.mediaplayer.util.ext.*
+import com.example.mediaplayer.util.Perms
+import com.example.mediaplayer.util.Version
+import com.example.mediaplayer.util.VersionHelper
+import com.example.mediaplayer.util.ext.curToast
+import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.material.transition.MaterialContainerTransform
-import com.google.android.material.transition.MaterialFadeThrough
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -217,8 +214,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 R.id.navBottomSong -> setControl(id = id)
                 R.id.navBottomPlaylist -> setControl(id = id)
                 R.id.navBottomLibrary -> setControl(id = id)
-                /*R.id.navBottomSettings -> setControl()*/
-                R.id.exoplayerFragment -> setControl(fullscreen = true, id = id)
+                R.id.folderFragment -> setControl(true, id)
             }
         }
     }
@@ -255,16 +251,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun setToaster() = apply { curToast = "" }
     private fun getControlHeight() {
-        songViewModel.navHeight.value =
-            if (binding.dummy.measuredHeight != 0) binding.dummy.measuredHeight
-        else return
+        if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
     }
+
     private fun setControl(fullscreen: Boolean = false, id: Int) {
         if (fullscreen) {
             binding.apply {
                 bottomNavigationView.visibility = View.GONE
-                clPager.visibility = View.GONE
+                clPager.visibility = View.VISIBLE
                 navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                if (getClpHeight() != 0) songViewModel.navHeight.value = getClpHeight()
             }
             return
         }
@@ -273,6 +269,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             binding.clPager.visibility = View.VISIBLE
             binding.navHostContainer.layoutParams.height = 0
         }
+    }
+
+    private fun getDummyHeight(): Int {
+        return binding.dummy.measuredHeight
+    }
+
+    private fun getHidBnvHeight(): Int {
+        return binding.bottomNavigationView.measuredHeight
+    }
+
+    private fun getClpHeight(): Int {
+        return binding.clPager.measuredHeight
     }
 
     /**
@@ -337,6 +345,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             val resIntent = Intent(this@MainActivity, MainActivity::class.java)
             finishAffinity()
             startActivity(resIntent)
+    }
+
+    override fun onBackPressed() {
+        if (Version.isQ() && isTaskRoot && supportFragmentManager.primaryNavigationFragment
+                ?.childFragmentManager?.backStackEntryCount == 0
+            && supportFragmentManager.backStackEntryCount == 0
+        ) finishAfterTransition()
+        else super.onBackPressed()
     }
 
     override fun onResume() {

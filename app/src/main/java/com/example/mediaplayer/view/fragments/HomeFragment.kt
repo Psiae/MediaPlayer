@@ -80,10 +80,10 @@ class HomeFragment : Fragment() {
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         reenterTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 500L
+            it.duration = 400L
         }
 
         setupView()

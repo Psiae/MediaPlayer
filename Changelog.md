@@ -1,3 +1,7 @@
+# 2022/01/28
+- Fixed Activity FinishCallback Leak on Android Q
+- Fixed Recyclerview Padding when hiding bnv
+
 # 2022/01/27
 - Fixed Leak on Adapter & Coordinator Layout
 - Fixed Shuffled Song on Suggestion Row is Persisting after Song Deletion on Storage  

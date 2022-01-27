@@ -16,16 +16,15 @@
         android:id="@+id/navBottomPlaylist"
         android:title="@string/playlist"
         android:icon="@drawable/ic_music_queue_white"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/navBottomLibrary"
         android:title="@string/library"
         android:icon="@drawable/ic_music_library_white"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 <!--    <item
         android:id="@+id/navBottomSettings"
         android:title="@string/settings"
         android:icon="@drawable/ic_settings_white"
         app:showAsAction="never"/>-->
-
 </menu>

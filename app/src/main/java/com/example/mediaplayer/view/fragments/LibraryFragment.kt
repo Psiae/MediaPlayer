@@ -64,13 +64,14 @@ class LibraryFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
         folderAdapter.setOnFolderClicked {
             songViewModel.setCurFolder(it)
+
             findNavController().navigate(R.id.folderFragment)
         }
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         setupRecyclerView()
         setupFolderAdapter()
@@ -123,11 +124,11 @@ class LibraryFragment: Fragment() {
         with (binding) {
             rvLib.adapter = null
         }
+        _binding = null
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        _binding = null
-        if (_binding == null) Timber.d("LibraryFragment Destroyed")
+        if (_binding == null) Timber.d("LibraryFragment Destroyed") else _binding = null
     }
 }

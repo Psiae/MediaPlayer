@@ -40,7 +40,11 @@
         android:id="@+id/navBottomLibrary"
         android:name="com.example.mediaplayer.view.fragments.LibraryFragment"
         android:label="LibraryFragment"
-        tools:layout="@layout/fragment_library"/>
+        tools:layout="@layout/fragment_library">
+        <action
+            android:id="@+id/action_navBottomLibrary_to_folderFragment"
+            app:destination="@id/folderFragment" />
+    </fragment>
     <fragment
         android:id="@+id/navBottomPlaylist"
         android:name="com.example.mediaplayer.view.fragments.PlaylistFragment"

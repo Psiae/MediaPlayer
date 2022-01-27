@@ -70,10 +70,10 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         setupView()
         lifecycleScope.launch {

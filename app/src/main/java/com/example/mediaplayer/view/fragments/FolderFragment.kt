@@ -38,6 +38,8 @@ class FolderFragment: Fragment() {
     private val binding: FragmentFolderBinding
         get() = _binding!!
 
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,10 +52,10 @@ class FolderFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         exitTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 500L
+            it.duration = 400L
         }
         setupView()
         subToObserver()
@@ -61,9 +63,11 @@ class FolderFragment: Fragment() {
 
     private fun setupView() {
         binding.apply {
+
             tbLib.setNavigationOnClickListener {
                 findNavController().popBackStack()
             }
+
             rvLib.apply {
                 adapter = songAdapter
                 layoutManager = LinearLayoutManager(requireContext())
