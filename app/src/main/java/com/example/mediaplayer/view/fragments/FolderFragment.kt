@@ -82,6 +82,13 @@ class FolderFragment: Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        with (binding) {
+            rvLib.adapter = null
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null

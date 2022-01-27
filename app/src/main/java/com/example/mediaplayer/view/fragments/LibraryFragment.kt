@@ -66,10 +66,15 @@ class LibraryFragment: Fragment() {
             songViewModel.setCurFolder(it)
             findNavController().navigate(R.id.folderFragment)
         }
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
+            it.duration = 500L
+        }
+        exitTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 500L
+        }
         setupRecyclerView()
         setupFolderAdapter()
         subToObserver()
-        enterTransition = MaterialFadeThrough().addTarget(view)
     }
 
     private fun setupFolderAdapter() {}
@@ -110,6 +115,13 @@ class LibraryFragment: Fragment() {
         lifecycleScope.launch(Dispatchers.IO) {
             delay(200)
             songViewModel.getDeviceSong("LibraryFragment onResume")
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        with (binding) {
+            rvLib.adapter = null
         }
     }
 

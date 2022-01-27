@@ -36,7 +36,12 @@ class PlaylistFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
+            it.duration = 500L
+        }
+        exitTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 500L
+        }
         binding.apply {}
     }
 

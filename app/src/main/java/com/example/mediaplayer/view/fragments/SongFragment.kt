@@ -68,8 +68,13 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
         navController = requireActivity().findNavController(R.id.navHostContainer)
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
+            it.duration = 500L
+        }
+        exitTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 500L
+        }
         setupView()
         lifecycleScope.launch {
             setupRecyclerView()

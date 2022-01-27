@@ -22,6 +22,7 @@ import com.example.mediaplayer.view.adapter.ArtistAdapter
 import com.example.mediaplayer.view.adapter.HomeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.material.transition.MaterialArcMotion
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +79,13 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
-        reenterTransition = MaterialFadeThrough().addTarget(view)
+        exitTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 500L
+        }
+        reenterTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 500L
+        }
+
         setupView()
         lifecycleScope.launch {
             setupRecyclerView()
