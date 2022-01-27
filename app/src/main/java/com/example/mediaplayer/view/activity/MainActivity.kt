@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.*
 import androidx.navigation.fragment.NavHostFragment
@@ -39,6 +40,8 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.material.transition.MaterialContainerTransform
+import com.google.android.material.transition.MaterialFadeThrough
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -208,13 +211,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             getControlHeight()
-            when (destination.id) {
-                R.id.navBottomHome -> setControl()
-                R.id.navBottomSong -> setControl()
-                R.id.navBottomPlaylist -> setControl()
-                R.id.navBottomLibrary -> setControl()
+            val id = destination.id
+            when (id) {
+                R.id.navBottomHome -> setControl(id = id)
+                R.id.navBottomSong -> setControl(id = id)
+                R.id.navBottomPlaylist -> setControl(id = id)
+                R.id.navBottomLibrary -> setControl(id = id)
                 /*R.id.navBottomSettings -> setControl()*/
-                R.id.exoplayerFragment -> setControl(fullscreen = true)
+                R.id.exoplayerFragment -> setControl(fullscreen = true, id = id)
             }
         }
     }
@@ -255,7 +259,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             if (binding.dummy.measuredHeight != 0) binding.dummy.measuredHeight
         else return
     }
-    private fun setControl(fullscreen: Boolean = false) {
+    private fun setControl(fullscreen: Boolean = false, id: Int) {
         if (fullscreen) {
             binding.apply {
                 bottomNavigationView.visibility = View.GONE

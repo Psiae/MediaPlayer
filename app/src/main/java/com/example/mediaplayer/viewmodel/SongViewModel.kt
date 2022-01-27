@@ -93,7 +93,9 @@ class SongViewModel @Inject constructor(
     suspend fun getShuffledSong(take: Int) {
         val shuf = _shuffles.value
         if (shuf?.size ?: 0 > _songList.value?.size ?: -1) {
-            clearShuffle("shuffle size is bigger than song list")
+            withContext(Dispatchers.Main) {
+                clearShuffle("shuffle size is bigger than song list")
+            }
         }
         if (!shuf.isNullOrEmpty()) return
         _shuffles.value = _songList.value?.shuffled()?.take(take)

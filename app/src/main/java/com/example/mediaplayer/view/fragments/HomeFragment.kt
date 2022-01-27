@@ -22,9 +22,9 @@ import com.example.mediaplayer.view.adapter.ArtistAdapter
 import com.example.mediaplayer.view.adapter.HomeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
@@ -77,12 +77,13 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
+        reenterTransition = MaterialFadeThrough().addTarget(view)
         setupView()
         lifecycleScope.launch {
-            delay(200)
             setupRecyclerView()
+            setupObserver()
         }
-        setupObserver()
     }
 
     private fun setupView() {
@@ -177,7 +178,6 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch(Dispatchers.IO) {
-            delay(100)
             songViewModel.getDeviceSong("HomeFragment")
         }
     }
@@ -189,7 +189,6 @@ class HomeFragment : Fragment() {
                 rvArtist.adapter = null
                 rvAlbum.adapter = null
                 rvSuggestion.adapter = null
-
                 artistAdapter.differ.removeListListener(artistListener)
                 albumAdapter.differ.removeListListener(albumListener)
                 suggestAdapter.differ.removeListListener(suggestListener)
@@ -197,6 +196,7 @@ class HomeFragment : Fragment() {
         }
         _binding!!.crlHome.removeAllViews()
         _binding = null
+        if (_binding == null) Timber.d("HomeFragment Destroyed")
     }
 
     override fun onDestroy() {

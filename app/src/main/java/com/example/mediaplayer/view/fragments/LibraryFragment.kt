@@ -15,11 +15,14 @@ import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Calendar.SECOND
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -43,6 +46,10 @@ class LibraryFragment: Fragment() {
     private val binding: FragmentLibraryBinding
         get() = _binding!!
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -62,6 +69,7 @@ class LibraryFragment: Fragment() {
         setupRecyclerView()
         setupFolderAdapter()
         subToObserver()
+        enterTransition = MaterialFadeThrough().addTarget(view)
     }
 
     private fun setupFolderAdapter() {}

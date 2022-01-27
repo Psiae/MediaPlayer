@@ -13,11 +13,6 @@
         <action
             android:id="@+id/action_navBottomSong_to_navBottomLibrary"
             app:destination="@id/navBottomLibrary" />
-        <action
-            android:id="@+id/action_navBottomSong_to_exoplayerFragment"
-            app:destination="@id/exoplayerFragment"
-            app:enterAnim="@anim/anim_slidein_up"
-            app:exitAnim="@anim/anim_stay_100"/>
     </fragment>
 
     <fragment

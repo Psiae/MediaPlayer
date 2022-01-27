@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
@@ -24,9 +25,9 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -49,6 +50,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private val songViewModel: SongViewModel by activityViewModels()
     private lateinit var navController: NavController
+    private lateinit var songListener: AsyncListDiffer.ListListener<Song>
 
     private var _binding: FragmentSongBinding? = null
     private val binding: FragmentSongBinding
@@ -60,18 +62,16 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         savedInstanceState: Bundle?,
     ): View? {
         _binding = FragmentSongBinding.inflate(inflater, container, false)
-        binding.songProgressBar.visibility = View.VISIBLE
         Timber.d("SongFragment Inflated")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
         navController = requireActivity().findNavController(R.id.navHostContainer)
         setupView()
         lifecycleScope.launch {
-            delay(250)
-            binding.songProgressBar.visibility = View.GONE
             setupRecyclerView()
             observeSongList()
         }
@@ -113,9 +113,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     private fun setupView() {
         binding.apply {
             songToolbar.apply {
-                menu.clear()
                 inflateMenu(R.menu.menu_song_toolbar)
-
                 val search = menu.findItem(R.id.menuSearch).actionView as SearchView
                 search.apply {
                     isSubmitButtonEnabled = true
@@ -143,13 +141,12 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
                             true
                         }
-
                         else -> false
                     }
                 }
             }
         }
-        songAdapter.differ.addListListener { prev, cur ->
+        songListener = AsyncListDiffer.ListListener { prev, cur ->
             when (prev) {
                 cur -> Unit
                 else -> {
@@ -157,6 +154,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 }
             }
         }
+        songAdapter.differ.addListListener(songListener)
 
     }
 
@@ -193,13 +191,23 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
             songAdapter.songList = list
         } else {
             lifecycleScope.launch(Dispatchers.IO) {
-                delay(200)
                 if (query.isNullOrEmpty()) {
                     songAdapter.songList = songViewModel.songList.value!!
                 }
             }
         }
         return true
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        with (binding) {
+            this.apply {
+                songToolbar.menu.clear()
+                rvSongList.adapter = null
+            }
+        }
+        _binding = null
     }
 }
 
