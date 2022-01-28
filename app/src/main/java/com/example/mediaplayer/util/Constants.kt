@@ -16,7 +16,8 @@ object Constants {
     const val READ_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE
     const val WRITE_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE
 
+    const val STORE_PERMISSION_MSG = ""
+
     const val NOTIFICATION_CHANNEL_ID = "MediaPlayer"
     const val NOTIFICATION_ID = 301
-
 }

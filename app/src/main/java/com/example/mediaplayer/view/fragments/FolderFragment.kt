@@ -1,6 +1,8 @@
 package com.example.mediaplayer.view.fragments
 
+import android.content.ContentUris
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +11,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -31,6 +38,9 @@ class FolderFragment: Fragment() {
     @Inject
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
+
+    @Inject
+    lateinit var player: ExoPlayer
 
     private val songViewModel: SongViewModel by activityViewModels()
 
@@ -69,26 +79,45 @@ class FolderFragment: Fragment() {
             }
 
             rvLib.apply {
-                adapter = songAdapter
+                adapter = songAdapter.also {
+                    it.setItemClickListener { song ->
+                        play(song)
+                    }
+                }
                 layoutManager = LinearLayoutManager(requireContext())
             }
         }
     }
 
+    private fun play(song: Song) {
+        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
+        val sourceFactory = DefaultDataSource.Factory(requireContext())
+        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri))
+        Timber.d("$mediaSource $uri $song $player")
+        player.setMediaSource(mediaSource)
+        player.prepare()
+        player.playWhenReady = true
+        songViewModel.curPlayingSong.value = song
+        songViewModel.isPlaying.value = true
+    }
+
     private fun subToObserver() {
-        songViewModel.curFolder.observe(viewLifecycleOwner) {
-            binding.tbLib.title = it.title
-        }
-        songViewModel.songList.observe(viewLifecycleOwner) {
-            val title = songViewModel.curFolder.value!!.title
-            songAdapter.songList = it.filter { song ->
-                song.mediaPath == title
+        songViewModel.apply {
+            curFolder.observe(viewLifecycleOwner) {
+                binding.tbLib.title = it.title
             }
-        }
-        songViewModel.navHeight.observe(viewLifecycleOwner) {
-            binding.rvLib.clipToPadding = false
-            binding.rvLib.setPadding(0,0,0, it)
-            Timber.d("${binding.rvLib.paddingBottom} $it")
+            songList.observe(viewLifecycleOwner) {
+                val title = songViewModel.curFolder.value!!.title
+                songAdapter.songList = it.filter { song ->
+                    song.mediaPath == title
+                }
+            }
+            navHeight.observe(viewLifecycleOwner) {
+                binding.rvLib.clipToPadding = false
+                binding.rvLib.setPadding(0, 0, 0, it)
+                Timber.d("${binding.rvLib.paddingBottom} $it")
+            }
         }
     }
 

@@ -11,12 +11,13 @@ import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ItemHomeBinding
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.diffSongCallback
+import com.example.mediaplayer.util.ext.toast
 import timber.log.Timber
 
 class HomeAdapter(
     private val glide: RequestManager,
     private val context: Context
-): RecyclerView.Adapter<HomeAdapter.HomeViewHolder>()  {
+): RecyclerView.Adapter<HomeAdapter.HomeViewHolder>() {
 
     val differ = AsyncListDiffer(this, diffSongCallback)
 
@@ -44,7 +45,7 @@ class HomeAdapter(
 
     inner class HomeViewHolder(
         private val binding: ItemHomeBinding
-    ): RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bindItems(item: Song) {
             val title = item.title
@@ -61,7 +62,21 @@ class HomeAdapter(
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .error(R.drawable.ic_music_library_transparent)
                     .into(sivItemImage)
+
+                binding.root.setOnClickListener {
+                    root.transitionName = item.mediaId.toString()
+                    onItemClickListener?.let { passedMethod ->
+                        passedMethod(item)              // function passed by fragment in this case
+                        // I want to use item from my adapter
+                    } ?: toast(context, "msg")     // do something else
+                }                                       // if the method is not passed yet
             }
         }
+    }
+
+    private var onItemClickListener: ((Song) -> Unit)? = null // variable that have the function
+
+    fun setItemClickListener(listener: (Song) -> Unit) { // method to set the function
+        onItemClickListener = listener
     }
 }

@@ -13,7 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
@@ -103,15 +105,17 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     private fun observeSongList() {
-        songViewModel.navHeight.observe(viewLifecycleOwner) {
-            binding.rvSongList.setPadding(0,0,0, it)
-            Timber.d("${binding.rvSongList.paddingBottom} $it")
-        }
-        songViewModel.songList.observe(viewLifecycleOwner) {
-            songAdapter.songList = it
-            if (it.isNullOrEmpty() && VersionHelper.isQ()) {
-                binding.tvNoSong.visibility = View.VISIBLE
-            } else binding.tvNoSong.visibility = View.GONE
+        songViewModel.apply {
+            navHeight.observe(viewLifecycleOwner) {
+                binding.rvSongList.setPadding(0, 0, 0, it)
+                Timber.d("${binding.rvSongList.paddingBottom} $it")
+            }
+            songList.observe(viewLifecycleOwner) {
+                songAdapter.songList = it
+                if (it.isNullOrEmpty() && VersionHelper.isQ()) {
+                    binding.tvNoSong.visibility = View.VISIBLE
+                } else binding.tvNoSong.visibility = View.GONE
+            }
         }
     }
 
@@ -177,7 +181,10 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 play(song)
             }
             adapter = songAdapter
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = GridLayoutManager(requireContext(),
+                1, GridLayoutManager.VERTICAL,
+                false
+            )
         }
     }
 

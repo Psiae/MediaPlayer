@@ -28,6 +28,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:maxLines="1"
+        android:ellipsize="end"
         android:layout_marginTop="4dp"
         android:gravity="start"
         android:paddingStart="10dp"
@@ -55,7 +56,6 @@
         app:layout_constraintEnd_toStartOf="@+id/guideline14"
         app:layout_constraintStart_toEndOf="@+id/ivSongImage"
         app:layout_constraintTop_toBottomOf="@id/guideline16" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline7"
         android:layout_width="wrap_content"

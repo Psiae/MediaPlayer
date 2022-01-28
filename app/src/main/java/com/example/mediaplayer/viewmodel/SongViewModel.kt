@@ -90,16 +90,33 @@ class SongViewModel @Inject constructor(
 
     private val _isFetching = MutableLiveData(false)
 
-    suspend fun getShuffledSong(take: Int) {
-        val shuf = _shuffles.value
-        if (shuf?.size ?: 0 > _songList.value?.size ?: -1) {
+    private suspend fun getShuffledSong(take: Int = _songList.value?.size ?: 0) : List<Song> {
+        return _songList.value?.shuffled()?.take(take)
+            ?: queryDeviceMusic().shuffled().take(take)
+    }
+
+    fun checkShuffle() {
+        // only check Shuffle after query, if somehow null then its empty
+        viewModelScope.launch {
+            val song = _songList.value ?: run {
+                clearShuffle("songList is null")
+                emptyList<Song>()
+            }
+            val shuf = _shuffles.value ?: run {
+                Timber.d("shuffles : ${_shuffles.value}")
+                getShuffledSong(song.size)
+            }
+            Timber.d(("shuffled : $shuf"))
+            if (shuf.size > song.size) {
+                withContext(Dispatchers.Main) {
+                    clearShuffle("shuffle size is bigger than song list")
+                }
+            }
+            val filtered = shuf.minus(song as List<Song>)
             withContext(Dispatchers.Main) {
-                clearShuffle("shuffle size is bigger than song list")
+                _shuffles.value = shuf.minus(filtered)
             }
         }
-        if (!shuf.isNullOrEmpty()) return
-        _shuffles.value = _songList.value?.shuffled()?.take(take)
-            ?: queryDeviceMusic().shuffled().take(take)
     }
 
     fun clearShuffle(msg: String) {

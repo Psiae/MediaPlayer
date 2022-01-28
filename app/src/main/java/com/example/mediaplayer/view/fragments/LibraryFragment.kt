@@ -88,27 +88,29 @@ class LibraryFragment: Fragment() {
     }
 
     private fun subToObserver() {
-        songViewModel.songList.observe(viewLifecycleOwner) { songList ->
-            Timber.d("song ${songList.size}")
-            songAdapter.songList = songList
-        }
-        songViewModel.folderList.observe(viewLifecycleOwner) { folderList ->
-            Timber.d("folder ${folderList.size}")
-            val sizedList = mutableListOf<Folder>()
-            folderList.forEach { folder ->
-                val filtered = songViewModel.songList.value!!.filter {
-                    it.mediaPath == folder.title
-                }
-                folder.size = filtered.size
-                sizedList.add(folder)
+        songViewModel.apply {
+            songList.observe(viewLifecycleOwner) { songList ->
+                Timber.d("song ${songList.size}")
+                songAdapter.songList = songList
             }
-            Timber.d(sizedList.toString())
-            folderAdapter.folderList = sizedList
-        }
-        songViewModel.navHeight.observe(viewLifecycleOwner) {
-            binding.rvLib.clipToPadding = false
-            binding.rvLib.setPadding(0,0,0, it)
-            Timber.d("${binding.rvLib.paddingBottom} $it")
+            folderList.observe(viewLifecycleOwner) { folderList ->
+                Timber.d("folder ${folderList.size}")
+                val sizedList = mutableListOf<Folder>()
+                folderList.forEach { folder ->
+                    val filtered = songViewModel.songList.value!!.filter {
+                        it.mediaPath == folder.title
+                    }
+                    folder.size = filtered.size
+                    sizedList.add(folder)
+                }
+                Timber.d(sizedList.toString())
+                folderAdapter.folderList = sizedList
+            }
+            navHeight.observe(viewLifecycleOwner) {
+                binding.rvLib.clipToPadding = false
+                binding.rvLib.setPadding(0, 0, 0, it)
+                Timber.d("${binding.rvLib.paddingBottom} $it")
+            }
         }
     }
     override fun onResume() {

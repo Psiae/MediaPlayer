@@ -1,6 +1,9 @@
 # 2022/01/28
 - Fixed Activity FinishCallback Leak on Android Q
 - Fixed Recyclerview Padding when hiding bnv
+- Added Simple Player Listener for playback state & seekbar `Temporary`
+- Ability to Play from Home & Folder Fragment
+- Fixed Play / Pause Inconsistency when Device Theme changed & Activity Recreation
 
 # 2022/01/27
 - Fixed Leak on Adapter & Coordinator Layout

@@ -10,7 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -20,21 +22,19 @@ import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
-import com.example.mediaplayer.util.Constants.INTERNET
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
-import com.example.mediaplayer.util.Constants.PERMISSION_INTERNET_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
-import com.example.mediaplayer.util.Constants.READ_STORAGE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.Perms
+import com.example.mediaplayer.util.PermsHelper
 import com.example.mediaplayer.util.Version
-import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.ext.curToast
 import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.vmadalin.easypermissions.EasyPermissions
@@ -100,62 +100,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      * Permission Setup
      */
 
-
-    @SuppressLint("InlinedApi")
-    private fun checkPermission(): Boolean {
-        if (!hasPermission(Perms(INTERNET)))
-            requestPermission(Perms(
-                INTERNET,
-                PERMISSION_INTERNET_REQUEST_CODE,
-                "Internet"
-            ))
-
-        if (!hasPermission(Perms(WRITE_STORAGE))
-            || !hasPermission(Perms(READ_STORAGE)))
-            requestPermission(Perms(
-                WRITE_STORAGE,
-                PERMISSION_WRITE_EXT_REQUEST_CODE,
-                "Write External Storage"
-            ))
-
-        if (!hasPermission(Perms(FOREGROUND_SERVICE))
-            && VersionHelper.isPie())
-            requestPermission(Perms(
-                FOREGROUND_SERVICE,
-                PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
-                "Foreground Service"
-            ))
-
-        return if (VersionHelper.isPie()) {
-                (hasPermission(Perms(INTERNET))
-                    && hasPermission(Perms(FOREGROUND_SERVICE))
-                    && (hasPermission(Perms(WRITE_STORAGE))
-                        || hasPermission(Perms(READ_STORAGE))))
-        } else {
-                (hasPermission(Perms(INTERNET))
-                        && (hasPermission(Perms(WRITE_STORAGE))
-                        || hasPermission(Perms(READ_STORAGE))))
-        }
-    }
-    private fun hasPermission(perms: Perms): Boolean {
-        return try {
-            Timber.d("hasPermission ?: $perms")
-            EasyPermissions.hasPermissions(this, perms.permission)
-        } catch (e: Exception) {
-            Timber.wtf(RuntimeException("$e $perms"))
-            brainException("$e $perms")
-            false
-        }
-    }
-    private fun requestPermission(perms: Perms) {
-        Timber.d("requestPermission: $perms")
-        EasyPermissions.requestPermissions(
-            this,
-            "This App Need ${perms.msg} Permission",
-            perms.requestId,
-            perms.permission
-        )
-    }
     private fun permissionScreen() {
         binding.apply {
             clPager.visibility = View.GONE
@@ -169,6 +113,37 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             }
         }
     }
+
+    @SuppressLint("InlinedApi")
+    private fun checkPermission(): Boolean {
+        if (!PermsHelper.checkStoragePermission(this))
+            requestPermission(Perms(
+                WRITE_STORAGE,
+                PERMISSION_WRITE_EXT_REQUEST_CODE,
+                "Write External Storage"
+            ))
+
+        if (!PermsHelper.checkForegroundServicePermission(this))
+            requestPermission(Perms(
+                FOREGROUND_SERVICE,
+                PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE,
+                "Foreground Service"
+            ))
+
+        return PermsHelper.checkStoragePermission(this)
+                && PermsHelper.checkStoragePermission(this)
+    }
+
+    private fun requestPermission(perms: Perms) {
+        Timber.d("requestPermission: $perms")
+        EasyPermissions.requestPermissions(
+            this,
+            "This App Need ${perms.msg} Permission",
+            perms.requestId,
+            perms.permission
+        )
+    }
+
     override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             toast(this,"Permission Denied!")
@@ -208,8 +183,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setDestinationListener(controller: NavController) {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             getControlHeight()
-            val id = destination.id
-            when (id) {
+            when (val id = destination.id) {
                 R.id.navBottomHome -> setControl(id = id)
                 R.id.navBottomSong -> setControl(id = id)
                 R.id.navBottomPlaylist -> setControl(id = id)
@@ -236,15 +210,30 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             viewPager2.apply {
                 adapter = swipeAdapter
             }
-            ibPlayPause.setOnClickListener {
-                songViewModel.isPlaying.value =
-                    if (songViewModel.isPlaying.value!!) {
-                        player.pause()
-                        false
-                    } else {
-                        player.play()
-                        true
+
+            val exoListener = object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    songViewModel.isPlaying.value = isPlaying
+                }
+            }
+            player.addListener(exoListener)
+            lifecycleScope.launch {
+                with(ibPlayPause) {
+                    songViewModel.isPlaying.observe(this@MainActivity) {
+                        if (it) {
+                            setImageResource(R.drawable.ic_pause_24_widget)
+                            setOnClickListener { player.pause() }
+                        } else {
+                            ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
+                            setOnClickListener { player.play() }
+                        }
                     }
+                }
+
+                while (true) {
+                    delay(500)
+                    binding.sbSeekbar.progress = ((player.currentPosition * 100) / player.duration).toInt()
+                }
             }
         }
     }
@@ -257,16 +246,23 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setControl(fullscreen: Boolean = false, id: Int) {
         if (fullscreen) {
             binding.apply {
-                bottomNavigationView.visibility = View.GONE
-                clPager.visibility = View.VISIBLE
-                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                with(View.GONE) {
+                    bottomNavigationView.visibility = this
+                }
+                with(View.VISIBLE) {
+                    clPager.visibility = this
+                }
                 if (getClpHeight() != 0) songViewModel.navHeight.value = getClpHeight()
+                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             }
             return
         }
         binding.apply {
-            binding.bottomNavigationView.visibility = View.VISIBLE
-            binding.clPager.visibility = View.VISIBLE
+            with(View.GONE) {}
+            with(View.VISIBLE) {
+                clPager.visibility = this
+                bottomNavigationView.visibility = this
+            }
             binding.navHostContainer.layoutParams.height = 0
         }
     }
@@ -290,10 +286,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         songViewModel.apply {
 
-            isPlaying.observe(this@MainActivity) {
-                if (it) binding.ibPlayPause.setImageResource(R.drawable.ic_pause_24_widget)
-                else binding.ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
-            }
             songList.observe(this@MainActivity) {
                 swipeAdapter.songList = it
             }
@@ -305,9 +297,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     glideCurSong(it)
                 }
             }
-            lifecycleScope.launch {
-                Timber.d("MainActivity Shuffle")
-                getShuffledSong(20)
+            lifecycleScope.launch(Dispatchers.IO) {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    getDeviceSong("MainActivity onResume")
+                }
             }
         }
     }
@@ -353,13 +346,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             && supportFragmentManager.backStackEntryCount == 0
         ) finishAfterTransition()
         else super.onBackPressed()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        lifecycleScope.launch(Dispatchers.IO) {
-            songViewModel.getDeviceSong("MainActivity onResume")
-        }
     }
 
     override fun onDestroy() {
