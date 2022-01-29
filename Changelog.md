@@ -1,3 +1,10 @@
+# 2022/01/29
+- yet Another fix to Player Inconsistency `will migrate the player to a Service`
+- yet Another fix to problem when song is deleted in Storage `will migrate using Room & Datastore`
+- the simple controller will now check for player state even after Activity Recreation `temporary before Service Implemented`
+- added better transition & ripple onclick effect
+- a little cleanup on MainActivity & ViewModels
+
 # 2022/01/28
 - Fixed Activity FinishCallback Leak on Android Q
 - Fixed Recyclerview Padding when hiding bnv

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.example.mediaplayer.exoplayer.callbacks.NotificationListener
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.upstream.DefaultDataSource
@@ -30,16 +31,23 @@ class MusicService: MediaBrowserServiceCompat() {
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
+    // Notification
+    private lateinit var musicNotificationManager: NotificationManager
+
     // MediaSession API
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
+
+    var isForegroundService = false
 
     override fun onCreate() {
         super.onCreate()
 
         // get ActivityIntent from packageManager as PendingIntent
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
-            PendingIntent.getActivity(this, 0, it, 0)
+            PendingIntent.getActivity(this, 0, it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
         // assign MediaSession to MediaSessionCompat tied with activityIntent
@@ -50,6 +58,14 @@ class MusicService: MediaBrowserServiceCompat() {
 
         // set the MediaBrowserService sessionToken to mediaSession
         sessionToken = mediaSession.sessionToken
+
+        musicNotificationManager = NotificationManager(
+            this,
+            mediaSession.sessionToken,
+            NotificationListener(this),
+        ) {
+
+        }
 
         // set the mediaSessionConnector to mediaSession and set the player to Injected ExoPlayer
         mediaSessionConnector = MediaSessionConnector(mediaSession)

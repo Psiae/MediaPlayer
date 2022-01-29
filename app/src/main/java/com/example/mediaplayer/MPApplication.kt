@@ -12,9 +12,6 @@ import javax.inject.Inject
 @HiltAndroidApp
 class MPApplication : Application() {
 
-    @Inject
-    lateinit var player: ExoPlayer
-
     @SuppressLint("LogNotTimber")
     override fun onCreate() {
         // Plant Timber if the BuildConfig is DEBUG
