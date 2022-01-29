@@ -324,7 +324,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
             songList.observe(this@MainActivity) { songList ->
                 swipeAdapter.songList = songList
-                curPlayingSong.value = songList.find { it.mediaId.toString() == player.currentMediaItem?.mediaId ?: songList[0]}
+                curPlayingSong.value = run {
+                    isPlaying.value = player.isPlaying
+                    songList.find { it.mediaId.toString() == player.currentMediaItem?.mediaId ?: songList[0] }
+                }
             }
             curPlayingSong.observe(this@MainActivity) {
                 Timber.d("cur play: $it")
@@ -397,7 +400,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     @Suppress("UNREACHABLE_CODE")
     @SuppressLint("LogNotTimber")
     fun brainException(msg: String) {
-        Log.wtf("WTF", "BrainException occurred: $msg", throw RuntimeException())
+        Log.wtf("WTF", msg, throw RuntimeException())
     }
 
 }
