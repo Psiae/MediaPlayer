@@ -208,12 +208,29 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 toast(this@MainActivity, "Image Clicked")
             }
             viewPager2.apply {
-                adapter = swipeAdapter
+                adapter = swipeAdapter.also {
+                    it.setItemListener { song ->
+                        play(song)
+                    }
+                }
             }
 
             val exoListener = object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     songViewModel.isPlaying.value = isPlaying
+                }
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+                    when (playbackState) {
+                        Player.STATE_ENDED -> {
+                            play(songViewModel.curPlayingSong.value!!, false)
+                        }
+                        Player.STATE_BUFFERING -> { Timber.d("Player State Buffering") }
+                        Player.STATE_IDLE -> { Timber.d("Player State Idle")}
+                        Player.STATE_READY -> {
+                            Timber.d("Player State Ready")
+                        }
+                    }
                 }
             }
             player.addListener(exoListener)
@@ -232,10 +249,29 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
                 while (true) {
                     delay(500)
-                    binding.sbSeekbar.progress = ((player.currentPosition * 100) / player.duration).toInt()
+                    with (binding.sbSeekbar) {
+                        progress = ((player.currentPosition * 100) / player.duration).toInt()
+                    }
                 }
             }
         }
+    }
+    private fun play(song: Song, play: Boolean = true) {
+        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
+        val sourceFactory = DefaultDataSource.Factory(this)
+        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
+            .createMediaSource(
+                MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaId(song.mediaId.toString())
+                    .build()
+            )
+        Timber.d("$mediaSource $uri $song $player")
+        player.setMediaSource(mediaSource)
+        player.prepare()
+        player.playWhenReady = play
+        songViewModel.curPlayingSong.value = song
+        songViewModel.isPlaying.value = play
     }
 
     private fun setToaster() = apply { curToast = "" }
@@ -286,8 +322,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         songViewModel.apply {
 
-            songList.observe(this@MainActivity) {
-                swipeAdapter.songList = it
+            songList.observe(this@MainActivity) { songList ->
+                swipeAdapter.songList = songList
+                curPlayingSong.value = songList.find { it.mediaId.toString() == player.currentMediaItem?.mediaId ?: songList[0]}
             }
             curPlayingSong.observe(this@MainActivity) {
                 Timber.d("cur play: $it")
@@ -300,6 +337,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             lifecycleScope.launch(Dispatchers.IO) {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     getDeviceSong("MainActivity onResume")
+
                 }
             }
         }

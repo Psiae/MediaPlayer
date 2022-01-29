@@ -61,7 +61,7 @@
                 android:layout_height="0dp"
                 android:layout_margin="5dp"
                 app:cardBackgroundColor="@color/widgetBackground"
-                app:cardElevation="5dp"
+                app:cardElevation="15dp"
                 app:layout_constraintDimensionRatio="18:9"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

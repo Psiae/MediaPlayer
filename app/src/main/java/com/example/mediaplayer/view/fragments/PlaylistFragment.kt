@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.mediaplayer.databinding.FragmentPlaylistBinding
 import com.google.android.material.transition.MaterialContainerTransform
+import com.google.android.material.transition.MaterialFade
 import com.google.android.material.transition.MaterialFadeThrough
 import timber.log.Timber
 
@@ -40,7 +41,7 @@ class PlaylistFragment: Fragment() {
             it.duration = 400L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 400L
+            it.duration = 200L
         }
         binding.apply {}
     }

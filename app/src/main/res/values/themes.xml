@@ -59,7 +59,7 @@
     </style>
 
     <style name="bnvColor">
-        <item name="android:background">@color/white</item>
+        <item name="android:background">#FFFFFFFF</item>
         <item name="elevation">5dp</item>
     </style>
 
@@ -111,5 +111,6 @@
     <style name="splashScreenTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_image</item>
         <item name="android:statusBarColor">@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
     </style>
 </resources>

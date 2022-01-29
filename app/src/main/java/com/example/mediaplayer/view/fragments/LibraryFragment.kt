@@ -21,8 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Calendar.SECOND
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -71,7 +69,7 @@ class LibraryFragment: Fragment() {
             it.duration = 400L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 400L
+            it.duration = 200L
         }
         setupRecyclerView()
         setupFolderAdapter()

@@ -56,7 +56,7 @@ class SwipeAdapter @Inject constructor(
         }
     }
 
-    var itemClickListener: ( (Song) -> Unit )? = null
+    private var itemClickListener: ( (Song) -> Unit )? = null
 
     fun setItemListener(listener: (Song) -> Unit ) {
         itemClickListener = listener

@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.material.transition.MaterialFade
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -64,8 +65,8 @@ class FolderFragment: Fragment() {
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
             it.duration = 400L
         }
-        exitTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 400L
+        exitTransition = MaterialFadeThrough().addTarget(view).also {
+            it.duration = 200L
         }
         setupView()
         subToObserver()
@@ -89,17 +90,22 @@ class FolderFragment: Fragment() {
         }
     }
 
-    private fun play(song: Song) {
+    private fun play(song: Song, play: Boolean = true) {
         val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
         val sourceFactory = DefaultDataSource.Factory(requireContext())
         val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-            .createMediaSource(MediaItem.fromUri(uri))
+            .createMediaSource(
+                MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaId(song.mediaId.toString())
+                    .build()
+            )
         Timber.d("$mediaSource $uri $song $player")
         player.setMediaSource(mediaSource)
         player.prepare()
-        player.playWhenReady = true
+        player.playWhenReady = play
         songViewModel.curPlayingSong.value = song
-        songViewModel.isPlaying.value = true
+        songViewModel.isPlaying.value = play
     }
 
     private fun subToObserver() {

@@ -67,7 +67,7 @@ class HomeAdapter(
                     root.transitionName = item.mediaId.toString()
                     onItemClickListener?.let { passedMethod ->
                         passedMethod(item)              // function passed by fragment in this case
-                        // I want to use item from my adapter
+                                                        // I want to use item from my adapter
                     } ?: toast(context, "msg")     // do something else
                 }                                       // if the method is not passed yet
             }
