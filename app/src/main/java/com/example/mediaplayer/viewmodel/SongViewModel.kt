@@ -6,11 +6,9 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.MusicServiceConnector
 import com.example.mediaplayer.exoplayer.isPlayEnabled
 import com.example.mediaplayer.exoplayer.isPlaying
@@ -51,6 +49,17 @@ class SongViewModel @Inject constructor(
     val navHeight = MutableLiveData<Int>()
     val isPlaying = MutableLiveData<Boolean>(false)
     val curPlaying = MutableLiveData<Song>()
+    val currentlyPlaying: LiveData<Song>
+        get() {
+            return Transformations.map(playingMediaItem) { mediaItem ->
+                songList.value?.let { songs ->
+                    songs.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
+                } ?: run {
+                    _songList.value = getFromDB()
+                    songList.value!!.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
+                }
+            }
+        }
 
     private val _shuffles = MutableLiveData<List<Song>>()
     val shuffles: LiveData<List<Song>>
@@ -147,17 +156,19 @@ class SongViewModel @Inject constructor(
         _isFetching.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
-            musicDB.addSongDistinct(queryDeviceMusic())
+            musicDB.setMusicList(queryDeviceMusic())
             _isFetching.postValue(false)
             updateSongList()
         }
     }
 
+    fun getFromDB(): MutableList<Song> {
+        return musicDB.getAllSongs().toMutableList()
+    }
+
     fun updateSongList(fromDB: Boolean = true) {
         if (fromDB) viewModelScope.launch {
-            _songList.postValue(
-                musicDB.getAllSongs().toMutableList()
-            )
+            _songList.value = musicDB.getAllSongs().toMutableList()
         }
     }
 
@@ -384,7 +395,7 @@ class SongViewModel @Inject constructor(
 
         Timber.d("artist: $listOfArtist \n album: $listOfAlbum")
 
-        withContext(Dispatchers.Main.immediate) {
+        withContext(Dispatchers.Main) {
             _folderList.value = folderList
             _albumList.value = albumSong
             _artistList.value = artistSong

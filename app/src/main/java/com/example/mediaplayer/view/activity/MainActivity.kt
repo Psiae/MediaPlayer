@@ -23,6 +23,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.exoplayer.isPlaying
+import com.example.mediaplayer.exoplayer.isPrepared
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
@@ -100,6 +101,169 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     /**
+     * Navigation & View Setup
+     */
+    private fun setupNavController() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
+        navController = navHostFragment.navController
+        setDestinationListener(navController)
+    }
+
+    private fun setDestinationListener(controller: NavController) {
+        controller.addOnDestinationChangedListener { _, destination, _ ->
+            getControlHeight()
+            when (val id = destination.id) {
+                R.id.navBottomHome -> setControl(id = id)
+                R.id.navBottomSong -> setControl(id = id)
+                R.id.navBottomPlaylist -> setControl(id = id)
+                R.id.navBottomLibrary -> setControl(id = id)
+                R.id.folderFragment -> setControl(true, id)
+            }
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupView() {
+        with(binding) {
+
+            bottomNavigationView.apply {
+                setupWithNavController(navController)
+                setOnItemReselectedListener { }
+            }
+
+            ibPlayPause.setOnClickListener { with(songViewModel) {
+                    curPlaying.value?.let {
+                        playOrToggle(it, true)
+                    }
+                }
+            }
+
+            sbSeekbar.apply { setOnTouchListener { _, _ -> true } }
+            sivCurImage.setOnClickListener { toast(this@MainActivity, "Image Clicked") }
+
+            viewPager2.apply {
+                adapter = swipeAdapter.also {
+                    it.setItemListener { song ->
+                        toast(this@MainActivity, song.title)
+                    }
+                }
+                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        super.onPageSelected(position)
+                        with(songViewModel) {
+                            if (playbackState.value?.isPlaying == true) {
+                                Timber.d("chaged to $position")
+
+                                playOrToggle(swipeAdapter.songList[position])
+                            } else {
+                                Timber.d("pos $position")
+                                curPlaying.value = swipeAdapter.songList[position]
+                            }
+                        }
+                    }
+                })
+        }
+            lifecycleScope.launch {
+                while (true) {
+                    delay(500)
+                    with (binding.sbSeekbar) {
+                        progress = ((player.currentPosition * 100) / player.duration).toInt()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setToaster() = apply { curToast = "" }
+    private fun getControlHeight() {
+        if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
+    }
+
+    private fun setControl(fullscreen: Boolean = false, id: Int) {
+        if (fullscreen) {
+            binding.apply {
+                with(View.GONE) {
+                    bottomNavigationView.visibility = this
+                }
+                with(View.VISIBLE) {
+                    clPager.visibility = this
+                }
+                if (getClpHeight() != 0) songViewModel.navHeight.value = getClpHeight()
+                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            }
+            return
+        }
+        binding.apply {
+            with(View.GONE) {}
+            with(View.VISIBLE) {
+                clPager.visibility = this
+                bottomNavigationView.visibility = this
+            }
+            binding.navHostContainer.layoutParams.height = 0
+        }
+    }
+
+    private fun getDummyHeight(): Int {
+        return binding.dummy.measuredHeight
+    }
+
+    private fun getHidBnvHeight(): Int {
+        return binding.bottomNavigationView.measuredHeight
+    }
+
+    private fun getClpHeight(): Int {
+        return binding.clPager.measuredHeight
+    }
+
+    /**
+     * ViewModel & Data Provider
+     */
+    private fun  setupSongVM() {
+
+        songViewModel.apply {
+
+            songList.observe(this@MainActivity) { songList ->
+                swipeAdapter.songList = songList
+            }
+
+            currentlyPlaying.observe(this@MainActivity) { song ->
+                Timber.d("cur play: $song")
+                song?.let {
+                    curPlaying.value = it
+                    glideCurSong(song)
+                    val itemIndex = swipeAdapter.songList.indexOf(curPlaying.value)
+                    if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                }
+            }
+
+            playbackState.observe(this@MainActivity) {
+                binding.ibPlayPause.setImageResource(
+                    if (it?.isPlaying == true) R.drawable.ic_pause_24_widget
+                    else R.drawable.ic_play_24_widget
+                )
+            }
+
+            lifecycleScope.launch() {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    updateMusicDB()
+                }
+            }
+        }
+    }
+
+    private fun glideCurSong(it: Song) {
+        Timber.d("glide $it")
+        binding.apply {
+            Timber.d("glideCurrentSong")
+            glide.load(it.imageUri)
+                .error(R.drawable.ic_music_library_transparent)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .into(sivCurImage)
+        }
+    }
+
+    /**
      * Permission Setup
      */
 
@@ -173,181 +337,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         )
     }
 
-    /**
-     * Navigation & View Setup
-     */
-    private fun setupNavController() {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
-        navController = navHostFragment.navController
-        setDestinationListener(navController)
-    }
-
-    private fun setDestinationListener(controller: NavController) {
-        controller.addOnDestinationChangedListener { _, destination, _ ->
-            getControlHeight()
-            when (val id = destination.id) {
-                R.id.navBottomHome -> setControl(id = id)
-                R.id.navBottomSong -> setControl(id = id)
-                R.id.navBottomPlaylist -> setControl(id = id)
-                R.id.navBottomLibrary -> setControl(id = id)
-                R.id.folderFragment -> setControl(true, id)
-            }
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupView() {
-        binding.apply {
-            bottomNavigationView.apply {
-                setupWithNavController(navController)
-                setOnItemReselectedListener { }
-            }
-            sbSeekbar.apply {
-                setOnTouchListener { _, _ -> true }
-                progress = 20
-            }
-            sivCurImage.setOnClickListener {
-                toast(this@MainActivity, "Image Clicked")
-            }
-            viewPager2.apply {
-                adapter = swipeAdapter.also {
-                    it.setItemListener { song ->
-                        toast(this@MainActivity, song.title)
-                    }
-                }
-                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageSelected(position: Int) {
-                        super.onPageSelected(position)
-                        with(songViewModel) {
-                            if (playbackState.value?.isPlaying == true) {
-                                playOrToggle(swipeAdapter.songList[position])
-                            } else {
-                                curPlaying.value = swipeAdapter.songList[position]
-                            }
-                        }
-                    }
-                })
-            }
-            ibPlayPause.setOnClickListener {
-                with(songViewModel) {
-                    songList.value?.let { songs ->
-                        songs.find {
-                            it.mediaId == playingMediaItem.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)?.toLong()
-                        }
-                    }?.let { it1 -> playOrToggle(it1, true) } ?: playOrToggle(curPlaying.value!!)
-                }
-            }
-
-            lifecycleScope.launch {
-                while (true) {
-                    delay(500)
-                    with (binding.sbSeekbar) {
-                        progress = ((player.currentPosition * 100) / player.duration).toInt()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setToaster() = apply { curToast = "" }
-    private fun getControlHeight() {
-        if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
-    }
-
-    private fun setControl(fullscreen: Boolean = false, id: Int) {
-        if (fullscreen) {
-            binding.apply {
-                with(View.GONE) {
-                    bottomNavigationView.visibility = this
-                }
-                with(View.VISIBLE) {
-                    clPager.visibility = this
-                }
-                if (getClpHeight() != 0) songViewModel.navHeight.value = getClpHeight()
-                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            }
-            return
-        }
-        binding.apply {
-            with(View.GONE) {}
-            with(View.VISIBLE) {
-                clPager.visibility = this
-                bottomNavigationView.visibility = this
-            }
-            binding.navHostContainer.layoutParams.height = 0
-        }
-    }
-
-    private fun getDummyHeight(): Int {
-        return binding.dummy.measuredHeight
-    }
-
-    private fun getHidBnvHeight(): Int {
-        return binding.bottomNavigationView.measuredHeight
-    }
-
-    private fun getClpHeight(): Int {
-        return binding.clPager.measuredHeight
-    }
-
-    /**
-     * ViewModel & Data Provider
-     */
-    private fun  setupSongVM() {
-
-        songViewModel.apply {
-
-            songList.observe(this@MainActivity) { songList ->
-                swipeAdapter.songList = songList
-            }
-
-            playingMediaItem.observe(this@MainActivity) { mediaItem ->
-                Timber.d("cur play: $mediaItem")
-                with(songViewModel) {
-                    val song = songList.value?.let {
-                        it.find { song -> song.mediaId == mediaItem?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)?.toLong() }
-                    } ?: swipeAdapter.songList[0]
-                    curPlaying.value = song
-                    val itemIndex = swipeAdapter.songList.indexOf(song)
-                    binding.viewPager2.currentItem = itemIndex
-                    glideCurSong(song)
-                }
-            }
-
-            playbackState.observe(this@MainActivity) {
-                binding.ibPlayPause.setImageResource(
-                    if (it?.isPlaying == true) R.drawable.ic_pause_24_widget
-                    else R.drawable.ic_play_24_widget
-                )
-            }
-
-            lifecycleScope.launch() {
-                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    updateMusicDB()
-                }
-            }
-        }
-    }
-
-    private fun glideCurSong(it: Song, prepare: Boolean = false) {
-        Timber.d("glide $it")
-        if (prepare) {
-            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.mediaId)
-            val sourceFactory = DefaultDataSource.Factory(this.applicationContext)
-            val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-                .createMediaSource(MediaItem.fromUri(uri))
-            player.setMediaSource(mediaSource)
-            player.prepare()
-        }
-        binding.apply {
-            Timber.d("glideCurrentSong")
-            glide.load(it.imageUri)
-                .error(R.drawable.ic_music_library_transparent)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(sivCurImage)
-        }
-    }
 
     /**
      * Behavior
@@ -371,6 +360,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         ) finishAfterTransition()
         else super.onBackPressed()
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()

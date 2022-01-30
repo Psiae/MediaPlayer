@@ -96,6 +96,7 @@ class MusicServiceConnector(
             _curPlayingSong.postValue(metadata)
         }
 
+
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             super.onSessionEvent(event, extras)
             when(event) {
