@@ -20,6 +20,7 @@ import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerNotificationListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val SERVICE_TAG = "MusicService"
@@ -133,7 +134,7 @@ class MusicService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-
+        Timber.d("Service Destroyed")
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
     }

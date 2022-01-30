@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
+import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -16,10 +17,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
+import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
@@ -210,13 +213,33 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             viewPager2.apply {
                 adapter = swipeAdapter.also {
                     it.setItemListener { song ->
-                        play(song)
+                        toast(this@MainActivity, song.title)
                     }
+                }
+                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        super.onPageSelected(position)
+                        with(songViewModel) {
+                            if (playbackState.value?.isPlaying == true) {
+                                playOrToggle(swipeAdapter.songList[position])
+                            } else {
+                                curPlaying.value = swipeAdapter.songList[position]
+                            }
+                        }
+                    }
+                })
+            }
+            ibPlayPause.setOnClickListener {
+                with(songViewModel) {
+                    songList.value?.let { songs ->
+                        songs.find {
+                            it.mediaId == playingMediaItem.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)?.toLong()
+                        }
+                    }?.let { it1 -> playOrToggle(it1, true) } ?: playOrToggle(curPlaying.value!!)
                 }
             }
 
             lifecycleScope.launch {
-
                 while (true) {
                     delay(500)
                     with (binding.sbSeekbar) {
@@ -225,23 +248,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 }
             }
         }
-    }
-    private fun play(song: Song, play: Boolean = true) {
-        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
-        val sourceFactory = DefaultDataSource.Factory(this)
-        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-            .createMediaSource(
-                MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaId(song.mediaId.toString())
-                    .build()
-            )
-        Timber.d("$mediaSource $uri $song $player")
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.playWhenReady = play
-        songViewModel.curPlayingSong.value = song
-        songViewModel.isPlaying.value = play
     }
 
     private fun setToaster() = apply { curToast = "" }
@@ -294,19 +300,28 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
             songList.observe(this@MainActivity) { songList ->
                 swipeAdapter.songList = songList
-                curPlayingSong.value = run {
-                    isPlaying.value = player.isPlaying
-                    songList.find { it.mediaId.toString() == player.currentMediaItem?.mediaId ?: songList[0] }
-                }
             }
-            curPlayingSong.observe(this@MainActivity) {
-                Timber.d("cur play: $it")
-                it?.let {
-                    val itemIndex = swipeAdapter.songList.indexOf(it)
+
+            playingMediaItem.observe(this@MainActivity) { mediaItem ->
+                Timber.d("cur play: $mediaItem")
+                with(songViewModel) {
+                    val song = songList.value?.let {
+                        it.find { song -> song.mediaId == mediaItem?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)?.toLong() }
+                    } ?: swipeAdapter.songList[0]
+                    curPlaying.value = song
+                    val itemIndex = swipeAdapter.songList.indexOf(song)
                     binding.viewPager2.currentItem = itemIndex
-                    glideCurSong(it)
+                    glideCurSong(song)
                 }
             }
+
+            playbackState.observe(this@MainActivity) {
+                binding.ibPlayPause.setImageResource(
+                    if (it?.isPlaying == true) R.drawable.ic_pause_24_widget
+                    else R.drawable.ic_play_24_widget
+                )
+            }
+
             lifecycleScope.launch() {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     updateMusicDB()
@@ -327,10 +342,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
         binding.apply {
             Timber.d("glideCurrentSong")
-            glide.asDrawable()
-                .load(it.imageUri)
-                .transition(DrawableTransitionOptions.withCrossFade())
+            glide.load(it.imageUri)
                 .error(R.drawable.ic_music_library_transparent)
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .into(sivCurImage)
         }
     }

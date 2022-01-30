@@ -43,15 +43,14 @@ class SongViewModel @Inject constructor(
 
     val isConnected = musicServiceConnector.isConnected
     val onError = musicServiceConnector.networkError
-    val playingSong = musicServiceConnector.curPlayingSong
+    val playingMediaItem = musicServiceConnector.curPlayingSong
     val playbackState = musicServiceConnector.playbackState
-
 
     /** LiveData */
 
     val navHeight = MutableLiveData<Int>()
-    val curPlayingSong = MutableLiveData<Song>()
     val isPlaying = MutableLiveData<Boolean>(false)
+    val curPlaying = MutableLiveData<Song>()
 
     private val _shuffles = MutableLiveData<List<Song>>()
     val shuffles: LiveData<List<Song>>
@@ -179,23 +178,26 @@ class SongViewModel @Inject constructor(
 
     fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {
         val isPrepared = playbackState.value?.isPrepared ?: false
-        if (isPrepared && mediaItem.mediaId ==
-            playingSong.value?.getLong(METADATA_KEY_MEDIA_ID)) {
-            playbackState.value?.let {
-                when {
-                    it.isPlaying -> if (toggle) musicServiceConnector.transportControls.pause()
-                    it.isPlayEnabled -> musicServiceConnector.transportControls.play()
-                    else -> Unit
+
+        try {
+            if (isPrepared && mediaItem.mediaId ==
+                playingMediaItem.value?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
+            ) {
+                playbackState.value?.let {
+                    when {
+                        it.isPlaying -> if (toggle) musicServiceConnector.transportControls.pause()
+                        it.isPlayEnabled -> musicServiceConnector.transportControls.play()
+                        else -> Unit
+                    }
                 }
+            } else {
+                musicServiceConnector.transportControls
+                    .playFromMediaId(mediaItem.mediaId.toString(), null)
             }
-        } else {
-            musicServiceConnector.transportControls
-                .playFromMediaId(mediaItem.mediaId.toString(), null)
+        } catch (e: Exception) {
+            Timber.d("PlayToggleFailed")
         }
-        curPlayingSong.value = mediaItem
     }
-
-
 
     /** Query */
 
