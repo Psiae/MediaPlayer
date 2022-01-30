@@ -1,49 +1,25 @@
 package com.example.mediaplayer.exoplayer
 
+import android.os.SystemClock
 import android.support.v4.media.session.PlaybackStateCompat
-import timber.log.Timber
+import android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
 
-inline val PlaybackStateCompat.isPrepared: Boolean
-    get() {
-        return when (state) {
-            PlaybackStateCompat.STATE_BUFFERING,
-            PlaybackStateCompat.STATE_PLAYING,
-            PlaybackStateCompat.STATE_PAUSED -> {
-                Timber.d("PlaybackStateCompat isPrepared")
-                true
-            }
-            else -> {
-                Timber.d("PlaybackStateCompat isNotPrepared")
-                false
-            }
-        }
-    }
+inline val PlaybackStateCompat.isPrepared
+    get() = state == PlaybackStateCompat.STATE_BUFFERING ||
+            state == PlaybackStateCompat.STATE_PLAYING ||
+            state == PlaybackStateCompat.STATE_PAUSED
 
-inline val PlaybackStateCompat.isPlaying: Boolean
-    get() {
-        return when (state) {
-            PlaybackStateCompat.STATE_BUFFERING,
-            PlaybackStateCompat.STATE_PLAYING -> {
-                Timber.d("PlaybackStateCompat isPlaying")
-                true
-            }
-            else -> {
-                Timber.d("PlaybackStateCompat isNotPlaying")
-                false
-            }
-        }
-    }
+inline val PlaybackStateCompat.isPlaying
+    get() = state == PlaybackStateCompat.STATE_BUFFERING ||
+            state == PlaybackStateCompat.STATE_PLAYING
 
-inline val PlaybackStateCompat.isPlayEnabled: Boolean
-    get() {
-        return when {
-            actions and PlaybackStateCompat.ACTION_PLAY != 0L || (actions and PlaybackStateCompat.ACTION_PLAY_PAUSE != 0L && state == PlaybackStateCompat.STATE_PAUSED) -> {
-                Timber.d("PlaybackStateCompat Play Enabled")
-                true
-            }
-            else -> {
-                Timber.d("PlaybackStateCompat Play Disabled")
-                false
-            }
-        }
-    }
+inline val PlaybackStateCompat.isPlayEnabled
+    get() = actions and PlaybackStateCompat.ACTION_PLAY != 0L ||
+            (actions and PlaybackStateCompat.ACTION_PLAY_PAUSE != 0L &&
+                    state == PlaybackStateCompat.STATE_PAUSED)
+
+inline val PlaybackStateCompat.currentPlaybackPosition: Long
+    get() = if(state == STATE_PLAYING) {
+        val timeDelta = SystemClock.elapsedRealtime() - lastPositionUpdateTime
+        (position + (timeDelta * playbackSpeed)).toLong()
+    } else position

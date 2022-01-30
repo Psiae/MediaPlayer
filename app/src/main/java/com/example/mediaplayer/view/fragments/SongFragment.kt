@@ -87,27 +87,9 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launch(Dispatchers.IO) {
-            songViewModel.getDeviceSong("SongFragment onResume")
+        lifecycleScope.launch() {
+            songViewModel.updateMusicDB()
         }
-    }
-
-    private fun play(song: Song, play: Boolean = true) {
-        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
-        val sourceFactory = DefaultDataSource.Factory(requireContext())
-        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-            .createMediaSource(
-                MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaId(song.mediaId.toString())
-                    .build()
-            )
-        Timber.d("$mediaSource $uri $song $player")
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.playWhenReady = play
-        songViewModel.curPlayingSong.value = song
-        songViewModel.isPlaying.value = play
     }
 
     private fun observeSongList() {
@@ -184,7 +166,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 val layout = this.layoutManager as LinearLayoutManager
                 layout.scrollToPositionWithOffset(index, centerOfScreen)
                 Timber.d("$index")*/
-                play(song)
+                songViewModel.playOrToggle(song)
             }
             adapter = songAdapter
             layoutManager = GridLayoutManager(requireContext(),

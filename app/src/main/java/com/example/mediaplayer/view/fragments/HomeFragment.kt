@@ -100,24 +100,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun play(song: Song, play: Boolean = true) {
-        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
-        val sourceFactory = DefaultDataSource.Factory(requireContext())
-        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-            .createMediaSource(
-                MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaId(song.mediaId.toString())
-                    .build()
-            )
-        Timber.d("$mediaSource $uri $song $player")
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.playWhenReady = play
-        songViewModel.curPlayingSong.value = song
-        songViewModel.isPlaying.value = play
-    }
-
     private fun setupView() {
         binding.apply {
             tvWelcome.text = getTimeMsg()
@@ -141,7 +123,7 @@ class HomeFragment : Fragment() {
                 adapter = suggestAdapter.also {
                     it.differ.addListListener(suggestListener)
                     it.setItemClickListener { song ->
-                        play(song)
+                        songViewModel.playOrToggle(song)
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
@@ -205,8 +187,8 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launch(Dispatchers.IO) {
-            songViewModel.getDeviceSong("HomeFragment")
+        lifecycleScope.launch() {
+            songViewModel.updateMusicDB()
         }
     }
 

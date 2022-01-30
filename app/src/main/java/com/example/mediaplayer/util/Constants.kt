@@ -19,6 +19,9 @@ object Constants {
     // Music Service
     const val MEDIA_ROOT_ID = "Kylentt_root_id"
 
+    // Firebase
+    const val NETWORK_ERROR = "NETWORK_ERROR"
+
     // Notification
     const val NOTIFICATION_CHANNEL_ID = "MediaPlayer"
     const val NOTIFICATION_ID = 301

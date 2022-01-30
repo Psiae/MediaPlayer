@@ -82,30 +82,12 @@ class FolderFragment: Fragment() {
             rvLib.apply {
                 adapter = songAdapter.also {
                     it.setItemClickListener { song ->
-                        play(song)
+                        songViewModel.playOrToggle(song)
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext())
             }
         }
-    }
-
-    private fun play(song: Song, play: Boolean = true) {
-        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.mediaId)
-        val sourceFactory = DefaultDataSource.Factory(requireContext())
-        val mediaSource = ProgressiveMediaSource.Factory(sourceFactory)
-            .createMediaSource(
-                MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaId(song.mediaId.toString())
-                    .build()
-            )
-        Timber.d("$mediaSource $uri $song $player")
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.playWhenReady = play
-        songViewModel.curPlayingSong.value = song
-        songViewModel.isPlaying.value = play
     }
 
     private fun subToObserver() {

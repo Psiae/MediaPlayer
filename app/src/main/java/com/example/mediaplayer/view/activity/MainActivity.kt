@@ -215,37 +215,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 }
             }
 
-            val exoListener = object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    songViewModel.isPlaying.value = isPlaying
-                }
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    super.onPlaybackStateChanged(playbackState)
-                    when (playbackState) {
-                        Player.STATE_ENDED -> {
-                            play(songViewModel.curPlayingSong.value!!, false)
-                        }
-                        Player.STATE_BUFFERING -> { Timber.d("Player State Buffering") }
-                        Player.STATE_IDLE -> { Timber.d("Player State Idle")}
-                        Player.STATE_READY -> {
-                            Timber.d("Player State Ready")
-                        }
-                    }
-                }
-            }
-            player.addListener(exoListener)
             lifecycleScope.launch {
-                with(ibPlayPause) {
-                    songViewModel.isPlaying.observe(this@MainActivity) {
-                        if (it) {
-                            setImageResource(R.drawable.ic_pause_24_widget)
-                            setOnClickListener { player.pause() }
-                        } else {
-                            ibPlayPause.setImageResource(R.drawable.ic_play_24_widget)
-                            setOnClickListener { player.play() }
-                        }
-                    }
-                }
 
                 while (true) {
                     delay(500)
@@ -318,7 +288,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     /**
      * ViewModel & Data Provider
      */
-    private fun setupSongVM() {
+    private fun  setupSongVM() {
 
         songViewModel.apply {
 
@@ -337,10 +307,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     glideCurSong(it)
                 }
             }
-            lifecycleScope.launch(Dispatchers.IO) {
+            lifecycleScope.launch() {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    getDeviceSong("MainActivity onResume")
-
+                    updateMusicDB()
                 }
             }
         }

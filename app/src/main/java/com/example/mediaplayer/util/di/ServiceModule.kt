@@ -17,7 +17,7 @@ import dagger.hilt.android.scopes.ServiceScoped
 @InstallIn(ServiceComponent::class)
 object ServiceModule {
 
-    @ServiceScoped
+/*    @ServiceScoped
     @Provides
     fun provideAudioAttributes() = AudioAttributes.Builder()
         .setContentType(C.CONTENT_TYPE_MUSIC)
@@ -38,5 +38,5 @@ object ServiceModule {
     @Provides
     fun provideDataSourceFactory(
         @ApplicationContext context: Context
-    ) = DefaultDataSource.Factory(context)
+    ) = DefaultDataSource.Factory(context)*/
 }

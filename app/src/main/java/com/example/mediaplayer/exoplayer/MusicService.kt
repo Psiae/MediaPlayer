@@ -8,176 +8,189 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.example.mediaplayer.exoplayer.callbacks.NotificationListener
-import com.example.mediaplayer.exoplayer.callbacks.PlaybackPreparer
-import com.example.mediaplayer.exoplayer.callbacks.PlayerEventListener
-import com.example.mediaplayer.model.data.entities.Song
-import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
+import com.example.mediaplayer.exoplayer.callbacks.MusicPlaybackPreparer
+import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
+import com.example.mediaplayer.util.Constants.NETWORK_ERROR
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
+import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerNotificationListener
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import timber.log.Timber
 import javax.inject.Inject
 
-class MusicService: MediaBrowserServiceCompat() {
+private const val SERVICE_TAG = "MusicService"
 
-    companion object {
-        val TAG: String = MusicService::class.java.simpleName
-        var curSongDuration = 0L
-            private set
-    }
+@AndroidEntryPoint
+class MusicService : MediaBrowserServiceCompat() {
 
-    @Inject // Inject dataSourceFactory
+    @Inject
+    lateinit var musicServiceConnector: MusicServiceConnector
+
+    @Inject
     lateinit var dataSourceFactory: DefaultDataSource.Factory
 
-    @Inject // Inject exoPlayer by ServiceModule
+    @Inject
     lateinit var exoPlayer: ExoPlayer
 
     @Inject
     lateinit var musicSource: MusicSource
 
-    var isForegroundService = false
+    private lateinit var musicNotificationManager: MusicNotificationManager
 
-    // service Job & Scope for Coroutines
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
-    // Notification
-    private lateinit var musicNotificationManager: NotificationManager
-
-    // MediaSession API
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
-    // ExoPlayer
-    private lateinit var musicPlayerEventListener: PlayerEventListener
+    var isForegroundService = false
+
     private var curPlayingSong: MediaMetadataCompat? = null
-    private var isPlayerInit = false
+
+    private var isPlayerInitialized = false
+
+    private lateinit var musicPlayerEventListener: MusicPlayerEventListener
+
+    companion object {
+        var curSongDuration = 0L
+            private set
+    }
 
     override fun onCreate() {
         super.onCreate()
+        serviceScope.launch {
+            musicSource.fetchMediaData()
+        }
 
-        Timber.d("MusicService onCreate")
-
-        // get ActivityIntent from packageManager as PendingIntent
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }
 
-        val playbackPreparer = PlaybackPreparer(musicSource) {
+        mediaSession = MediaSessionCompat(this, SERVICE_TAG).apply {
+            setSessionActivity(activityIntent)
+            isActive = true
+        }
+
+        sessionToken = mediaSession.sessionToken
+
+        musicNotificationManager = MusicNotificationManager(
+            this,
+            mediaSession.sessionToken,
+            MusicPlayerNotificationListener(this)
+        ) {
+            curSongDuration = exoPlayer.duration
+        }
+
+        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource) {
             curPlayingSong = it
             preparePlayer(
-                musicSource.songMeta,
+                musicSource.songs,
                 it,
                 true
             )
         }
 
-        // assign MediaSession to MediaSessionCompat tied with activityIntent
-        mediaSession = MediaSessionCompat(this, TAG).apply {
-            setSessionActivity(activityIntent)
-            isActive = true
-        }
-
-        // set the MediaBrowserService sessionToken to mediaSession
-        sessionToken = mediaSession.sessionToken
-
-        musicNotificationManager = NotificationManager(
-            this,
-            mediaSession.sessionToken,
-            NotificationListener(this),
-        ) {
-            curSongDuration = exoPlayer.duration
-        }
-
-        // set the mediaSessionConnector to mediaSession and set the player to Injected ExoPlayer
         mediaSessionConnector = MediaSessionConnector(mediaSession)
-        mediaSessionConnector.setPlaybackPreparer(playbackPreparer)
-        mediaSessionConnector.setPlayer(exoPlayer)
+        mediaSessionConnector.setPlaybackPreparer(musicPlaybackPreparer)
         mediaSessionConnector.setQueueNavigator(MusicQueueNavigator())
+        mediaSessionConnector.setPlayer(exoPlayer)
 
-        musicPlayerEventListener = PlayerEventListener(this)
-        musicNotificationManager.setNotificationPlayer(player = exoPlayer)
-
+        musicPlayerEventListener = MusicPlayerEventListener(this)
         exoPlayer.addListener(musicPlayerEventListener)
+        musicNotificationManager.showNotification(exoPlayer)
     }
 
-    suspend fun fetchSongMeta(songs: List<Song>) =
-        serviceScope.launch { musicSource.fetchSongMeta(songs) }
-
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
-
-        // called when exoplayer need new MediaDescription
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            return musicSource.songMeta[windowIndex].description
+            return musicSource.songs[windowIndex].description
         }
     }
 
     private fun preparePlayer(
-        songList: List<MediaMetadataCompat>,
-        songToPlay: MediaMetadataCompat?,
+        songs: List<MediaMetadataCompat>,
+        itemToPlay: MediaMetadataCompat?,
         playNow: Boolean
     ) {
-        val curSongIndex = if (curPlayingSong == null) 0 else songList.indexOf(songToPlay)
-        exoPlayer.setMediaSource(musicSource.asConcat(dataSourceFactory))
-        exoPlayer.prepare()
-        exoPlayer.seekTo(curSongIndex, 0L)
-        exoPlayer.playWhenReady = playNow
+        serviceScope.launch {
+            val curSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+            exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory))
+            exoPlayer.prepare()
+            exoPlayer.seekTo(curSongIndex, 0L)
+            exoPlayer.playWhenReady = playNow
+        }
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
+
+        exoPlayer.removeListener(musicPlayerEventListener)
+        exoPlayer.release()
+    }
 
     override fun onGetRoot(
         clientPackageName: String,
         clientUid: Int,
-        rootHints: Bundle?,
+        rootHints: Bundle?
     ): BrowserRoot? {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
+        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
-        Timber.d("onLoadChildren")
-        when (parentId) {
+        when(parentId) {
             MEDIA_ROOT_ID -> {
-                val results: Boolean
-
-                with(musicSource) {
-                    val list = musicSource.songMeta
-                    if (!isPlayerInit && list.isNotEmpty()) {
-                        Timber.d("Player Not Initialized onLoadChildren, initializing...")
-                        preparePlayer(list, list[0], false )
-                        isPlayerInit = true
+                val resultsSent = musicSource.whenReady { isInitialized ->
+                    if(isInitialized) {
+                        result.sendResult(musicSource.asMediaItems())
+                        if(!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                            isPlayerInitialized = true
+                        }
+                    } else {
+                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                        result.sendResult(null)
                     }
-                    results = try {
-                        result.sendResult(this.asMediaItem().toMutableList())
-                        Timber.d("Result Sent")
-                        true
-                    } catch (e: Exception) {
-                        Timber.d("Unable to send result onLoadChildren")
-                        false
-                    }
-                    if (!results) result.detach()
+                }
+                if(!resultsSent) {
+                    result.detach()
                 }
             }
         }
     }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-        exoPlayer.stop()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        serviceScope.cancel()
-        exoPlayer.removeListener(musicPlayerEventListener)
-        exoPlayer.release()
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

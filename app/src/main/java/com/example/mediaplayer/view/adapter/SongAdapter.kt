@@ -74,12 +74,7 @@ class SongAdapter (
 
             binding.apply {
                 root.startAnimation(animation)
-                root.setOnClickListener {
-                    onItemClickListener?.let { click ->
-                        click(song)
-                    }
-                    toast(context, msg = path)
-                }
+
                 Timber.d("Uri: $imageUri")
                 glide.asDrawable()
                     .load(imageUri)

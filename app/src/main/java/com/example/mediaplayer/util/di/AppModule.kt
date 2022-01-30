@@ -5,13 +5,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.example.mediaplayer.R
-import com.example.mediaplayer.exoplayer.callbacks.MusicServiceConnector
+import com.example.mediaplayer.model.data.local.MusicRepo
 import com.example.mediaplayer.view.adapter.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.example.mediaplayer.exoplayer.MusicServiceConnector
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,6 +25,10 @@ import javax.inject.Singleton
 object AppModule {
 
     // Will migrate some to ServiceComponent
+
+    @Singleton
+    @Provides
+    fun provideMusicRepo() = MusicRepo()
 
     @Singleton
     @Provides

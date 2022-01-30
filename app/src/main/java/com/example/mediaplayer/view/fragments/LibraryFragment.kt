@@ -113,9 +113,9 @@ class LibraryFragment: Fragment() {
     }
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch() {
             delay(200)
-            songViewModel.getDeviceSong("LibraryFragment onResume")
+            songViewModel.updateMusicDB()
         }
     }
 
