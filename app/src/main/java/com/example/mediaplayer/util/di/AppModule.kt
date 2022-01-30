@@ -6,6 +6,7 @@ import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.mediaplayer.R
+import com.example.mediaplayer.exoplayer.callbacks.MusicServiceConnector
 import com.example.mediaplayer.view.adapter.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
@@ -38,6 +39,12 @@ object AppModule {
     fun provideAppContext(
         @ApplicationContext context: Context
     ) = context
+
+    @Singleton
+    @Provides
+    fun provideMusicServiceConnector(
+        @ApplicationContext context: Context
+    ) = MusicServiceConnector(context)
 
     @Singleton
     @Provides

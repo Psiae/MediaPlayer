@@ -5,14 +5,21 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mediaplayer.exoplayer.callbacks.MusicServiceConnector
+import com.example.mediaplayer.exoplayer.isPlayEnabled
+import com.example.mediaplayer.exoplayer.isPlaying
+import com.example.mediaplayer.exoplayer.isPrepared
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.VersionHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,8 +32,82 @@ import javax.inject.Inject
 @HiltViewModel
 @SuppressLint("StaticFieldLeak") // there's no leak, stupid Inspector :)
 class SongViewModel @Inject constructor(
-    private val context: Context
+    private val context: Context,
+    private val musicServiceConnector: MusicServiceConnector
 ) : ViewModel() {
+
+    /** Service Connector */
+
+    val isConnected = musicServiceConnector.isConnected
+    val onError = musicServiceConnector.onError
+    val playingSong = musicServiceConnector.curPlayingSong
+    val playbackState = musicServiceConnector.playbackState
+
+    private val _mediaItems = MutableLiveData<MutableList<Song>>()
+    val mediaItems: LiveData<MutableList<Song>>
+        get() {
+            Timber.d("mediaItems LiveData")
+            return _mediaItems
+        }
+
+    private var subsCallback = object : MediaBrowserCompat.SubscriptionCallback() {
+        override fun onChildrenLoaded(
+            parentId: String,
+            children: MutableList<MediaBrowserCompat.MediaItem>,
+        ) {
+            Timber.d("subs onLoadChildren")
+            super.onChildrenLoaded(parentId, children)
+            val items = children.map {
+                Song(
+                    mediaId = it.mediaId!!.toLong(),
+                    title = it.description.title.toString(),
+                    mediaPath = it.description.mediaUri.toString(),
+                    imageUri = it.description.iconUri.toString(),
+                )
+            }
+            _mediaItems.postValue(items.toMutableList())
+        }
+    }
+
+    init {
+        Timber.d("SongViewModel init")
+        viewModelScope.launch { getDeviceSong("VM init") }
+        musicServiceConnector.subs(MEDIA_ROOT_ID, subsCallback)
+    }
+
+    fun skipNext() {
+        Timber.d("Skip Next")
+        musicServiceConnector.transportController.skipToNext()
+    }
+
+    fun skipPrev() {
+        Timber.d("Skip Prev")
+        musicServiceConnector.transportController.skipToPrevious()
+    }
+
+    fun seekTo(pos: Long){
+        Timber.d("Seek To")
+        musicServiceConnector.transportController.seekTo(pos)
+    }
+
+    fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {
+        val isPrepared = playbackState.value?.isPrepared ?: false
+        if (isPrepared && mediaItem.mediaId ==
+            playingSong.value?.getLong(METADATA_KEY_MEDIA_ID)) {
+            playbackState.value?.let {
+                when {
+                    it.isPlaying -> if (toggle) musicServiceConnector.transportController.pause()
+                    it.isPlayEnabled -> musicServiceConnector.transportController.play()
+                    else -> Unit
+                }
+            }
+        } else {
+            musicServiceConnector.transportController
+                .playFromMediaId(mediaItem.mediaId.toString(), null)
+        }
+    }
+
+    /** LiveData */
 
     val navHeight = MutableLiveData<Int>()
     val curPlayingSong = MutableLiveData<Song>()
@@ -89,6 +170,8 @@ class SongViewModel @Inject constructor(
         }
 
     private val _isFetching = MutableLiveData(false)
+
+    /** Query */
 
     private suspend fun getShuffledSong(take: Int = _songList.value?.size ?: 0) : List<Song> {
         return _songList.value?.shuffled()?.take(take)
@@ -292,5 +375,10 @@ class SongViewModel @Inject constructor(
             _artistList.value = artistSong
         }
         return deviceMusicList
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        musicServiceConnector.unSubs(MEDIA_ROOT_ID, subsCallback)
     }
 }
