@@ -2,6 +2,8 @@
 - added MusicSource class for converting fetched song metadata to MediaMetadataCompat
 - setting up NotificationManager class for handling Notification by MusicService Class
 - added NotificationListener class to Listen for NotificationManager changes / callbacks
+- added MusicService Playback Preparer & Listener
+- added MusicServiceConnector as connector between Activity/ViewModel with MusicService
 
 # 2022/01/29
 - yet Another fix to Player Inconsistency `will migrate the player to a Service`
