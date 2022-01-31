@@ -6,7 +6,6 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.MusicServiceConnector
@@ -22,7 +21,6 @@ import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.VersionHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -47,13 +45,14 @@ class SongViewModel @Inject constructor(
     /** LiveData */
 
     val navHeight = MutableLiveData<Int>()
-    val isPlaying = MutableLiveData<Boolean>(false)
     val curPlaying = MutableLiveData<Song>()
     val currentlyPlaying: LiveData<Song>
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
                 songList.value?.let { songs ->
-                    songs.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
+                    songs.find {
+                        it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
+                    }
                 } ?: run {
                     _songList.value = getFromDB()
                     songList.value!!.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
