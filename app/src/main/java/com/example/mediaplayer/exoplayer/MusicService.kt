@@ -115,19 +115,7 @@ class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
-    fun updatePlayer() {
-        serviceScope.launch {
-            Timber.d("Player Updated")
-            with(musicSource) {
-                fetchMediaData().also {
-                    exoPlayer.setMediaSource(this.asMediaSource(dataSourceFactory))
-                    exoPlayer.prepare()
-                    exoPlayer.seekTo(0,0)
-                    exoPlayer.playWhenReady = false
-                }
-            }
-        }
-    }
+    fun fetchSongData() = serviceScope.launch { musicSource.fetchMediaData() }
 
     private fun preparePlayer(
         songs: List<MediaMetadataCompat>,

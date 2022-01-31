@@ -10,6 +10,7 @@ import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.exoplayer.MusicServiceConnector
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFICATION_ID
+import timber.log.Timber
 import javax.inject.Inject
 
 class MusicPlayerNotificationListener(
@@ -24,6 +25,7 @@ class MusicPlayerNotificationListener(
             isForegroundService = false
             stopSelf()
             serviceConnector.unsubscribe(MEDIA_ROOT_ID, object: MediaBrowserCompat.SubscriptionCallback() {})
+            Timber.d("Notification Cancelled")
         }
     }
 

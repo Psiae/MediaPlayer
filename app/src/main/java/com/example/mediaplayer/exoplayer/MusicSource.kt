@@ -26,12 +26,8 @@ class MusicSource (
 ) {
     var songs = emptyList<MediaMetadataCompat>()
 
-    suspend fun fetchMediaData() = withContext(Dispatchers.IO) {
-        state = STATE_INITIALIZING
-        val allSongs: List<Song> = musicDatabase.getAllSongs()
-        Timber.d("AllSongs")
-
-        songs = allSongs.map { song ->
+    suspend fun mapToSongs(songToMap: List<Song>) = withContext(Dispatchers.IO) {
+        songs = songToMap.map { song ->
             MediaMetadataCompat.Builder()
                 .putString(METADATA_KEY_ARTIST, song.artist)
                 .putString(METADATA_KEY_MEDIA_ID, song.mediaId.toString())
@@ -45,6 +41,13 @@ class MusicSource (
                 .build()
         }
         state = STATE_INITIALIZED
+    }
+
+    suspend fun fetchMediaData() = withContext(Dispatchers.IO) {
+        state = STATE_INITIALIZING
+        val allSongs: List<Song> = musicDatabase.getAllSongs()
+        Timber.d("AllSongs")
+        mapToSongs(allSongs)
     }
 
     fun asMediaSource(dataSourceFactory: DefaultDataSource.Factory): ConcatenatingMediaSource {

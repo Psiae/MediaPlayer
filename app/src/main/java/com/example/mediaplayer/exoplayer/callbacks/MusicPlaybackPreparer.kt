@@ -24,7 +24,7 @@ class MusicPlaybackPreparer(
         cb: ResultReceiver?,
     ): Boolean {
         when (command) {
-            UPDATE_SONG -> musicService.updatePlayer()
+            UPDATE_SONG -> musicService.apply { fetchSongData() }
         }
         return false
     }

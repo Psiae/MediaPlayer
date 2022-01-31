@@ -49,6 +49,14 @@ class MusicServiceConnector(
         connect()
     }
 
+    fun connectMediaBrowser() {
+        if (!mediaBrowser.isConnected) mediaBrowser.connect()
+    }
+
+    fun disconnectMediaBrowser() {
+        if (mediaBrowser.isConnected) mediaBrowser.disconnect()
+    }
+
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 

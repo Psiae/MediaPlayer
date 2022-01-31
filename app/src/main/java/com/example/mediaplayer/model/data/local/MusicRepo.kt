@@ -4,13 +4,10 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import com.example.mediaplayer.model.data.entities.Album
-import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
