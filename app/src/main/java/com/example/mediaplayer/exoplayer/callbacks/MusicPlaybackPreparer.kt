@@ -7,6 +7,8 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.exoplayer.MusicSource
+import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
+import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -25,6 +27,10 @@ class MusicPlaybackPreparer(
     ): Boolean {
         when (command) {
             UPDATE_SONG -> musicService.apply { fetchSongData() }
+            NOTIFY_CHILDREN -> {
+                musicService.resInitPlayer()
+                musicService.notifyChildrenChanged(MEDIA_ROOT_ID)
+            }
         }
         return false
     }

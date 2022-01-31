@@ -16,6 +16,8 @@ import com.example.mediaplayer.databinding.FragmentHomeBinding
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
+import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.view.adapter.AlbumAdapter
 import com.example.mediaplayer.view.adapter.ArtistAdapter
@@ -132,6 +134,10 @@ class HomeFragment : Fragment() {
             rvArtist.apply {
                 adapter = artistAdapter.also {
                     it.differ.addListListener(artistListener)
+                    it.setItemClickListener { artist ->
+                        songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name)
+                        Timber.d("${artist.name}")
+                    }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -152,7 +158,6 @@ class HomeFragment : Fragment() {
             }
             artistList.observe(viewLifecycleOwner) {
                 artistAdapter.itemList = it
-                artistAdapter.setItemClickListener { songViewModel }
             }
             albumList.observe(viewLifecycleOwner) {
                 albumAdapter.itemList = it

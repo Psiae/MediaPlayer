@@ -27,6 +27,7 @@ object Constants {
     const val NOTIFICATION_ID = 301
 
     const val UPDATE_SONG = "UPDATE_SONG"
+    const val NOTIFY_CHILDREN = "NOTIFY_CHILDREN"
 
     const val ARTIST = "ARTIST"
     const val ALBUM = "ALBUM"

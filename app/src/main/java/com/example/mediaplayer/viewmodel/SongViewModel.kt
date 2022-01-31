@@ -6,10 +6,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import androidx.lifecycle.*
-import com.example.mediaplayer.exoplayer.MusicServiceConnector
-import com.example.mediaplayer.exoplayer.isPlayEnabled
-import com.example.mediaplayer.exoplayer.isPlaying
-import com.example.mediaplayer.exoplayer.isPrepared
+import com.example.mediaplayer.exoplayer.*
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
@@ -29,6 +26,7 @@ class SongViewModel @Inject constructor(
     private val context: Context,
     private val musicServiceConnector: MusicServiceConnector,
     private val musicDB: MusicRepo,
+    private val musicSource: MusicSource
 ) : ViewModel() {
 
     /** Service Connector */
@@ -146,7 +144,12 @@ class SongViewModel @Inject constructor(
         musicServiceConnector.subscribe(MEDIA_ROOT_ID, subsCallback)
     }
 
-    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?) {
+    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String) {
+        viewModelScope.launch {
+            val songList = _songList.value ?: musicDB.getAllSongs()
+            if (extra.isNotEmpty()) musicSource.mapToSongs(songList.filter { it.artist == extra || it.album == extra })
+            else musicSource.mapToSongs(_songList.value?.toList() ?: musicDB.getAllSongs())
+        }
         musicServiceConnector.sendCommand(command, param, callback)
     }
 
@@ -199,7 +202,6 @@ class SongViewModel @Inject constructor(
 
     fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {
         val isPrepared = playbackState.value?.isPrepared ?: false
-
         try {
             if (isPrepared && mediaItem.mediaId ==
                 playingMediaItem.value?.getString(METADATA_KEY_MEDIA_ID)?.toLong()

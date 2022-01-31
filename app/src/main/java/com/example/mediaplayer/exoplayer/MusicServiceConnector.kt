@@ -71,6 +71,7 @@ class MusicServiceConnector(
     }
 
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
+        Timber.d("command Sent")
 
         mediaController.sendCommand(command, param, object : ResultReceiver(Handler(Looper.getMainLooper())) {
             override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {

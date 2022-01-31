@@ -151,24 +151,34 @@ class MusicService : MediaBrowserServiceCompat() {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
+    var sendResult = true
+
+    fun resInitPlayer() {
+        isPlayerInitialized = false
+    }
+
     override fun onLoadChildren(
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
         Timber.d("onLoadChildren")
+        sendResult = true
         when(parentId) {
             MEDIA_ROOT_ID -> {
                 val resultsSent = musicSource.whenReady { isInitialized ->
                     if(isInitialized) {
-                        result.sendResult(musicSource.asMediaItems())
-
+                        Timber.d("sendResult")
+                        if (sendResult) {
+                            result.sendResult(musicSource.asMediaItems())
+                            sendResult = false
+                        }
                         if(!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
                             preparePlayer(musicSource.songs, musicSource.songs[0], false)
                             isPlayerInitialized = true
                         }
                     } else {
                         mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                        result.sendResult(null)
+                        if (sendResult) result.sendResult(null)
                     }
                 }
                 if(!resultsSent) {
