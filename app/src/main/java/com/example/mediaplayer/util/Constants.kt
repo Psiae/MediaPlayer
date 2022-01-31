@@ -25,4 +25,9 @@ object Constants {
     // Notification
     const val NOTIFICATION_CHANNEL_ID = "MediaPlayer"
     const val NOTIFICATION_ID = 301
+
+    const val UPDATE_SONG = "UPDATE_SONG"
+
+    const val ARTIST = "ARTIST"
+    const val ALBUM = "ALBUM"
 }

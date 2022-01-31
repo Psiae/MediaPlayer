@@ -1,8 +1,6 @@
 package com.example.mediaplayer.view.fragments
 
-import android.content.ContentUris
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,16 +22,9 @@ import com.example.mediaplayer.view.adapter.ArtistAdapter
 import com.example.mediaplayer.view.adapter.HomeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.material.transition.MaterialArcMotion
-import com.google.android.material.transition.MaterialFade
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -161,6 +152,7 @@ class HomeFragment : Fragment() {
             }
             artistList.observe(viewLifecycleOwner) {
                 artistAdapter.itemList = it
+                artistAdapter.setItemClickListener { songViewModel }
             }
             albumList.observe(viewLifecycleOwner) {
                 albumAdapter.itemList = it

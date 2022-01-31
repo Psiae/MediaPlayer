@@ -5,13 +5,16 @@ import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.exoplayer.MusicSource
+import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,
-    private val playerPrepared: (MediaMetadataCompat?) -> Unit
+    private val musicService: MusicService,
+    private val playerPrepared: (MediaMetadataCompat?) -> Unit,
 ) : MediaSessionConnector.PlaybackPreparer {
 
     override fun onCommand(
@@ -19,7 +22,12 @@ class MusicPlaybackPreparer(
         command: String,
         extras: Bundle?,
         cb: ResultReceiver?,
-    ) = false
+    ): Boolean {
+        when (command) {
+            UPDATE_SONG -> musicService.updatePlayer()
+        }
+        return false
+    }
 
     override fun getSupportedPrepareActions(): Long {
         return PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or

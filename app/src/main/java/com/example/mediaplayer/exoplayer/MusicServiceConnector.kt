@@ -3,12 +3,16 @@ package com.example.mediaplayer.exoplayer
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
 import com.example.mediaplayer.util.Event
 import com.example.mediaplayer.util.Resource
@@ -49,12 +53,23 @@ class MusicServiceConnector(
         get() = mediaController.transportControls
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
+        Timber.d("MediaBrowser sub")
         mediaBrowser.subscribe(parentId, callback)
     }
 
     fun unsubscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
         Timber.d("MediaBrowser unsub")
         mediaBrowser.unsubscribe(parentId, callback)
+    }
+
+    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
+
+        mediaController.sendCommand(command, param, object : ResultReceiver(Handler(Looper.getMainLooper())) {
+            override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+                super.onReceiveResult(resultCode, resultData)
+                Timber.d("onReceiveChildrenResult")
+            }
+        })
     }
 
     private inner class MediaBrowserConnectionCallback(

@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.example.mediaplayer.exoplayer.MusicServiceConnector
+import com.example.mediaplayer.exoplayer.MusicSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,7 +29,16 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideMusicRepo() = MusicRepo()
+    fun provideMusicRepo(
+        @ApplicationContext context: Context
+    ) = MusicRepo(context)
+
+    @Singleton
+    @Provides
+    fun provideMusicSource(
+        repo: MusicRepo,
+        @ApplicationContext context: Context
+    ) = MusicSource(repo, context)
 
     @Singleton
     @Provides

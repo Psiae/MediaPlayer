@@ -10,9 +10,12 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ItemHomeBinding
 import com.example.mediaplayer.model.data.entities.Artist
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.diffArtistCallback
+import com.example.mediaplayer.util.ext.toast
 import com.google.android.material.shape.CornerFamily
+import timber.log.Timber
 
 class ArtistAdapter(
     private val glide: RequestManager,
@@ -65,7 +68,22 @@ class ArtistAdapter(
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .error(R.drawable.ic_music_library_transparent)
                     .into(sivItemImage)
+
+                binding.root.setOnClickListener {
+                    root.transitionName = item.name
+                    onItemClickListener?.let { passedMethod ->
+                        passedMethod(item)
+                        Timber.d("$item clicked")// function passed by fragment in this case
+                                                        // I want to use item from my adapter
+                    } ?: toast(context, "msg")     // do something else
+                }                                       // if the method is not passed yet
             }
         }
+    }
+
+    var onItemClickListener: ((Artist) -> Unit)? = null // variable that have the function
+
+    fun setItemClickListener(listener: (Artist) -> Unit) { // method to set the function
+        onItemClickListener = listener
     }
 }

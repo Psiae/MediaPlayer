@@ -8,25 +8,29 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import androidx.core.net.toUri
 import com.example.mediaplayer.exoplayer.State.*
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.local.MusicRepo
+import com.example.mediaplayer.util.Constants
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
-class MusicSource @Inject constructor(
+class MusicSource (
     private val musicDatabase: MusicRepo,
     private val context: Context
 ) {
-
     var songs = emptyList<MediaMetadataCompat>()
 
     suspend fun fetchMediaData() = withContext(Dispatchers.IO) {
         state = STATE_INITIALIZING
-        val allSongs = musicDatabase.getAllSongs()
+        val allSongs: List<Song> = musicDatabase.getAllSongs()
+        Timber.d("AllSongs")
+
         songs = allSongs.map { song ->
             MediaMetadataCompat.Builder()
                 .putString(METADATA_KEY_ARTIST, song.artist)
