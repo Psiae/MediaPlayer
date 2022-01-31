@@ -66,7 +66,7 @@ class LibraryFragment: Fragment() {
             findNavController().navigate(R.id.folderFragment)
         }
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 400L
+            it.duration = 600L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
             it.duration = 200L

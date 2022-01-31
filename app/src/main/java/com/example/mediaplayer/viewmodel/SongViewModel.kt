@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
@@ -40,6 +41,8 @@ class SongViewModel @Inject constructor(
 
     val navHeight = MutableLiveData<Int>()
     val curPlaying = MutableLiveData<Song>()
+    val mediaItemPlaying: LiveData<MediaMetadataCompat?>
+        get() = playingMediaItem
     val currentlyPlaying: LiveData<Song>
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
@@ -53,6 +56,8 @@ class SongViewModel @Inject constructor(
                 }
             }
         }
+
+    var currentlyPlayingSongListObservedByMainActivity = mutableListOf<Song>()
 
     private val _shuffles = MutableLiveData<List<Song>>()
     val shuffles: LiveData<List<Song>>
@@ -119,6 +124,17 @@ class SongViewModel @Inject constructor(
             return _mediaItems
         }
 
+    val mediaItemSong: LiveData<MutableList<Song>>
+        get() {
+            return Transformations.map(_mediaItems) { mediaItems ->
+                val mediaItemList = mutableListOf<Song>()
+                mediaItems.map {  item ->
+                    mediaItemList.add(_songList.value?.find { it.mediaId == item.mediaId }!!)
+                }.toMutableList()
+                mediaItemList.ifEmpty { emptyList<Song>().toMutableList() }
+            }
+        }
+
     private var subsCallback = object : MediaBrowserCompat.SubscriptionCallback() {
         override fun onChildrenLoaded(
             parentId: String,
@@ -134,7 +150,7 @@ class SongViewModel @Inject constructor(
                     imageUri = it.description.iconUri.toString()
                 )
             }
-            _mediaItems.postValue(items.toMutableList())
+            _mediaItems.value = items.toMutableList()
         }
     }
 
@@ -145,7 +161,7 @@ class SongViewModel @Inject constructor(
     }
 
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val songList = _songList.value ?: musicDB.getAllSongs()
             if (extra.isNotEmpty()) musicSource.mapToSongs(songList.filter { it.artist == extra || it.album == extra })
             else musicSource.mapToSongs(songList)
@@ -171,8 +187,7 @@ class SongViewModel @Inject constructor(
 
     fun updateSongList(fromDB: Boolean = true) {
         if (fromDB) viewModelScope.launch {
-            val list = musicDB.getAllSongs().toMutableList().also { songs ->
-                _songList.value = songs.toMutableList()
+            musicDB.getAllSongs().toMutableList().also { songs ->
                 _albumList.value = songs.groupBy { it.album }.entries.map { (album, song) ->
                     Album(album, song)
                 }
@@ -180,9 +195,15 @@ class SongViewModel @Inject constructor(
                     Artist(artist, song)
                 }
                 _folderList.value = musicDB.folderList.distinct().toMutableList()
+                _songList.value = songs.toMutableList()
             }
-
         }
+    }
+
+    fun findMatchingMediaId(mediaItem: MediaMetadataCompat): Song {
+        return _songList.value!!.find { it.mediaId == mediaItem.getLong(
+            METADATA_KEY_MEDIA_ID
+        ) } ?: _songList.value!![0]
     }
 
     fun skipNext() {
@@ -255,7 +276,7 @@ class SongViewModel @Inject constructor(
 
     fun clearShuffle(msg: String) {
         Timber.d(msg)
-        _shuffles.value = emptyList()
+        _shuffles.value = listOf(Song(title = "EMPTY"))
     }
 
     fun setCurFolder(folder: Folder) {

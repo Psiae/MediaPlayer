@@ -33,6 +33,7 @@ import com.google.android.material.transition.MaterialFade
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -75,7 +76,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         super.onViewCreated(view, savedInstanceState)
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 400L
+            it.duration = 600L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
             it.duration = 200L
@@ -168,8 +169,15 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 val layout = this.layoutManager as LinearLayoutManager
                 layout.scrollToPositionWithOffset(index, centerOfScreen)
                 Timber.d("$index")*/
-                songViewModel.sendCommand("EMPTY", null, null, "")
-                songViewModel.playOrToggle(song)
+                val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
+                if (!mediaItems.contains(song)) {
+                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "").also {
+                        lifecycleScope.launch {
+                            delay(100)
+                            songViewModel.playOrToggle(song)
+                        }
+                    }
+                } else songViewModel.playOrToggle(song)
             }
             adapter = songAdapter
             layoutManager = GridLayoutManager(requireContext(),

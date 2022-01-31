@@ -23,8 +23,8 @@ class MusicPlayerNotificationListener(
         musicService.apply {
             stopForeground(true)
             isForegroundService = false
-            stopSelf()
             serviceConnector.unsubscribe(MEDIA_ROOT_ID, object: MediaBrowserCompat.SubscriptionCallback() {})
+            stopSelf()
             Timber.d("Notification Cancelled")
         }
     }

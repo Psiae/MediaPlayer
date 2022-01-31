@@ -26,6 +26,7 @@ import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
@@ -83,7 +84,7 @@ class HomeFragment : Fragment() {
             it.duration = 200L
         }
         reenterTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 400L
+            it.duration = 600L
         }
         setupView()
         lifecycleScope.launch {
@@ -114,11 +115,18 @@ class HomeFragment : Fragment() {
 
             rvSuggestion.apply {
                 adapter = suggestAdapter.also {
-                    it.differ.addListListener(suggestListener)
                     it.setItemClickListener { song ->
-                        songViewModel.sendCommand("EMPTY", null, null, "")
-                        songViewModel.playOrToggle(song)
+                        val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
+                        if (!mediaItems.contains(song)) {
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "").also {
+                                lifecycleScope.launch {
+                                    delay(100)
+                                    songViewModel.playOrToggle(song)
+                                }
+                            }
+                        } else songViewModel.playOrToggle(song)
                     }
+                    it.differ.addListListener(suggestListener)
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL

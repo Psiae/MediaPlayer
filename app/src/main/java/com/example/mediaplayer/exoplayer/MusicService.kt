@@ -171,19 +171,24 @@ class MusicService : MediaBrowserServiceCompat() {
         when(parentId) {
             MEDIA_ROOT_ID -> {
                     val resultsSent = musicSource.whenReady { isInitialized ->
-                        if (isInitialized) {
-                            Timber.d("sendResult")
-                            if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                                preparePlayer(musicSource.songs, musicSource.songs[0], false)
-                                isPlayerInitialized = true
+                        try {
+                            if (isInitialized) {
+                                Timber.d("sendResult")
+                                if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                                    preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                                    isPlayerInitialized = true
+                                }
+                                if (sendResult) {
+                                    result.sendResult(musicSource.asMediaItems())
+                                    sendResult = false
+                                }
+                            } else {
+                                mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                                if (sendResult) result.sendResult(null)
                             }
-                            if (sendResult) {
-                                result.sendResult(musicSource.asMediaItems())
-                                sendResult = false
-                            }
-                        } else {
-                            mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                            if (sendResult) result.sendResult(null)
+                        } catch (e:Exception) {
+                            Timber.e(e)
+                            return@whenReady
                         }
                     }
                     if (!resultsSent && sendResult) {

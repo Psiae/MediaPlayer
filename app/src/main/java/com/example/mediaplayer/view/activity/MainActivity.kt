@@ -159,7 +159,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                                 playOrToggle(swipeAdapter.songList[position])
                             } else {
                                 Timber.d("pos $position")
-                                curPlaying.value = swipeAdapter.songList[position]
+                                try {
+                                    curPlaying.value = swipeAdapter.songList[position]
+                                } catch (e: Exception) {
+                                    Timber.e(e)
+                                }
                             }
                         }
                     }
@@ -224,16 +228,21 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         songViewModel.apply {
 
-            songList.observe(this@MainActivity) { songList ->
+            /*songList.observe(this@MainActivity) { songList ->
                 swipeAdapter.songList = songList
+            }*/
+
+            mediaItemSong.observe(this@MainActivity) { mediaItems ->
+                currentlyPlayingSongListObservedByMainActivity = mediaItems
+                swipeAdapter.songList = mediaItems
             }
 
             currentlyPlaying.observe(this@MainActivity) { song ->
                 Timber.d("cur play: $song")
                 song?.let {
-                    curPlaying.value = it
+                    curPlaying.value = song
                     glideCurSong(song)
-                    val itemIndex = swipeAdapter.songList.indexOf(curPlaying.value)
+                    val itemIndex = swipeAdapter.songList.indexOf(song)
                     if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
                 }
             }

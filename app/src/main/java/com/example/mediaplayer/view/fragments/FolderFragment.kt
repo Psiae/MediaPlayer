@@ -63,7 +63,7 @@ class FolderFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 400L
+            it.duration = 600L
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
             it.duration = 200L
