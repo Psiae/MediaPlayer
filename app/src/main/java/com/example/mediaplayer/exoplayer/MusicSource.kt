@@ -47,6 +47,7 @@ class MusicSource (
         state = STATE_INITIALIZING
         val allSongs: List<Song> = musicDatabase.getAllSongs()
         Timber.d("AllSongs")
+        mapToSongs(allSongs)
     }
 
     fun asMediaSource(dataSourceFactory: DefaultDataSource.Factory): ConcatenatingMediaSource {

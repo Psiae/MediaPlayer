@@ -116,6 +116,7 @@ class HomeFragment : Fragment() {
                 adapter = suggestAdapter.also {
                     it.differ.addListListener(suggestListener)
                     it.setItemClickListener { song ->
+                        songViewModel.sendCommand("EMPTY", null, null, "")
                         songViewModel.playOrToggle(song)
                     }
                 }

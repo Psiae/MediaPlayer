@@ -148,7 +148,7 @@ class SongViewModel @Inject constructor(
         viewModelScope.launch {
             val songList = _songList.value ?: musicDB.getAllSongs()
             if (extra.isNotEmpty()) musicSource.mapToSongs(songList.filter { it.artist == extra || it.album == extra })
-            else musicSource.mapToSongs(_songList.value?.toList() ?: musicDB.getAllSongs())
+            else musicSource.mapToSongs(songList)
         }
         musicServiceConnector.sendCommand(command, param, callback)
     }

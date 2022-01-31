@@ -111,7 +111,12 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            return musicSource.songs[windowIndex].description
+            try {
+                return musicSource.songs[windowIndex].description
+            } catch (e: Exception) {
+                Timber.d("MusicQueueNavigator Exception")
+                return musicSource.songs[0].description
+            }
         }
     }
 
@@ -165,25 +170,25 @@ class MusicService : MediaBrowserServiceCompat() {
         sendResult = true
         when(parentId) {
             MEDIA_ROOT_ID -> {
-                val resultsSent = musicSource.whenReady { isInitialized ->
-                    if(isInitialized) {
-                        Timber.d("sendResult")
-                        if (sendResult) {
-                            result.sendResult(musicSource.asMediaItems())
-                            sendResult = false
+                    val resultsSent = musicSource.whenReady { isInitialized ->
+                        if (isInitialized) {
+                            Timber.d("sendResult")
+                            if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                                preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                                isPlayerInitialized = true
+                            }
+                            if (sendResult) {
+                                result.sendResult(musicSource.asMediaItems())
+                                sendResult = false
+                            }
+                        } else {
+                            mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                            if (sendResult) result.sendResult(null)
                         }
-                        if(!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                            preparePlayer(musicSource.songs, musicSource.songs[0], false)
-                            isPlayerInitialized = true
-                        }
-                    } else {
-                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                        if (sendResult) result.sendResult(null)
                     }
-                }
-                if(!resultsSent) {
-                    result.detach()
-                }
+                    if (!resultsSent && sendResult) {
+                        result.detach()
+                    }
             }
         }
     }

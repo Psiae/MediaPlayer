@@ -35,7 +35,7 @@ class MusicNotificationManager(
             NOTIFICATION_ID,
             NOTIFICATION_CHANNEL_ID
         ).apply {
-            setSmallIconResourceId(R.drawable.splash_image_24_transparent)
+            setSmallIconResourceId(R.drawable.ic_music_note_light)
             setChannelNameResourceId(R.string.media_player)
             setChannelDescriptionResourceId(R.string.currently_playing)
             setNotificationListener(notificationListener)
