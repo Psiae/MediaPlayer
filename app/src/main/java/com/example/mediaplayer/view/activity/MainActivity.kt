@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private val songViewModel: SongViewModel by viewModels()
 
+    private var alreadySetup: Boolean = false
+
     val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             super.onPageSelected(position)
@@ -93,12 +95,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             }
         }
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        postponeEnterTransition()
 
         /* navController & Destination setup */
         setupNavController()
@@ -115,6 +117,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         // setup ViewModel & Observer
         setupSongVM()
 
+        startPostponedEnterTransition()
         lifecycleScope.launch {
             delay(1500)
             getControlHeight()
@@ -236,18 +239,30 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             mediaItemSong.observe(this@MainActivity) { mediaItems ->
                 swipeAdapter.songList = mediaItems
                 currentlyPlayingSongListObservedByMainActivity = mediaItems
-                lifecycleScope.launch {
-                    binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
-                    delay(500)
-                    binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
+                if (!alreadySetup) {
+                    lifecycleScope.launch {
+                        observePlayer()
+                        binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
+                    }
                 }
             }
 
+            lifecycleScope.launch() {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    updateMusicDB()
+                }
+            }
+        }
+    }
+
+    private fun observePlayer() {
+        alreadySetup = true
+        with(songViewModel) {
             currentlyPlaying.observe(this@MainActivity) { song ->
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {
-                            delay(500)
+                            delay(50)
                             curPlaying.value = song
                             glideCurSong(song)
                             val itemIndex = swipeAdapter.songList.indexOf(song)
@@ -263,18 +278,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     }
                 }
             }
-
             playbackState.observe(this@MainActivity) {
                 binding.ibPlayPause.setImageResource(
                     if (it?.isPlaying == true) R.drawable.ic_pause_24_widget
                     else R.drawable.ic_play_24_widget
                 )
-            }
-
-            lifecycleScope.launch() {
-                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    updateMusicDB()
-                }
             }
         }
     }
