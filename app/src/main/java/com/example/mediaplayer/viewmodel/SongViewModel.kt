@@ -46,6 +46,7 @@ class SongViewModel @Inject constructor(
     val currentlyPlaying: LiveData<Song>
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
+                Timber.d("playingMediaItem : ${mediaItem!!.description.title}")
                 songList.value?.let { songs ->
                     songs.find {
                         it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong()

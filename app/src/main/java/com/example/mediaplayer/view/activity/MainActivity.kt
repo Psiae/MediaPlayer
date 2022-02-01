@@ -74,6 +74,26 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private val songViewModel: SongViewModel by viewModels()
 
+    val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            super.onPageSelected(position)
+            Timber.d("changeCallback pos: $position")
+            with(songViewModel) {
+                if (playbackState.value?.isPlaying == true) {
+                    Timber.d("chaged to $position")
+                    playOrToggle(swipeAdapter.songList[position])
+                } else {
+                    Timber.d("pos $position")
+                    try {
+                        curPlaying.value = swipeAdapter.songList[position]
+                    } catch (e: Exception) {
+                        Timber.e(e)
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
@@ -149,25 +169,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                         toast(this@MainActivity, song.title)
                     }
                 }
-                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageSelected(position: Int) {
-                        super.onPageSelected(position)
-                        with(songViewModel) {
-                            if (playbackState.value?.isPlaying == true) {
-                                Timber.d("chaged to $position")
-
-                                playOrToggle(swipeAdapter.songList[position])
-                            } else {
-                                Timber.d("pos $position")
-                                try {
-                                    curPlaying.value = swipeAdapter.songList[position]
-                                } catch (e: Exception) {
-                                    Timber.e(e)
-                                }
-                            }
-                        }
-                    }
-                })
         }
             lifecycleScope.launch {
                 while (true) {
@@ -233,17 +234,33 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             }*/
 
             mediaItemSong.observe(this@MainActivity) { mediaItems ->
-                currentlyPlayingSongListObservedByMainActivity = mediaItems
                 swipeAdapter.songList = mediaItems
+                currentlyPlayingSongListObservedByMainActivity = mediaItems
+                lifecycleScope.launch {
+                    binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
+                    delay(500)
+                    binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
+                }
             }
 
             currentlyPlaying.observe(this@MainActivity) { song ->
-                Timber.d("cur play: $song")
                 song?.let {
-                    curPlaying.value = song
-                    glideCurSong(song)
-                    val itemIndex = swipeAdapter.songList.indexOf(song)
-                    if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                    if (swipeAdapter.songList.isEmpty()) {
+                        lifecycleScope.launch {
+                            delay(500)
+                            curPlaying.value = song
+                            glideCurSong(song)
+                            val itemIndex = swipeAdapter.songList.indexOf(song)
+                            if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                            Timber.d("currentlyPlaying song: $song $itemIndex")
+                        }
+                    } else {
+                        curPlaying.value = song
+                        glideCurSong(song)
+                        val itemIndex = swipeAdapter.songList.indexOf(song)
+                        if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                        Timber.d("currentlyPlaying song: $song $itemIndex")
+                    }
                 }
             }
 

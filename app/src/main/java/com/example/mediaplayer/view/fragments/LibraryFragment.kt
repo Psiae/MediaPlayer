@@ -93,9 +93,10 @@ class LibraryFragment: Fragment() {
             }
             folderList.observe(viewLifecycleOwner) { folderList ->
                 Timber.d("folder ${folderList.size}")
+                val songList = songAdapter.songList.ifEmpty { songViewModel.songList.value }
                 val sizedList = mutableListOf<Folder>()
                 folderList.forEach { folder ->
-                    val filtered = songViewModel.songList.value!!.filter {
+                    val filtered = songList!!.filter {
                         it.mediaPath == folder.title
                     }
                     folder.size = filtered.size

@@ -6,11 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import androidx.core.app.NotificationCompat.*
-import androidx.core.graphics.createBitmap
-import androidx.media.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R

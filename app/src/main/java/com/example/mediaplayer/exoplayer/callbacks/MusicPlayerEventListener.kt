@@ -1,10 +1,9 @@
 package com.example.mediaplayer.exoplayer.callbacks
 
 import android.widget.Toast
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.Player
 import com.example.mediaplayer.exoplayer.MusicService
 import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
 import timber.log.Timber
 
 class MusicPlayerEventListener(
@@ -27,6 +26,6 @@ class MusicPlayerEventListener(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-        Toast.makeText(musicService, "An unknown error occured", Toast.LENGTH_LONG).show()
+        Toast.makeText(musicService, "An unknown error occurred", Toast.LENGTH_LONG).show()
     }
 }

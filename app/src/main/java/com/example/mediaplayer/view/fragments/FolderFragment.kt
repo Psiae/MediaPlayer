@@ -1,27 +1,24 @@
 package com.example.mediaplayer.view.fragments
 
-import android.content.ContentUris
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
-import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.material.transition.MaterialFade
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
@@ -82,7 +79,15 @@ class FolderFragment: Fragment() {
             rvLib.apply {
                 adapter = songAdapter.also {
                     it.setItemClickListener { song ->
-                        songViewModel.playOrToggle(song)
+                        val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
+                        if (!mediaItems.contains(song)) {
+                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, null, "").also {
+                                lifecycleScope.launch {
+                                    delay(100)
+                                    songViewModel.playOrToggle(song)
+                                }
+                            }
+                        } else songViewModel.playOrToggle(song)
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext())
@@ -96,7 +101,8 @@ class FolderFragment: Fragment() {
                 binding.tbLib.title = it.title
             }
             songList.observe(viewLifecycleOwner) {
-                val title = songViewModel.curFolder.value!!.title
+                val title = if (binding.tbLib.title != "Folder") binding.tbLib.title
+                            else songViewModel.curFolder.value!!.title
                 songAdapter.songList = it.filter { song ->
                     song.mediaPath == title
                 }

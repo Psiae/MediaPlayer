@@ -12,7 +12,6 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
 import com.example.mediaplayer.util.Event
 import com.example.mediaplayer.util.Resource
