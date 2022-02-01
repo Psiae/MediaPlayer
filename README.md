@@ -46,6 +46,8 @@ Credits :
 | Dark Mode | Light Mode |
 | -------------- | -------------- |
 |<img src="https://user-images.githubusercontent.com/94031495/151054755-05079b03-72ff-42e1-873d-cdc70303cd95.png" width="250">|<img src="https://user-images.githubusercontent.com/94031495/151054781-ea9c0a5d-28b8-4865-9024-3a8302161f6d.png" width="250">|
+|<img src="https://user-images.githubusercontent.com/94031495/151903094-fb9e8671-eab2-4bb1-8473-22b8b541e5ef.png" width="250"> | <img src="https://user-images.githubusercontent.com/94031495/151903100-0605a4b6-b9cc-4106-8626-7e06f6044a87.png" width="250"> |
+
 
 Thank you For Visiting ^_^\
 · I'm Usually on https://discord.gg/programming if you have question
