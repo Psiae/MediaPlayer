@@ -135,6 +135,10 @@ class HomeFragment : Fragment() {
             rvAlbum.apply {
                 adapter = albumAdapter.also {
                     it.differ.addListListener(albumListener)
+                    it.setItemClickListener { album ->
+                        songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, album.name)
+                        Timber.d("${album.name}")
+                    }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -150,6 +154,7 @@ class HomeFragment : Fragment() {
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
+
                 }
             }
         }

@@ -5,6 +5,7 @@ import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
 import com.example.mediaplayer.exoplayer.MusicService
 import com.google.android.exoplayer2.PlaybackException
+import timber.log.Timber
 
 class MusicPlayerEventListener(
     private val musicService: MusicService
@@ -12,6 +13,12 @@ class MusicPlayerEventListener(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
+        when (playbackState) {
+            Player.STATE_IDLE -> Timber.d("Player $playbackState IDLE")
+            Player.STATE_BUFFERING -> Timber.d("Player $playbackState BUFFERING")
+            Player.STATE_READY -> Timber.d("Player $playbackState READY")
+            Player.STATE_ENDED -> Timber.d("Player $playbackState ENDED")
+        }
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {

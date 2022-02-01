@@ -7,6 +7,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.widget.Toast
 import androidx.media.MediaBrowserServiceCompat
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
@@ -142,6 +143,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Toast.makeText(this, "DEBUG: SERVICE DESTROYED", Toast.LENGTH_LONG).show()
         serviceScope.cancel()
         Timber.d("Service Destroyed")
         exoPlayer.removeListener(musicPlayerEventListener)
