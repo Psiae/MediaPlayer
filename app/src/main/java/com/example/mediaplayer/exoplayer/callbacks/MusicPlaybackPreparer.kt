@@ -12,6 +12,7 @@ import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import kotlinx.coroutines.delay
 
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,

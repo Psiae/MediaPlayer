@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
+import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
@@ -46,7 +47,7 @@ class FolderFragment: Fragment() {
     private val binding: FragmentFolderBinding
         get() = _binding!!
 
-
+    var observedSongList = listOf<Song>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,7 +82,7 @@ class FolderFragment: Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, null, "").also {
+                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                                 lifecycleScope.launch {
                                     delay(100)
                                     songViewModel.playOrToggle(song)
@@ -101,6 +102,7 @@ class FolderFragment: Fragment() {
                 binding.tbLib.title = it.title
             }
             songList.observe(viewLifecycleOwner) {
+                observedSongList = it
                 val title = if (binding.tbLib.title != "Folder") binding.tbLib.title
                             else songViewModel.curFolder.value!!.title
                 songAdapter.songList = it.filter { song ->

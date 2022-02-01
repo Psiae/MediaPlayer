@@ -62,6 +62,8 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     private val binding: FragmentSongBinding
         get() = _binding!!
 
+    var observedSongList = listOf<Song>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -103,6 +105,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
             }
             songList.observe(viewLifecycleOwner) {
                 songAdapter.songList = it
+                observedSongList = it
                 if (it.isNullOrEmpty() && VersionHelper.isQ()) {
                     binding.tvNoSong.visibility = View.VISIBLE
                 } else binding.tvNoSong.visibility = View.GONE
@@ -171,9 +174,8 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 Timber.d("$index")*/
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                 if (!mediaItems.contains(song)) {
-                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "").also {
+                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                         lifecycleScope.launch {
-                            delay(100)
                             songViewModel.playOrToggle(song)
                         }
                     }

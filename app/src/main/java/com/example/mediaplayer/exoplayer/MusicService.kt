@@ -113,11 +113,12 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            try {
-                return musicSource.songs[windowIndex].description
+            Timber.d("getMediaDescription")
+            return try {
+                musicSource.songs[windowIndex].description
             } catch (e: Exception) {
                 Timber.d("MusicQueueNavigator Exception")
-                return musicSource.songs[0].description
+                musicSource.songs.first().description
             }
         }
     }
@@ -130,11 +131,16 @@ class MusicService : MediaBrowserServiceCompat() {
         playNow: Boolean
     ) {
         serviceScope.launch {
-            val curSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
-            exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory))
-            exoPlayer.prepare()
-            exoPlayer.seekTo(curSongIndex, 0L)
-            exoPlayer.playWhenReady = playNow
+            try {
+                val curSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+                exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory))
+                exoPlayer.prepare()
+                exoPlayer.seekTo(curSongIndex, 0L)
+                exoPlayer.playWhenReady = playNow
+            } catch (e: Exception) {
+                Timber.e(e)
+                toast(this@MusicService, "Unable to Prepare ExoPlayer", false, blockable = false)
+            }
         }
     }
 

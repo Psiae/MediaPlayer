@@ -7,12 +7,13 @@ import android.provider.MediaStore
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.VersionHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
 
 class MusicRepo(private val context: Context) {
+
+    var songFromQuery = mutableListOf<Song>()
 
     suspend fun getAllSongs(): List<Song> {
         return try {
@@ -154,6 +155,7 @@ class MusicRepo(private val context: Context) {
             e.printStackTrace()
         }
         folderList = listOfFolder
+        songFromQuery = deviceMusicList
         return deviceMusicList
     }
 }

@@ -236,10 +236,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             }*/
 
             mediaItemSong.observe(this@MainActivity) { mediaItems ->
+                Timber.d("mediaItems: $mediaItems")
                 swipeAdapter.songList = mediaItems
                 currentlyPlayingSongListObservedByMainActivity = mediaItems
                 if (!alreadySetup) {
                     lifecycleScope.launch {
+                        Timber.d("observePlayer")
+                        alreadySetup = true
                         observePlayer()
                         binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
                     }

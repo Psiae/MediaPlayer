@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class MusicSource (
-    private val musicDatabase: MusicRepo,
+    val musicDatabase: MusicRepo,
     private val context: Context
 ) {
     var songs = emptyList<MediaMetadataCompat>()

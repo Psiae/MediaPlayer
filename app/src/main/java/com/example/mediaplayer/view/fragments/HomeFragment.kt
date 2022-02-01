@@ -67,6 +67,8 @@ class HomeFragment : Fragment() {
     private val binding: FragmentHomeBinding
         get() = _binding!!
 
+    var observedSongList = listOf<Song>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -118,9 +120,9 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "").also {
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                                 lifecycleScope.launch {
-                                    delay(100)
+                                    delay(50)
                                     songViewModel.playOrToggle(song)
                                 }
                             }
@@ -136,8 +138,13 @@ class HomeFragment : Fragment() {
                 adapter = albumAdapter.also {
                     it.differ.addListListener(albumListener)
                     it.setItemClickListener { album ->
-                        songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, album.name)
-                        Timber.d("${album.name}")
+                        if (observedSongList.isNullOrEmpty()) {
+                            Timber.d("observedSongList isNullOrEmpty")
+                            songViewModel.updateSongList()
+                        } else {
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, album.name, observedSongList)
+                            Timber.d("${album.name}")
+                        }
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
@@ -148,12 +155,14 @@ class HomeFragment : Fragment() {
                 adapter = artistAdapter.also {
                     it.differ.addListListener(artistListener)
                     it.setItemClickListener { artist ->
-                        if (songViewModel.songList.value.isNullOrEmpty()) {
+                        if (observedSongList.isNullOrEmpty()) {
                             Timber.d("songList is NullOrEmpty")
                             songViewModel.updateSongList()
-                            return@setItemClickListener
                         } else {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name)
+                            lifecycleScope.launch {
+                                delay(150)
+                                songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name, observedSongList)
+                            }
                             Timber.d("${artist.name}")
                         }
                     }
@@ -169,7 +178,9 @@ class HomeFragment : Fragment() {
     private fun setupObserver() {
         songViewModel.apply {
             songList.observe(viewLifecycleOwner) {
-                checkShuffle()
+                Timber.d("songListObserve ${it.size}")
+                observedSongList = it
+                checkShuffle(it, "HomeFragment Observer")
             }
             shuffles.observe(viewLifecycleOwner) {
                 suggestAdapter.itemList = it
