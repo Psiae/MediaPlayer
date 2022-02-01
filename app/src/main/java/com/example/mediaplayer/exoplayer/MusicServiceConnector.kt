@@ -7,9 +7,11 @@ import android.os.Handler
 import android.os.Looper
 import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
@@ -18,7 +20,7 @@ import com.example.mediaplayer.util.Resource
 import timber.log.Timber
 
 class MusicServiceConnector(
-    context: Context
+    private val context: Context
 ) {
     private val _isConnected = MutableLiveData<Event<Resource<Boolean>>>()
     val isConnected: LiveData<Event<Resource<Boolean>>> = _isConnected
@@ -30,7 +32,11 @@ class MusicServiceConnector(
     val playbackState: LiveData<PlaybackStateCompat?> = _playbackState
 
     private val _curPlayingSong = MutableLiveData<MediaMetadataCompat?>()
-    val curPlayingSong: LiveData<MediaMetadataCompat?> = _curPlayingSong
+    val curPlayingSong: LiveData<MediaMetadataCompat?>
+        get() {
+            Timber.d("curPlayingSongConnector LiveData")
+            return _curPlayingSong
+        }
     
     lateinit var mediaController: MediaControllerCompat
 
@@ -72,12 +78,18 @@ class MusicServiceConnector(
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
         Timber.d("command Sent")
 
-        mediaController.sendCommand(command, param, object : ResultReceiver(Handler(Looper.getMainLooper())) {
-            override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
-                super.onReceiveResult(resultCode, resultData)
-                Timber.d("onReceiveChildrenResult")
-            }
-        })
+        try {
+            mediaController.sendCommand(command,
+                param,
+                object : ResultReceiver(Handler(Looper.getMainLooper())) {
+                    override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+                        super.onReceiveResult(resultCode, resultData)
+                        Timber.d("onReceiveChildrenResult")
+                    }
+                })
+        } catch (e: Exception) {
+            Toast.makeText(context, "Please Wait", Toast.LENGTH_LONG).show()
+        }
     }
 
     private inner class MediaBrowserConnectionCallback(
@@ -116,9 +128,13 @@ class MusicServiceConnector(
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            _curPlayingSong.postValue(metadata)
+            if (metadata!!.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+                != curPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+            ) {
+                Timber.d("onMetadataChanged")
+                _curPlayingSong.value = metadata
+            }
         }
-
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             super.onSessionEvent(event, extras)

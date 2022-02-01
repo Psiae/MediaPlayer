@@ -76,31 +76,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private var alreadySetup: Boolean = false
 
-    val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
-        override fun onPageSelected(position: Int) {
-            super.onPageSelected(position)
-            Timber.d("changeCallback pos: $position")
-            with(songViewModel) {
-                if (playbackState.value?.isPlaying == true) {
-                    Timber.d("chaged to $position")
-                    playOrToggle(swipeAdapter.songList[position])
-                } else {
-                    Timber.d("pos $position")
-                    try {
-                        curPlaying.value = swipeAdapter.songList[position]
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
-                }
-            }
-        }
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        postponeEnterTransition()
 
         /* navController & Destination setup */
         setupNavController()
@@ -117,7 +97,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         // setup ViewModel & Observer
         setupSongVM()
 
-        startPostponedEnterTransition()
         lifecycleScope.launch {
             delay(1500)
             getControlHeight()
@@ -223,6 +202,26 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun getClpHeight(): Int {
         return binding.clPager.measuredHeight
+    }
+
+    val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            super.onPageSelected(position)
+            Timber.d("changeCallback pos: $position")
+            with(songViewModel) {
+                if (playbackState.value?.isPlaying == true) {
+                    Timber.d("chaged to $position")
+                    playOrToggle(swipeAdapter.songList[position])
+                } else {
+                    Timber.d("pos $position")
+                    try {
+                        curPlaying.value = swipeAdapter.songList[position]
+                    } catch (e: Exception) {
+                        Timber.e(e)
+                    }
+                }
+            }
+        }
     }
 
     /**

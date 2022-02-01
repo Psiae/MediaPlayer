@@ -14,6 +14,7 @@ import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerNotificationListener
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
+import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -172,6 +173,7 @@ class MusicService : MediaBrowserServiceCompat() {
         sendResult = true
         when(parentId) {
             MEDIA_ROOT_ID -> {
+                try {
                     val resultsSent = musicSource.whenReady { isInitialized ->
                         try {
                             if (isInitialized) {
@@ -188,7 +190,7 @@ class MusicService : MediaBrowserServiceCompat() {
                                 mediaSession.sendSessionEvent(NETWORK_ERROR, null)
                                 if (sendResult) result.sendResult(null)
                             }
-                        } catch (e:Exception) {
+                        } catch (e: Exception) {
                             Timber.e(e)
                             return@whenReady
                         }
@@ -196,6 +198,9 @@ class MusicService : MediaBrowserServiceCompat() {
                     if (!resultsSent && sendResult) {
                         result.detach()
                     }
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Please Wait For Load", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
