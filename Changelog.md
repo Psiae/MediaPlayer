@@ -8,6 +8,7 @@
 - fixed yet another liveData NPE, liveData reference will be moved to MainActivity observer instead
 - fixed musicQueueNavigator Exception
 - added command method to interact with MusicService from UI-VM/Connector-Service
+- found ServiceConnector bug cause, fixed tomorrow
 
 # 2022/01/31
 - Fixed ViewPager not Gliding when Activity is Recreated
