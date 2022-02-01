@@ -1,3 +1,21 @@
+# 2022/02/01
+- Added temporary playlist by Artist & Album from Home Page
+- Added Notification Controller!!
+- fixed another `onLoadChildren Exception` when changing playlist
+- fixed ViewPager not Gliding when changing playlist
+- fixed playlist cleared when Notification Cancelled
+- fixed suggestion empty when Service Stopped
+- fixed yet another liveData NPE, liveData reference will be moved to MainActivity observer instead
+- fixed musicQueueNavigator Exception
+- added command method to interact with MusicService from UI-VM/Connector-Service
+
+# 2022/01/31
+- Fixed ViewPager not Gliding when Activity is Recreated
+- Moved Media Query to Repo
+- Better Playback Controller
+- Fix onLoadChildren Exception
+- Fix NPE everywhere :)
+
 # 2022/01/30
 - added MusicSource class for converting fetched song metadata to MediaMetadataCompat
 - setting up NotificationManager class for handling Notification by MusicService Class

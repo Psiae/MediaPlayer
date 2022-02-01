@@ -10,17 +10,23 @@ Not Ready yet, but can do Simple things.
 > - Android Nougat 7.0 / API 24 and above
 
 Features :
+- Foreground Service on Background & Lock (tested 29 & 30 only)
+- Playlist From Album & Artist row in `Home` 
 - MediaStore Audio Files Scan
-- Simple Playback with Play/Pause
+- ~~Simple Playback with Play/Pause~~ Notification Controller
 - Folder Path
 - Viewpager display currently playing song along with Album Images
 
 Working On:
+- Artist & Album Fragment
+- Better Transport Control
+- Exoplayer Services with MediaSessionCompat
+- Fragment Controller  
+- MediaMetadataCompat  
 - MediaServiceBrowserCompat
 - PlayerNotificationManager
-- MediaMetadataCompat
-- Exoplayer Services with MediaSessionCompat
 - Better UI / UX
+
 
 Plans :
 - History, Favorite, Playlist, Album Image Changer with Room & DataStore. `> ID3v2 If Possible`
