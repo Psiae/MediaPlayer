@@ -17,6 +17,8 @@ import androidx.lifecycle.MutableLiveData
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
 import com.example.mediaplayer.util.Event
 import com.example.mediaplayer.util.Resource
+import com.example.mediaplayer.util.ext.toast
+import kotlinx.coroutines.*
 import timber.log.Timber
 
 class MusicServiceConnector(
@@ -54,6 +56,10 @@ class MusicServiceConnector(
         connect()
     }
 
+    fun checkMediaBrowser(): Boolean {
+        return mediaBrowser.isConnected
+    }
+
     fun connectMediaBrowser() {
         if (!mediaBrowser.isConnected) mediaBrowser.connect()
     }
@@ -75,21 +81,34 @@ class MusicServiceConnector(
         mediaBrowser.unsubscribe(parentId, callback)
     }
 
-    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
-        Timber.d("command Sent")
+    var commandResent: Boolean = false
+    val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
-        try {
-            mediaController.sendCommand(command,
-                param,
+    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
+        if (this::mediaController.isInitialized) {
+            mediaController.sendCommand(command, param,
                 object : ResultReceiver(Handler(Looper.getMainLooper())) {
                     override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                         super.onReceiveResult(resultCode, resultData)
                         Timber.d("onReceiveChildrenResult")
                     }
-                })
-        } catch (e: Exception) {
-            Toast.makeText(context, "Please Wait", Toast.LENGTH_LONG).show()
-        }
+                }
+            )
+            Timber.d("command Sent")
+            commandResent = false
+        } else if (!commandResent) {
+            toast(context, "Please Wait", false)
+            scope.launch {
+                delay(500)
+                Timber.d("command Resent")
+                commandResent = true
+                sendCommand(command, param, callback)
+            }.invokeOnCompletion { scope.cancel() }
+        } else if (!mediaBrowser.isConnected && commandResent) {
+            Timber.d("MediaBrowser Connected")
+            mediaBrowser.connect()
+            sendCommand(command, param, callback)
+        } else toast(context, "Exception Occurred Please Restart")
     }
 
     private inner class MediaBrowserConnectionCallback(

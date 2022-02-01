@@ -26,6 +26,7 @@ import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -78,6 +79,8 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupObserver()
+        setupView()
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
         exitTransition = MaterialFadeThrough().addTarget(view).also {
@@ -86,11 +89,8 @@ class HomeFragment : Fragment() {
         reenterTransition = MaterialFadeThrough().addTarget(view).also {
             it.duration = 600L
         }
-        setupView()
         lifecycleScope.launch {
             setupRecyclerView()
-            setupObserver()
-
         }
     }
 
@@ -148,8 +148,14 @@ class HomeFragment : Fragment() {
                 adapter = artistAdapter.also {
                     it.differ.addListListener(artistListener)
                     it.setItemClickListener { artist ->
-                        songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name)
-                        Timber.d("${artist.name}")
+                        if (songViewModel.songList.value.isNullOrEmpty()) {
+                            Timber.d("songList is NullOrEmpty")
+                            songViewModel.updateSongList()
+                            return@setItemClickListener
+                        } else {
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name)
+                            Timber.d("${artist.name}")
+                        }
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
@@ -163,9 +169,7 @@ class HomeFragment : Fragment() {
     private fun setupObserver() {
         songViewModel.apply {
             songList.observe(viewLifecycleOwner) {
-                if (it.isNullOrEmpty()) {
-                    clearShuffle("homeObserver")
-                } else checkShuffle()
+                checkShuffle()
             }
             shuffles.observe(viewLifecycleOwner) {
                 suggestAdapter.itemList = it

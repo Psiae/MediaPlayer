@@ -16,6 +16,7 @@ import com.example.mediaplayer.model.data.local.MusicRepo
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -59,6 +60,10 @@ class SongViewModel @Inject constructor(
         }
 
     var currentlyPlayingSongListObservedByMainActivity = mutableListOf<Song>()
+
+    fun mediaBrowserConnected(): Boolean {
+        return musicServiceConnector.checkMediaBrowser()
+    }
 
     private val _shuffles = MutableLiveData<List<Song>>()
     val shuffles: LiveData<List<Song>>
@@ -127,10 +132,10 @@ class SongViewModel @Inject constructor(
 
     val mediaItemSong: LiveData<MutableList<Song>>
         get() {
-            return Transformations.map(_mediaItems) { mediaItems ->
+            return Transformations.map(mediaItems) { mediaItems ->
                 val mediaItemList = mutableListOf<Song>()
                 mediaItems.map {  item ->
-                    mediaItemList.add(_songList.value?.find { it.mediaId == item.mediaId }!!)
+                    mediaItemList.add(songList.value?.find { it.mediaId == item.mediaId }!!)
                 }.toMutableList()
                 mediaItemList.ifEmpty { emptyList<Song>().toMutableList() }
             }
@@ -162,12 +167,17 @@ class SongViewModel @Inject constructor(
     }
 
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val songList = _songList.value ?: musicDB.getAllSongs()
+        viewModelScope.launch() {
+            val songList = songList.value ?: emptyList<Song>()
+            if (songList.isNullOrEmpty()) {
+                Timber.d("songList isNullOrEmpty")
+                updateSongList()
+                return@launch
+            }
             if (extra.isNotEmpty()) musicSource.mapToSongs(songList.filter { it.artist == extra || it.album == extra })
             else musicSource.mapToSongs(songList)
+            musicServiceConnector.sendCommand(command, param, callback)
         }
-        musicServiceConnector.sendCommand(command, param, callback)
     }
 
     fun updateMusicDB() {
@@ -202,9 +212,9 @@ class SongViewModel @Inject constructor(
     }
 
     fun findMatchingMediaId(mediaItem: MediaMetadataCompat): Song {
-        return _songList.value!!.find { it.mediaId == mediaItem.getLong(
+        return songList.value!!.find { it.mediaId == mediaItem.getLong(
             METADATA_KEY_MEDIA_ID
-        ) } ?: _songList.value!![0]
+        ) } ?: songList.value!![0]
     }
 
     fun skipNext() {
@@ -246,28 +256,34 @@ class SongViewModel @Inject constructor(
 
     /** Query */
 
-    private suspend fun getShuffledSong(take: Int = _songList.value?.size ?: 0) : List<Song> {
-        return _songList.value?.shuffled()?.take(take)
+    private suspend fun getShuffledSong(take: Int = songList.value?.size ?: 0) : List<Song> {
+        return songList.value?.shuffled()?.take(take)
             ?: musicDB.getAllSongs()
     }
 
     fun checkShuffle() {
         // only check Shuffle after query, if somehow null then its empty
         viewModelScope.launch {
-            val song = _songList.value ?: run {
+            val song = songList.value ?: run {
                 clearShuffle("songList is null")
                 emptyList<Song>()
             }
-            val shuf = _shuffles.value ?: run {
-                Timber.d("shuffles : ${_shuffles.value}")
+            var shuf = shuffles.value ?: run {
+                Timber.d("shuffles : ${shuffles.value}")
                 getShuffledSong(song.size)
+            }
+            if (shuf.isEmpty() && song.isNotEmpty()) {
+                Timber.d("shuffle is empty but songList is not")
+                 shuf = getShuffledSong(song.size)
             }
             Timber.d(("shuffled : $shuf"))
             if (shuf.size > song.size) {
-                withContext(Dispatchers.Main) {
-                    clearShuffle("shuffle size is bigger than song list")
+                withContext(Dispatchers.IO) {
+                    if (shuf.size >= getFromDB().size) clearShuffle("shuffle size is bigger but covered by db")
+                    else Timber.d("shuffle size is bigger than songList")
                 }
             }
+
             val filtered = shuf.minus(song as List<Song>)
             withContext(Dispatchers.Main) {
                 _shuffles.value = shuf.minus(filtered)
@@ -276,8 +292,8 @@ class SongViewModel @Inject constructor(
     }
 
     fun clearShuffle(msg: String) {
-        Timber.d(msg)
-        _shuffles.value = listOf(Song(title = "EMPTY"))
+        Timber.d("clearShuffle: $msg")
+        _shuffles.postValue(listOf(Song(title = "EMPTY")))
     }
 
     fun setCurFolder(folder: Folder) {
