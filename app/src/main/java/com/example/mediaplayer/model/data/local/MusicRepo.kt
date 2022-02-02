@@ -135,10 +135,6 @@ class MusicRepo(private val context: Context) {
                         ))
                     } else Timber.d("$title ignored, duration : $duration")
 
-                    withContext(Dispatchers.Main) {
-
-                    }
-
                     if (!listOfFolder.contains(Folder(audioPath, 0, folderPath))) {
                         listOfFolder.add(Folder(
                             title = audioPath,

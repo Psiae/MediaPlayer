@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {
-                            updateSongList()
+                            updateMusicDB()
                             delay(100)
                             curPlaying.value = song
                             glideCurSong(song)
@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                             curPlaying.value = song
                             glideCurSong(song)
                             val itemIndex = swipeAdapter.songList.indexOf(song)
-                            if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                            if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, false)
                             Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                         }
                     }

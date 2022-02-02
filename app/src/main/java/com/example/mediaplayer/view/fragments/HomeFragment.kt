@@ -120,10 +120,11 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
-                                lifecycleScope.launch {
-                                    delay(1000)
-                                    songViewModel.playOrToggle(song)
+                            lifecycleScope.launch {
+                                delay(150)
+                                songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
+                                    delay(150)
+                                        songViewModel.playOrToggle(song)
                                 }
                             }
                         } else songViewModel.playOrToggle(song)
@@ -140,7 +141,7 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { album ->
                         if (observedSongList.isNullOrEmpty()) {
                             Timber.d("observedSongList isNullOrEmpty")
-                            songViewModel.updateSongList()
+                            songViewModel.updateMusicDB()
                         } else {
                             songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, album.name, observedSongList)
                             Timber.d("${album.name}")
@@ -157,10 +158,10 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { artist ->
                         if (observedSongList.isNullOrEmpty()) {
                             Timber.d("songList is NullOrEmpty")
-                            songViewModel.updateSongList()
+                            songViewModel.updateMusicDB()
                         } else {
                             lifecycleScope.launch {
-                                delay(150)
+                                delay(300)
                                 songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name, observedSongList)
                             }
                             Timber.d("${artist.name}")
