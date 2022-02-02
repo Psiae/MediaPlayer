@@ -13,7 +13,9 @@ import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.local.MusicRepo
+import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
+import com.example.mediaplayer.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +47,7 @@ class SongViewModel @Inject constructor(
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
                 Timber.d("playingMediaItem : ${mediaItem!!.description.title}")
+                getFromDB().find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }/*
                 songList.value?.let { songs ->
                     songs.find {
                         it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
@@ -54,15 +57,9 @@ class SongViewModel @Inject constructor(
                         Timber.d("setSongList ${it.size}")
                     }
                     songList.value!!.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
-                }
+                }*/
             }
         }
-
-
-
-
-
-
 
     var currentlyPlayingSongListObservedByMainActivity = mutableListOf<Song>()
 
@@ -128,6 +125,9 @@ class SongViewModel @Inject constructor(
 
     private val _isFetching = MutableLiveData(false)
 
+    private val _resMediaItems = MutableLiveData<Resource<List<Song>>>()
+    val resMediaItems: LiveData<Resource<List<Song>>> = _resMediaItems
+
     private val _mediaItems = MutableLiveData<MutableList<Song>>()
     val mediaItems: LiveData<MutableList<Song>>
         get() {
@@ -139,8 +139,9 @@ class SongViewModel @Inject constructor(
         get() {
             return Transformations.map(mediaItems) { mediaItems ->
                 val mediaItemList = mutableListOf<Song>()
+                val dbList = getFromDB()
                 mediaItems.map {  item ->
-                    mediaItemList.add(getFromDB().find { it.mediaId == item.mediaId } ?: Song())
+                    mediaItemList.add(dbList.find { it.mediaId == item.mediaId } ?: Song())
                 }
                 val filtered = mediaItemList.filter { it.mediaId != 0L }.toMutableList()
                 filtered.ifEmpty { emptyList<Song>().toMutableList() }
@@ -162,6 +163,7 @@ class SongViewModel @Inject constructor(
                     imageUri = it.description.iconUri.toString()
                 )
             }
+            _resMediaItems.value = Resource.success(items)
             _mediaItems.value = items.toMutableList()
         }
     }
@@ -172,21 +174,18 @@ class SongViewModel @Inject constructor(
         musicServiceConnector.subscribe(MEDIA_ROOT_ID, subsCallback)
     }
 
-
-
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>) {
         Timber.d("sendCommand")
         viewModelScope.launch {
-            val songList = songs.ifEmpty {
-                getFromDB()
-            }
+            val songList = songs.ifEmpty { getFromDB() }
             if (songList.isNullOrEmpty()) {
                 Timber.d("songList isNullOrEmpty")
                 updateSongList()
                 return@launch
             }
-            if (extra.isNotEmpty()) musicSource.mapToSongs(songList.filter { it.artist == extra || it.album == extra })
-            else musicSource.mapToSongs(songList)
+            val filtered = if (extra.isNotEmpty()) songList.filter { it.artist == extra || it.album == extra }
+            else songList
+            musicSource.mapToSongs(filtered)
             musicServiceConnector.sendCommand(command, param, callback)
         }
     }
@@ -246,6 +245,7 @@ class SongViewModel @Inject constructor(
     }
 
     fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {
+        Timber.d("Play or Toggle: ${mediaItem.title}")
         val isPrepared = playbackState.value?.isPrepared ?: false
         try {
             if (isPrepared && mediaItem.mediaId ==
@@ -261,6 +261,8 @@ class SongViewModel @Inject constructor(
             } else {
                 musicServiceConnector.transportControls
                     .playFromMediaId(mediaItem.mediaId.toString(), null)
+                curPlaying.value = mediaItem
+                Timber.d("playFromMediaId ${mediaItem.title}")
             }
         } catch (e: Exception) {
             Timber.d("PlayToggleFailed")

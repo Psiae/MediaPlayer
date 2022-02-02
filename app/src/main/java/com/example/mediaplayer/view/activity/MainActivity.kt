@@ -1,11 +1,8 @@
 package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
-import android.content.ContentUris
 import android.content.Intent
 import android.os.Bundle
-import android.provider.MediaStore
-import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -23,12 +20,10 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.exoplayer.isPlaying
-import com.example.mediaplayer.exoplayer.isPrepared
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
-import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
 import com.example.mediaplayer.util.Perms
 import com.example.mediaplayer.util.PermsHelper
@@ -38,10 +33,6 @@ import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SwipeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -134,7 +125,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 setupWithNavController(navController)
                 setOnItemReselectedListener { }
             }
-
+            // curPlaying.value refer to selected swipeAdapter
             ibPlayPause.setOnClickListener { with(songViewModel) {
                     curPlaying.value?.let {
                         playOrToggle(it, true)
@@ -151,7 +142,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                         toast(this@MainActivity, song.title)
                     }
                 }
-        }
+            }
             lifecycleScope.launch {
                 while (true) {
                     delay(500)
@@ -230,25 +221,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun  setupSongVM() {
 
         songViewModel.apply {
-
-            /*songList.observe(this@MainActivity) { songList ->
-                swipeAdapter.songList = songList
-            }*/
-
             mediaItemSong.observe(this@MainActivity) { mediaItems ->
                 Timber.d("mediaItems: $mediaItems")
                 swipeAdapter.songList = mediaItems
                 currentlyPlayingSongListObservedByMainActivity = mediaItems
-                if (!alreadySetup) {
+                if (!alreadySetup || !songViewModel.currentlyPlaying.hasActiveObservers()) {
                     lifecycleScope.launch {
-                        Timber.d("observePlayer")
                         alreadySetup = true
                         observePlayer()
+                        binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
                         binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
                     }
                 }
             }
-
             lifecycleScope.launch() {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     updateMusicDB()
@@ -261,22 +246,26 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         alreadySetup = true
         with(songViewModel) {
             currentlyPlaying.observe(this@MainActivity) { song ->
+                Timber.d("isCurrentSame${song.mediaId.toString() == player.currentMediaItem!!.mediaId}")
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {
-                            delay(50)
+                            updateSongList()
+                            delay(100)
                             curPlaying.value = song
                             glideCurSong(song)
                             val itemIndex = swipeAdapter.songList.indexOf(song)
                             if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
-                            Timber.d("currentlyPlaying song: $song $itemIndex")
+                            Timber.d("currentlyPlaying song: ${song} $itemIndex")
                         }
                     } else {
-                        curPlaying.value = song
-                        glideCurSong(song)
-                        val itemIndex = swipeAdapter.songList.indexOf(song)
-                        if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
-                        Timber.d("currentlyPlaying song: $song $itemIndex")
+                        lifecycleScope.launch {
+                            curPlaying.value = song
+                            glideCurSong(song)
+                            val itemIndex = swipeAdapter.songList.indexOf(song)
+                            if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
+                            Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
+                        }
                     }
                 }
             }
@@ -397,8 +386,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         ) finishAfterTransition()
         else super.onBackPressed()
     }
-
-
 
     override fun onDestroy() {
         super.onDestroy()

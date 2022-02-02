@@ -7,11 +7,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
@@ -39,6 +37,8 @@ class MusicServiceConnector(
             Timber.d("curPlayingSongConnector LiveData")
             return _curPlayingSong
         }
+
+    lateinit var CurrentlyPlayingSong: MediaMetadataCompat
     
     lateinit var mediaController: MediaControllerCompat
 
@@ -147,12 +147,8 @@ class MusicServiceConnector(
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            if (metadata!!.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
-                != curPlayingSong.value?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
-            ) {
-                Timber.d("onMetadataChanged")
-                _curPlayingSong.value = metadata
-            }
+            Timber.d("onMetadataChanged")
+            _curPlayingSong.value = metadata
         }
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {

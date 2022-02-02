@@ -122,7 +122,7 @@ class HomeFragment : Fragment() {
                         if (!mediaItems.contains(song)) {
                             songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                                 lifecycleScope.launch {
-                                    delay(50)
+                                    delay(1000)
                                     songViewModel.playOrToggle(song)
                                 }
                             }
