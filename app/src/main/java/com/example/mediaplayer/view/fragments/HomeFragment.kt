@@ -120,8 +120,7 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            lifecycleScope.launch {
-                                delay(150)
+                            lifecycleScope.launch(Dispatchers.IO) {
                                 songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                                     delay(150)
                                         songViewModel.playOrToggle(song)
@@ -160,8 +159,7 @@ class HomeFragment : Fragment() {
                             Timber.d("songList is NullOrEmpty")
                             songViewModel.updateMusicDB()
                         } else {
-                            lifecycleScope.launch {
-                                delay(300)
+                            lifecycleScope.launch(Dispatchers.IO) {
                                 songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name, observedSongList)
                             }
                             Timber.d("${artist.name}")

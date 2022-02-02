@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+import android.widget.Toast
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
 import com.example.mediaplayer.model.data.entities.Album
@@ -16,11 +17,15 @@ import com.example.mediaplayer.model.data.local.MusicRepo
 import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Resource
+import com.example.mediaplayer.util.ext.toast
+import com.google.common.base.Stopwatch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -167,6 +172,7 @@ class SongViewModel @Inject constructor(
             _mediaItems.value = items.toMutableList()
         }
     }
+    private val stopwatch = Stopwatch.createUnstarted()
 
     init {
         Timber.d("SongViewModel init")
@@ -175,18 +181,26 @@ class SongViewModel @Inject constructor(
     }
 
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>) {
-        Timber.d("sendCommand")
-        viewModelScope.launch {
-            val songList = songs.ifEmpty { getFromDB() }
-            if (songList.isNullOrEmpty()) {
-                Timber.d("songList isNullOrEmpty")
-                updateSongList()
-                return@launch
+        if (!stopwatch.isRunning) {
+            stopwatch.start()
+            Timber.d("sendCommand")
+            viewModelScope.launch() {
+                val songList = songs.ifEmpty { getFromDB() }
+                if (songList.isNullOrEmpty()) {
+                    Timber.d("songList isNullOrEmpty")
+                    updateSongList()
+                    return@launch
+                }
+                val filtered =
+                    if (extra.isNotEmpty()) songList.filter { it.artist == extra || it.album == extra }
+                    else songList
+                musicSource.mapToSongs(filtered)
+                musicServiceConnector.sendCommand(command, param, callback)
+                delay(500)
+                stopwatch.reset()
             }
-            val filtered = if (extra.isNotEmpty()) songList.filter { it.artist == extra || it.album == extra }
-            else songList
-            musicSource.mapToSongs(filtered)
-            musicServiceConnector.sendCommand(command, param, callback)
+        } else {
+            viewModelScope.launch { toast(context, "Slow Down") }
         }
     }
 

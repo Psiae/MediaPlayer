@@ -202,7 +202,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             with(songViewModel) {
                 if (playbackState.value?.isPlaying == true) {
                     Timber.d("chaged to $position")
-                    playOrToggle(swipeAdapter.songList[position])
+                    try {
+                        playOrToggle(swipeAdapter.songList[position])
+                    } catch (e: Exception) {
+                        Timber.e(e)
+                    }
                 } else {
                     Timber.d("pos $position")
                     try {
@@ -246,7 +250,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         alreadySetup = true
         with(songViewModel) {
             currentlyPlaying.observe(this@MainActivity) { song ->
-                Timber.d("isCurrentSame${song.mediaId.toString() == player.currentMediaItem!!.mediaId}")
+                Timber.d("isCurrentSame${song.mediaId.toString() == player.currentMediaItem?.mediaId}")
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {
@@ -263,7 +267,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                             curPlaying.value = song
                             glideCurSong(song)
                             val itemIndex = swipeAdapter.songList.indexOf(song)
-                            if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, false)
+                            if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, true)
                             Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                         }
                     }
