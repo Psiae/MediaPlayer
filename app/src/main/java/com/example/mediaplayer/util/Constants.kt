@@ -25,10 +25,29 @@ object Constants {
     // Notification
     const val NOTIFICATION_CHANNEL_ID = "MediaPlayer"
     const val NOTIFICATION_ID = 301
+    const val NOTIFICATION_INTENT_ACTION_REQUEST_CODE = 302
+
+    const val ACTION_REPEAT = "ACTION_REPEAT"
+
+    const val ACTION_REPEAT_SONG = "ACTION_REPEAT_SONG"
+    const val ACTION_REPEAT_SONG_OFF = "ACTION_REPEAT_SONG_OFF"
+    const val ACTION_REPEAT_SONG_ONCE = "ACTION_REPEAT_SONG_ONCE"
+    const val ACTION_REPEAT_SONG_ALL = "ACTION_REPEAT)SONG_ALL"
+
+    const val REPEAT_SONG = "REPEAT_SONG"
+    const val REPEAT_SONG_OFF = "REPEAT_SONG_OFF"
+    const val REPEAT_SONG_ONCE = "REPEAT_SONG_ONCE"
+    const val REPEAT_SONG_ALL = "REPEAT_SONG_ALL"
+
+    const val REPEAT_MODE_OFF_INT = 0
+    const val REPEAT_MODE_ONCE_INT = 1
+    const val REPEAT_MODE_ALL_INT = 2
 
     const val UPDATE_SONG = "UPDATE_SONG"
     const val NOTIFY_CHILDREN = "NOTIFY_CHILDREN"
 
     const val ARTIST = "ARTIST"
     const val ALBUM = "ALBUM"
+
+    const val UPDATE_INTERVAL = 100L
 }

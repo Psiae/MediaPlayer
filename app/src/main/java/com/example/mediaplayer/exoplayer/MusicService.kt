@@ -87,7 +87,8 @@ class MusicService : MediaBrowserServiceCompat() {
         musicNotificationManager = MusicNotificationManager(
             this,
             mediaSession.sessionToken,
-            MusicPlayerNotificationListener(this, musicServiceConnector)
+            MusicPlayerNotificationListener(this, musicServiceConnector),
+            exoPlayer
         ) {
             curSongDuration = exoPlayer.duration
         }

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-import android.widget.Toast
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
 import com.example.mediaplayer.model.data.entities.Album
@@ -14,8 +13,8 @@ import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.local.MusicRepo
-import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
+import com.example.mediaplayer.util.Constants.UPDATE_INTERVAL
 import com.example.mediaplayer.util.Resource
 import com.example.mediaplayer.util.ext.toast
 import com.google.common.base.Stopwatch
@@ -25,7 +24,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,6 +68,25 @@ class SongViewModel @Inject constructor(
 
     fun mediaBrowserConnected(): Boolean {
         return musicServiceConnector.checkMediaBrowser()
+    }
+
+    private val _curSongDuration = MutableLiveData<Long>()
+    val curSongDuration: LiveData<Long> = _curSongDuration
+
+    private val _curPlayerPosition = MutableLiveData<Long>()
+    val curPlayerPosition: LiveData<Long> = _curPlayerPosition
+
+    private fun updateCurrentPlayerPosition() {
+        viewModelScope.launch {
+            while(true) {
+                val pos = playbackState.value?.currentPlaybackPosition ?: 0L
+                if(curPlayerPosition.value != pos) {
+                    _curPlayerPosition.postValue(pos)
+                    _curSongDuration.postValue(MusicService.curSongDuration)
+                }
+                delay(UPDATE_INTERVAL)
+            }
+        }
     }
 
     private val _shuffles = MutableLiveData<List<Song>>()
@@ -120,6 +137,7 @@ class SongViewModel @Inject constructor(
             Timber.d("songList liveData")
             return _songList
         }
+
 
     private val _folderList = MutableLiveData<MutableList<Folder>>()
     val folderList: LiveData<MutableList<Folder>>
@@ -178,25 +196,30 @@ class SongViewModel @Inject constructor(
         Timber.d("SongViewModel init")
         updateMusicDB()
         musicServiceConnector.subscribe(MEDIA_ROOT_ID, subsCallback)
+        updateCurrentPlayerPosition()
     }
 
-    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>) {
-        if (!stopwatch.isRunning) {
-            stopwatch.start()
+    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>, force: Boolean = false) {
+        if (!stopwatch.isRunning || force) {
+            if (!force) stopwatch.start()
             Timber.d("sendCommand")
-            viewModelScope.launch() {
-                val songList = songs.ifEmpty { getFromDB() }
+            Timber.d("${songs.size} ${songs[0].title}")
+            viewModelScope.launch {
+                val songList = songs.ifEmpty { getFromDB() }.also {
+                    updateMusicDB()
+                }
                 if (songList.isNullOrEmpty()) {
                     Timber.d("songList isNullOrEmpty")
                     updateSongList()
                     return@launch
                 }
-                val filtered =
-                    if (extra.isNotEmpty()) songList.filter { it.artist == extra || it.album == extra }
-                    else songList
+                val filtered = if (extra.isNotEmpty()) songList.filter {
+                        it.artist == extra || it.album == extra || it.title == extra
+                } else songList
+
                 musicSource.mapToSongs(filtered)
                 musicServiceConnector.sendCommand(command, param, callback)
-                delay(500)
+                delay(300)
                 stopwatch.reset()
             }
         } else {

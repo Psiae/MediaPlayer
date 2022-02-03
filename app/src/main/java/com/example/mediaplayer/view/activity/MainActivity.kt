@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         alreadySetup = true
         with(songViewModel) {
             currentlyPlaying.observe(this@MainActivity) { song ->
-                Timber.d("isCurrentSame${song.mediaId.toString() == player.currentMediaItem?.mediaId}")
+                Timber.d("isCurrentSame${song?.mediaId.toString() == player.currentMediaItem?.mediaId}")
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {

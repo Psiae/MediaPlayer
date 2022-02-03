@@ -1,33 +1,198 @@
 package com.example.mediaplayer.exoplayer
 
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
+import com.example.mediaplayer.util.Constants.ACTION_REPEAT
+import com.example.mediaplayer.util.Constants.ACTION_REPEAT_SONG_ALL
+import com.example.mediaplayer.util.Constants.ACTION_REPEAT_SONG_OFF
+import com.example.mediaplayer.util.Constants.ACTION_REPEAT_SONG_ONCE
 import com.example.mediaplayer.util.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.mediaplayer.util.Constants.NOTIFICATION_ID
+import com.example.mediaplayer.util.Constants.NOTIFICATION_INTENT_ACTION_REQUEST_CODE
+import com.example.mediaplayer.util.Constants.REPEAT_SONG_ALL
+import com.example.mediaplayer.util.Constants.REPEAT_SONG_OFF
+import com.example.mediaplayer.util.Constants.REPEAT_SONG_ONCE
+import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import timber.log.Timber
 
 class MusicNotificationManager(
     private val context: Context,
     private val sessionToken: MediaSessionCompat.Token,
-    notificationListener: PlayerNotificationManager.NotificationListener,
+    private val notificationListener: PlayerNotificationManager.NotificationListener,
+    private val player: Player,
     private val newSongCallback: () -> Unit
 ) {
 
+
     private val notificationManager: PlayerNotificationManager
+
+    private fun buildActionIntent(action: String): PendingIntent {
+        val intent = Intent().apply {
+            this.action = action
+            component = ComponentName(context, MusicService::class.java)
+        }
+        val flag = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        return PendingIntent.getService(context,
+            NOTIFICATION_INTENT_ACTION_REQUEST_CODE, intent, flag
+        )
+    }
+
+    private fun getRepeatIcon(): Int {
+        return when (player.repeatMode) {
+            Player.REPEAT_MODE_OFF -> R.drawable.exo_media_action_repeat_off
+            Player.REPEAT_MODE_ONE -> R.drawable.exo_media_action_repeat_one
+            Player.REPEAT_MODE_ALL -> R.drawable.exo_media_action_repeat_all
+            else -> R.drawable.ic_baseline_error_outline_24
+        }
+    }
+
+    fun actionBuilder(action: String): NotificationCompat.Action {
+        var icon = R.drawable.ic_baseline_error_outline_24
+        when (action) {
+            ACTION_REPEAT_SONG_OFF, ACTION_REPEAT_SONG_ONCE, ACTION_REPEAT_SONG_ALL -> icon = getRepeatIcon()
+        }
+        return NotificationCompat.Action(icon, action,
+            PendingIntent.getBroadcast(context, NOTIFICATION_INTENT_ACTION_REQUEST_CODE, Intent(action).setPackage(
+                this@MusicNotificationManager.context.packageName), PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        )
+    }
+
+    fun getCustomActions(): MutableMap<String, NotificationCompat.Action> {
+        val actionList = mutableMapOf<String, NotificationCompat.Action>()
+        when (player.repeatMode) {
+            Player.REPEAT_MODE_OFF -> actionList.put(
+                ACTION_REPEAT_SONG_ONCE,
+                actionBuilder(ACTION_REPEAT_SONG_ONCE))
+            Player.REPEAT_MODE_ONE -> actionList.put(
+                ACTION_REPEAT_SONG_ALL,
+                actionBuilder(ACTION_REPEAT_SONG_ALL)
+            )
+            Player.REPEAT_MODE_ALL, -> actionList.put(
+                ACTION_REPEAT_SONG_OFF,
+                actionBuilder(ACTION_REPEAT_SONG_OFF)
+            )
+        }
+        return actionList
+    }
+
+    val notifActionRepeatOff = NotificationCompat.Action(R.drawable.exo_media_action_repeat_off, "OFF",
+        PendingIntent.getBroadcast(context, 123, Intent(REPEAT_SONG_OFF).setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    )
+
+    val notifActionRepeatOnce = NotificationCompat.Action(R.drawable.exo_media_action_repeat_one, "ONE",
+        PendingIntent.getBroadcast(context, 456, Intent(REPEAT_SONG_ONCE).setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    )
+
+    val notifActionRepeatAll = NotificationCompat.Action(R.drawable.exo_media_action_repeat_all, "ALL",
+        PendingIntent.getBroadcast(context, 789, Intent(REPEAT_SONG_ALL).setPackage(context.packageName),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    )
+
+    val myReceiver = object : PlayerNotificationManager.CustomActionReceiver {
+        override fun createCustomActions(
+            context: Context,
+            instanceId: Int,
+        ): MutableMap<String, NotificationCompat.Action> {
+            Timber.d("createCustomActions")
+            return mutableMapOf(
+                Pair(REPEAT_SONG_OFF, notifActionRepeatOff),
+                Pair(REPEAT_SONG_ONCE, notifActionRepeatOnce),
+                Pair(REPEAT_SONG_ALL, notifActionRepeatAll),
+                Pair(ACTION_REPEAT, NotificationCompat.Action(getRepeatIcon(), "REPEAT",
+                    PendingIntent.getBroadcast(context, 123, Intent(ACTION_REPEAT)
+                        .setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                ))
+            )
+        }
+
+        override fun getCustomActions(player: Player): MutableList<String> {
+            Timber.d("getCustomActions $player")
+            val actions = mutableListOf<String>()
+             when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> actions.add(REPEAT_SONG_OFF)
+                Player.REPEAT_MODE_ONE -> actions.add(REPEAT_SONG_ONCE)
+                Player.REPEAT_MODE_ALL -> actions.add(REPEAT_SONG_ALL)
+                else -> mutableListOf("ACTION_REPEAT")
+            }
+            Timber.d("returnCustomAction: ${actions}")
+            return actions
+        }
+
+        override fun onCustomAction(player: Player, action: String, intent: Intent) {
+            when (action) {
+                ACTION_REPEAT -> toast(context, "REPEAT_SONG toggled")
+                REPEAT_SONG_ALL -> {
+                    player.repeatMode = Player.REPEAT_MODE_OFF
+                    toast(context, "Repeat Off", short = true, blockable = false)
+                }
+                REPEAT_SONG_OFF -> {
+                    player.repeatMode = Player.REPEAT_MODE_ONE
+                    toast(context, "Repeat This Song", short = true, blockable = false)
+                }
+                REPEAT_SONG_ONCE -> {
+                    player.repeatMode = Player.REPEAT_MODE_ALL
+                    toast(context, "Repeat All Song", short = true, blockable = false)
+                }
+            }
+        }
+    }
+
+    val fromExo = object : PlayerNotificationManager.CustomActionReceiver {
+        override fun getCustomActions(player: Player): MutableList<String> {
+            return mutableListOf("TEST")
+        }
+
+        override fun createCustomActions(
+            context: Context,
+            instanceId: Int,
+        ): MutableMap<String, NotificationCompat.Action> {
+            return mutableMapOf(Pair("TEST",
+                NotificationCompat.Action(R.drawable.exo_icon_stop, "Stop",
+                    PendingIntent.getBroadcast(context, 123, Intent("TEST").setPackage(context?.packageName), PendingIntent.FLAG_CANCEL_CURRENT)
+                )
+            ))
+        }
+
+        override fun onCustomAction(player: Player, action: String, intent: Intent) {
+            when (action) {
+                "TEST" -> player.stop()
+            }
+        }
+    }
+
 
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
-        notificationManager = PlayerNotificationManager.Builder(
+        notificationManager = MusicNotificationBuilder(
+            context,
+            NOTIFICATION_ID,
+            NOTIFICATION_CHANNEL_ID
+        ).apply {
+            setCustomActionReceiver(myReceiver)
+            setSmallIconResourceId(R.drawable.ic_music_note_light)
+            setChannelNameResourceId(R.string.media_player)
+            setChannelDescriptionResourceId(R.string.currently_playing)
+            setNotificationListener(notificationListener)
+            setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
+            setPlayActionIconResourceId(R.drawable.ic_play_48_widget_f)
+            setPauseActionIconResourceId(R.drawable.ic_pause_48_widget_f)
+            setStopActionIconResourceId(R.drawable.ic_baseline_close_24)
+        }.build()
+
+        /*notificationManager = PlayerNotificationManager.Builder(
             context,
             NOTIFICATION_ID,
             NOTIFICATION_CHANNEL_ID
@@ -37,8 +202,11 @@ class MusicNotificationManager(
             setChannelDescriptionResourceId(R.string.currently_playing)
             setNotificationListener(notificationListener)
             setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
+            setPlayActionIconResourceId(R.drawable.ic_play_48_widget_f)
+            setPauseActionIconResourceId(R.drawable.ic_pause_48_widget_f)
             setStopActionIconResourceId(R.drawable.ic_baseline_close_24)
-        }.build()
+            setCustomActionReceiver(myReceiver)
+        }.build()*/
     }
 
     fun showNotification(player: Player) {
@@ -52,7 +220,10 @@ class MusicNotificationManager(
             setUseFastForwardAction(false)
             setUseRewindAction(false)
             setUseChronometer(true)
+            setUseNextActionInCompactView(true)
+            setUsePreviousActionInCompactView(true)
             setPriority(PRIORITY_HIGH)
+
         }
     }
 

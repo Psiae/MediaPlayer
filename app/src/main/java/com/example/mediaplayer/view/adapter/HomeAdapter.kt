@@ -79,4 +79,6 @@ class HomeAdapter(
     fun setItemClickListener(listener: (Song) -> Unit) { // method to set the function
         onItemClickListener = listener
     }
+
+
 }

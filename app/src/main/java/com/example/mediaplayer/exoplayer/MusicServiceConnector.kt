@@ -38,8 +38,6 @@ class MusicServiceConnector(
             return _curPlayingSong
         }
 
-    lateinit var CurrentlyPlayingSong: MediaMetadataCompat
-    
     lateinit var mediaController: MediaControllerCompat
 
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
@@ -82,7 +80,7 @@ class MusicServiceConnector(
     }
 
     var commandResent: Boolean = false
-    val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)? ) {
         if (this::mediaController.isInitialized) {
@@ -99,9 +97,9 @@ class MusicServiceConnector(
         } else if (!commandResent) {
             toast(context, "Please Wait", false)
             scope.launch {
+                commandResent = true
                 delay(500)
                 Timber.d("command Resent")
-                commandResent = true
                 sendCommand(command, param, callback)
             }.invokeOnCompletion { scope.cancel() }
         } else if (!mediaBrowser.isConnected && commandResent) {
@@ -141,6 +139,8 @@ class MusicServiceConnector(
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
+
+
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             _playbackState.postValue(state)
