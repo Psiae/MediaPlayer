@@ -1,3 +1,17 @@
+# 2022/02/03
+- Added CustomActionReceiver on PlayerNotificationManager
+- Added Notification Repeat button that Toggle the exoPlayer Repeat state between OFF, ONCE, ALL
+- Notification Repeat button will change depending on the Player Repeat state
+- Notification Repeat button will now be placed at index 0 instead the default one defined `usually at [3]`
+- now can set Playlist with SearchView by taking the shown songList
+
+# 2022/02/02
+- App will now send Toast if needed and not simply crash when exception happen
+- Added delay between ServiceConnector request, will cancel if its in between Cooldown
+- Fixed Navigator inconsistency when sending command too fast to Connector
+- Fixed another inconsistency on MediaStore Query & ViewModels Livedata should only be observed
+- Fixed Folder not distinct'd
+
 # 2022/02/01
 - Added temporary playlist by Artist & Album from Home Page
 - Added Notification Controller!!
