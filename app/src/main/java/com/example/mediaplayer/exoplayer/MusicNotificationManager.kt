@@ -10,6 +10,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
+import androidx.core.app.NotificationCompat.getAction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -98,10 +99,10 @@ class MusicNotificationManager(
     )
 
     val notifActionRepeatAll = NotificationCompat.Action(R.drawable.exo_media_action_repeat_all, "ALL",
-        PendingIntent.getBroadcast(context, 789, Intent(REPEAT_SONG_ALL).setPackage(context.packageName),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        PendingIntent.getBroadcast(context, 311, Intent(REPEAT_SONG_ALL).setPackage(context.packageName),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     )
 
-    val myReceiver = object : PlayerNotificationManager.CustomActionReceiver {
+    private val myReceiver = object : PlayerNotificationManager.CustomActionReceiver {
         override fun createCustomActions(
             context: Context,
             instanceId: Int,
@@ -112,7 +113,7 @@ class MusicNotificationManager(
                 Pair(REPEAT_SONG_ONCE, notifActionRepeatOnce),
                 Pair(REPEAT_SONG_ALL, notifActionRepeatAll),
                 Pair(ACTION_REPEAT, NotificationCompat.Action(getRepeatIcon(), "REPEAT",
-                    PendingIntent.getBroadcast(context, 123, Intent(ACTION_REPEAT)
+                    PendingIntent.getBroadcast(context, 711, Intent(ACTION_REPEAT)
                         .setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 ))
             )
@@ -122,9 +123,18 @@ class MusicNotificationManager(
             Timber.d("getCustomActions $player")
             val actions = mutableListOf<String>()
              when (player.repeatMode) {
-                Player.REPEAT_MODE_OFF -> actions.add(REPEAT_SONG_OFF)
-                Player.REPEAT_MODE_ONE -> actions.add(REPEAT_SONG_ONCE)
-                Player.REPEAT_MODE_ALL -> actions.add(REPEAT_SONG_ALL)
+                Player.REPEAT_MODE_OFF -> {
+                    actions.add(REPEAT_SONG_OFF)
+                    myCustomReceiver = REPEAT_SONG_OFF
+                }
+                Player.REPEAT_MODE_ONE -> {
+                    actions.add(REPEAT_SONG_ONCE)
+                    myCustomReceiver = REPEAT_SONG_ONCE
+                }
+                Player.REPEAT_MODE_ALL -> {
+                    actions.add(REPEAT_SONG_ALL)
+                    myCustomReceiver = REPEAT_SONG_ALL
+                }
                 else -> mutableListOf("ACTION_REPEAT")
             }
             Timber.d("returnCustomAction: ${actions}")
@@ -173,10 +183,79 @@ class MusicNotificationManager(
         }
     }
 
+    var myCustomReceiver = ""
+
+    class MyNotificationManager(
+        context: Context,
+        channelId: String, notificationId: Int,
+        mediaDescriptionAdapter: MediaDescriptionAdapter,
+        notificationListener: NotificationListener?,
+        customActionReceiver: CustomActionReceiver?,
+        smallIconResourceId: Int, playActionIconResourceId: Int,
+        pauseActionIconResourceId: Int, stopActionIconResourceId: Int,
+        rewindActionIconResourceId: Int,
+        fastForwardActionIconResourceId: Int,
+        previousActionIconResourceId: Int, nextActionIconResourceId: Int,
+        groupKey: String?
+    ) : PlayerNotificationManager(context, channelId, notificationId, mediaDescriptionAdapter,
+        notificationListener, customActionReceiver, smallIconResourceId, playActionIconResourceId,
+        pauseActionIconResourceId, stopActionIconResourceId, rewindActionIconResourceId,
+        fastForwardActionIconResourceId, previousActionIconResourceId, nextActionIconResourceId,
+        groupKey) {
+        override fun createNotification(
+            player: Player,
+            builder: NotificationCompat.Builder?,
+            ongoing: Boolean,
+            largeIcon: Bitmap?,
+        ): NotificationCompat.Builder? {
+            return super.createNotification(player, builder, ongoing, largeIcon)
+        }
+
+        override fun getActions(player: Player): MutableList<String> {
+            val actions = super.getActions(player)
+            val toReturn = mutableListOf<String>()
+            var index = actions.indexOf(REPEAT_SONG_OFF)
+            if (index == -1) index = actions.indexOf(REPEAT_SONG_ONCE)
+            if (index == -1) index = actions.indexOf(REPEAT_SONG_ALL)
+            toReturn.add(actions[index])
+            actions.removeAt(index)
+            actions.forEach { toReturn.add(it) }
+            return toReturn
+        }
+
+        override fun getActionIndicesForCompactView(
+            actionNames: MutableList<String>,
+            player: Player,
+        ): IntArray {
+            return super.getActionIndicesForCompactView(actionNames, player)
+        }
+
+        override fun getOngoing(player: Player): Boolean {
+            return super.getOngoing(player)
+        }
+    }
 
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
-        notificationManager = MusicNotificationBuilder(
+
+        notificationManager = MyNotificationManager(context,
+            NOTIFICATION_CHANNEL_ID,
+            NOTIFICATION_ID,
+            DescriptionAdapter(mediaController),
+            notificationListener,
+            myReceiver,
+            R.drawable.ic_music_note_light,
+            R.drawable.ic_play_48_widget_f,
+            R.drawable.ic_pause_48_widget_f,
+            R.drawable.ic_baseline_close_24,
+            R.drawable.ic_baseline_fast_rewind_24,
+            R.drawable.ic_baseline_fast_forward_24,
+            R.drawable.ic_baseline_skip_previous_24,
+            R.drawable.ic_baseline_skip_next_24,
+            null
+        )
+
+        /*notificationManager = MusicNotificationBuilder(
             context,
             NOTIFICATION_ID,
             NOTIFICATION_CHANNEL_ID
@@ -190,7 +269,7 @@ class MusicNotificationManager(
             setPlayActionIconResourceId(R.drawable.ic_play_48_widget_f)
             setPauseActionIconResourceId(R.drawable.ic_pause_48_widget_f)
             setStopActionIconResourceId(R.drawable.ic_baseline_close_24)
-        }.build()
+        }.build()*/
 
         /*notificationManager = PlayerNotificationManager.Builder(
             context,
@@ -223,7 +302,6 @@ class MusicNotificationManager(
             setUseNextActionInCompactView(true)
             setUsePreviousActionInCompactView(true)
             setPriority(PRIORITY_HIGH)
-
         }
     }
 
