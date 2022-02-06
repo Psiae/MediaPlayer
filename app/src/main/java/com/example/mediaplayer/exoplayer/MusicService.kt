@@ -13,6 +13,7 @@ import com.example.mediaplayer.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerNotificationListener
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
+import com.example.mediaplayer.util.Constants.MUSIC_SERVICE
 import com.example.mediaplayer.util.Constants.NETWORK_ERROR
 import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.ExoPlayer
@@ -24,8 +25,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
-
-private const val SERVICE_TAG = "MusicService"
 
 @AndroidEntryPoint
 class MusicService : MediaBrowserServiceCompat() {
@@ -61,8 +60,6 @@ class MusicService : MediaBrowserServiceCompat() {
     companion object {
         var curSongDuration = 0L
             private set
-
-
     }
 
     override fun onCreate() {
@@ -77,7 +74,7 @@ class MusicService : MediaBrowserServiceCompat() {
             )
         }
 
-        mediaSession = MediaSessionCompat(this, SERVICE_TAG).apply {
+        mediaSession = MediaSessionCompat(this, MUSIC_SERVICE).apply {
             setSessionActivity(activityIntent)
             isActive = true
         }
@@ -150,12 +147,12 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         Toast.makeText(this, "DEBUG: SERVICE DESTROYED", Toast.LENGTH_LONG).show()
         serviceScope.cancel()
         Timber.d("Service Destroyed")
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
+        super.onDestroy()
     }
 
     override fun onGetRoot(

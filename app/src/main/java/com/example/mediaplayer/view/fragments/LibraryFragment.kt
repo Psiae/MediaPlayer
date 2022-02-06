@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentLibraryBinding
 import com.example.mediaplayer.model.data.entities.Folder
+import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
@@ -60,20 +61,20 @@ class LibraryFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        subToObserver()
+        setupFolderAdapter()
+        setupRecyclerView()
+
         folderAdapter.setOnFolderClicked {
             songViewModel.setCurFolder(it)
-
             findNavController().navigate(R.id.folderFragment)
         }
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 600L
+            it.duration = Constants.FADETHROUGH_IN_DURATION
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 200L
+            it.duration = Constants.FADETHROUGH_OUT_DURATION
         }
-        setupRecyclerView()
-        setupFolderAdapter()
-        subToObserver()
     }
 
     private fun setupFolderAdapter() {}

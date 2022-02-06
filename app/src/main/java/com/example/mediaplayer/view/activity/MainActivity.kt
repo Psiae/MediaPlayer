@@ -8,12 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -21,7 +24,11 @@ import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants
+import com.example.mediaplayer.util.Constants.DEFAULT_SCREEN
 import com.example.mediaplayer.util.Constants.FOREGROUND_SERVICE
+import com.example.mediaplayer.util.Constants.FULL_SCREEN
+import com.example.mediaplayer.util.Constants.PAGER_SCREEN
 import com.example.mediaplayer.util.Constants.PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.PERMISSION_WRITE_EXT_REQUEST_CODE
 import com.example.mediaplayer.util.Constants.WRITE_STORAGE
@@ -61,7 +68,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     lateinit var glide: RequestManager
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navHostFragment: NavHostFragment
     private lateinit var navController: NavController
+    private lateinit var containerFragment: NavHostFragment
+    private lateinit var containerController: NavController
 
     private val songViewModel: SongViewModel by viewModels()
 
@@ -71,15 +81,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_MediaPlayer)
         binding = ActivityMainBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
 
-        /* navController & Destination setup */
+        // navController & Destination setup
         setupNavController()
 
         // Permission check
         checkPermission()
 
-        /* View setup */
+        // View setup
         setupView()
 
         // toaster Setup
@@ -98,9 +109,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      * Navigation & View Setup
      */
     private fun setupNavController() {
-        val navHostFragment =
+        navHostFragment =
             supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
         navController = navHostFragment.navController
+        /*containerFragment =
+            supportFragmentManager.findFragmentById(R.id.globalContainer) as NavHostFragment
+        containerController = containerFragment.navController
+
+        supportFragmentManager.beginTransaction().hide(containerFragment).commit()*/
         setDestinationListener(navController)
     }
 
@@ -108,25 +124,29 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         controller.addOnDestinationChangedListener { _, destination, _ ->
             getControlHeight()
             when (val id = destination.id) {
-                R.id.navBottomHome -> setControl(id = id)
-                R.id.navBottomSong -> setControl(id = id)
-                R.id.navBottomPlaylist -> setControl(id = id)
-                R.id.navBottomLibrary -> setControl(id = id)
-                R.id.folderFragment -> setControl(true, id)
+                R.id.navBottomHome -> setControl(DEFAULT_SCREEN)
+                R.id.navBottomSong -> setControl(DEFAULT_SCREEN)
+                R.id.navBottomPlaylist -> setControl(DEFAULT_SCREEN)
+                R.id.navBottomLibrary -> setControl(DEFAULT_SCREEN)
+                R.id.folderFragment -> setControl(PAGER_SCREEN)
+                R.id.playingFragment -> setControl(FULL_SCREEN)
             }
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupView() {
+
         with(binding) {
 
             bottomNavigationView.apply {
                 setupWithNavController(navController)
                 setOnItemReselectedListener { }
             }
+
             // curPlaying.value refer to selected swipeAdapter
-            ibPlayPause.setOnClickListener { with(songViewModel) {
+            ibPlayPause.setOnClickListener {
+                with(songViewModel) {
                     curPlaying.value?.let {
                         playOrToggle(it, true)
                     }
@@ -134,53 +154,46 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             }
 
             sbSeekbar.apply { setOnTouchListener { _, _ -> true } }
+
             sivCurImage.setOnClickListener { toast(this@MainActivity, "Image Clicked") }
 
             viewPager2.apply {
                 adapter = swipeAdapter.also {
                     it.setItemListener { song ->
-                        toast(this@MainActivity, song.title)
+                        navController.navigate(R.id.playingFragment)
                     }
                 }
             }
-            lifecycleScope.launch {
+
+            /*lifecycleScope.launch {
                 while (true) {
                     delay(500)
                     with (binding.sbSeekbar) {
                         progress = ((player.currentPosition * 100) / player.duration).toInt()
                     }
                 }
-            }
+            }*/
         }
+    }
+/*
+    fun showPlayingFragment() {
+        setControl(FULL_SCREEN)
+        supportFragmentManager.beginTransaction().show(containerFragment).commit()
+    }
+
+    fun hidePlayingFragment() {
+        setControl(DEFAULT_SCREEN)
+        supportFragmentManager.beginTransaction().hide(containerFragment).commit()
+    }*/
+
+    fun hideNavHost() {
+        supportFragmentManager.beginTransaction().hide(navHostFragment).commit()
     }
 
     private fun setToaster() = apply { curToast = "" }
+
     private fun getControlHeight() {
         if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
-    }
-
-    private fun setControl(fullscreen: Boolean = false, id: Int) {
-        if (fullscreen) {
-            binding.apply {
-                with(View.GONE) {
-                    bottomNavigationView.visibility = this
-                }
-                with(View.VISIBLE) {
-                    clPager.visibility = this
-                }
-                if (getClpHeight() != 0) songViewModel.navHeight.value = getClpHeight()
-                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            }
-            return
-        }
-        binding.apply {
-            with(View.GONE) {}
-            with(View.VISIBLE) {
-                clPager.visibility = this
-                bottomNavigationView.visibility = this
-            }
-            binding.navHostContainer.layoutParams.height = 0
-        }
     }
 
     private fun getDummyHeight(): Int {
@@ -195,13 +208,45 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         return binding.clPager.measuredHeight
     }
 
-    val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
+
+    fun setControl(controlMode: String) {
+
+        when (controlMode) {
+
+            DEFAULT_SCREEN -> binding.apply {
+                with(View.VISIBLE) {
+                    clPager.visibility = this
+                    bottomNavigationView.visibility = this
+                }
+                with(navHostContainer) { layoutParams.height = 0 }
+            }
+
+            FULL_SCREEN -> binding.apply {
+                with(View.GONE) {
+                    bottomNavigationView.visibility = this
+                    clPager.visibility = this
+                }
+                navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            }
+
+            PAGER_SCREEN -> binding.apply {
+                with(View.GONE) { bottomNavigationView.visibility = this}
+                with(View.VISIBLE) { clPager.visibility = this }
+                with(getClpHeight()) { if (this != 0) songViewModel.navHeight.value = this }
+                with(navHostContainer) { layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT }
+            }
+        }
+    }
+
+    private val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             super.onPageSelected(position)
+
             Timber.d("changeCallback pos: $position")
+
             with(songViewModel) {
                 if (playbackState.value?.isPlaying == true) {
-                    Timber.d("chaged to $position")
+                    Timber.d("changed to $position")
                     try {
                         playOrToggle(swipeAdapter.songList[position])
                     } catch (e: Exception) {
@@ -230,15 +275,22 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 swipeAdapter.songList = mediaItems
                 currentlyPlayingSongListObservedByMainActivity = mediaItems
                 if (!alreadySetup || !songViewModel.currentlyPlaying.hasActiveObservers()) {
-                    lifecycleScope.launch {
                         alreadySetup = true
                         observePlayer()
                         binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
                         binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
-                    }
                 }
             }
-            lifecycleScope.launch() {
+
+            curPlayerPosition.observe(this@MainActivity) {
+                binding.sbSeekbar.progress = it.toInt()
+            }
+
+            curSongDuration.observe(this@MainActivity) {
+                binding.sbSeekbar.max = it.toInt()
+            }
+
+            lifecycleScope.launch {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     updateMusicDB()
                 }
@@ -247,10 +299,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     private fun observePlayer() {
-        alreadySetup = true
+
         with(songViewModel) {
+
             currentlyPlaying.observe(this@MainActivity) { song ->
-                Timber.d("isCurrentSame${song?.mediaId.toString() == player.currentMediaItem?.mediaId}")
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
                         lifecycleScope.launch {
@@ -260,19 +312,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                             glideCurSong(song)
                             val itemIndex = swipeAdapter.songList.indexOf(song)
                             if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
-                            Timber.d("currentlyPlaying song: ${song} $itemIndex")
-                        }
-                    } else {
-                        lifecycleScope.launch {
-                            curPlaying.value = song
-                            glideCurSong(song)
-                            val itemIndex = swipeAdapter.songList.indexOf(song)
-                            if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, true)
                             Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                         }
+                    } else {
+                        curPlaying.value = song
+                        glideCurSong(song)
+                        val itemIndex = swipeAdapter.songList.indexOf(song)
+                        if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, true)
+                        Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                     }
                 }
             }
+
             playbackState.observe(this@MainActivity) {
                 binding.ibPlayPause.setImageResource(
                     if (it?.isPlaying == true) R.drawable.ic_pause_24_widget
@@ -285,7 +336,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun glideCurSong(it: Song) {
         Timber.d("glide $it")
         binding.apply {
-            Timber.d("glideCurrentSong")
             glide.load(it.imageUri)
                 .error(R.drawable.ic_music_library_transparent)
                 .transition(DrawableTransitionOptions.withCrossFade())
@@ -299,10 +349,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun permissionScreen() {
         binding.apply {
-            clPager.visibility = View.GONE
-            navHostContainer.visibility = View.GONE
-            bottomNavigationView.visibility = View.GONE
-            btnGrantPermission.visibility = View.VISIBLE
+
+            with(View.GONE) {
+                clPager.visibility = this
+                navHostContainer.visibility = this
+                bottomNavigationView.visibility = this
+            }
+            with(View.VISIBLE) {
+                btnGrantPermission.visibility = this
+            }
             btnGrantPermission.setOnClickListener {
                 if (checkPermission()) {
                     restartApp(false)
@@ -328,7 +383,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             ))
 
         return PermsHelper.checkStoragePermission(this)
-                && PermsHelper.checkStoragePermission(this)
+                && PermsHelper.checkForegroundServicePermission(this)
     }
 
     private fun requestPermission(perms: Perms) {
@@ -384,11 +439,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     override fun onBackPressed() {
-        if (Version.isQ() && isTaskRoot && supportFragmentManager.primaryNavigationFragment
-                ?.childFragmentManager?.backStackEntryCount == 0
+        if (false) {
+            /*hidePlayingFragment()*/
+            return
+        } else if (Version.isQ() && isTaskRoot && supportFragmentManager.primaryNavigationFragment?.
+            childFragmentManager?.backStackEntryCount == 0
             && supportFragmentManager.backStackEntryCount == 0
-        ) finishAfterTransition()
-        else super.onBackPressed()
+        ) {
+            finishAfterTransition()
+            return
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onDestroy() {

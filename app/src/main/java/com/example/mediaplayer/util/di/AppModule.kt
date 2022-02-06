@@ -117,4 +117,11 @@ object AppModule {
         @ApplicationContext context: Context,
         glide: RequestManager
     ) = ArtistAdapter(glide, context)
+
+    @Named("playingAdapterNS")
+    @Provides
+    fun providePlayingAdapterNS(
+        @ApplicationContext context: Context,
+        glide: RequestManager
+    ) = PlayingAdapter(glide, context)
 }

@@ -2,10 +2,11 @@
 
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/crlHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/transparent"
+    android:background="@color/widgetBackground"
     android:elevation="0dp"
     android:fitsSystemWindows="false">
 
@@ -36,7 +37,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:title="@string/home"
+                app:title="Playing"
+                app:menu="@menu/menu_playing"
                 app:titleCentered="true"
                 app:layout_collapseMode="parallax"
                 app:navigationIcon="@drawable/ic_arrow_down_3101"
@@ -57,6 +59,151 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vpPlaying"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="10:10"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/mtvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:text="@string/title"
+                android:textColor="@color/widgetColor"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toBottomOf="@id/vpPlaying"
+                app:layout_constraintEnd_toEndOf="@+id/vpPlaying"
+                app:layout_constraintStart_toStartOf="@+id/vpPlaying" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/mtvSubtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:text="@string/subtitle"
+                android:textColor="@color/widgetColor"
+                android:textSize="17.5sp"
+                app:layout_constraintTop_toBottomOf="@id/mtvTitle"
+                app:layout_constraintEnd_toEndOf="@+id/vpPlaying"
+                app:layout_constraintStart_toStartOf="@+id/vpPlaying" />
+
+            <SeekBar
+                android:id="@+id/sb_playing"
+                android:layout_width="0dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="20dp"
+                android:paddingStart="10dp"
+                android:paddingTop="0dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="0dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:thumbTint="@color/accentColor"
+                android:progressTint="@color/accentColor"
+                app:layout_constraintEnd_toEndOf="@+id/vpPlaying"
+                app:layout_constraintStart_toStartOf="@+id/vpPlaying"
+                app:layout_constraintTop_toBottomOf="@+id/mtvSubtitle" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/mtvCurTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="@string/_00_00"
+                android:textColor="@color/widgetColor"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/sb_playing"
+                app:layout_constraintTop_toBottomOf="@id/sb_playing"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/mtvDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="@string/_00_00"
+                android:textColor="@color/widgetColor"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@id/sb_playing"
+                app:layout_constraintTop_toBottomOf="@id/sb_playing"/>
+
+            <ImageButton
+                android:id="@+id/ibRepeatMode"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/repeat"
+                android:src="@drawable/ic_baseline_repeat_24_trans"
+                app:layout_constraintBottom_toBottomOf="@+id/ibPrev"
+                app:layout_constraintStart_toStartOf="@+id/sb_playing"
+                app:layout_constraintTop_toTopOf="@+id/ibPrev" />
+
+            <ImageButton
+                android:id="@+id/ibPrev"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_baseline_skip_previous_36_widget"
+                app:layout_constraintBottom_toBottomOf="@+id/ibPlayPause"
+                app:layout_constraintEnd_toStartOf="@+id/ibPlayPause"
+                app:layout_constraintStart_toEndOf="@+id/ibRepeatMode"
+                app:layout_constraintTop_toTopOf="@+id/ibPlayPause" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/ibPlayPause"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="40dp"
+                android:background="?attr/selectableItemBackground"
+                android:foregroundTint="@color/accentColor"
+                android:backgroundTint="@color/accentColor"
+                android:src="@drawable/ic_play_30"
+                app:fabCustomSize="60dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/vpPlaying"
+                app:layout_constraintStart_toStartOf="@+id/vpPlaying"
+                app:layout_constraintTop_toBottomOf="@+id/sb_playing"
+                app:pressedTranslationZ="-12dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/ibNext"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_baseline_skip_next_36_widget"
+                app:layout_constraintBottom_toBottomOf="@id/ibPlayPause"
+                app:layout_constraintEnd_toStartOf="@+id/ibFavorite"
+                app:layout_constraintStart_toEndOf="@+id/ibPlayPause"
+                app:layout_constraintTop_toTopOf="@id/ibPlayPause" />
+
+            <ImageButton
+                android:id="@+id/ibFavorite"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_favorite_border_24_widget"
+                app:layout_constraintBottom_toBottomOf="@id/ibPlayPause"
+                app:layout_constraintEnd_toEndOf="@+id/sb_playing"
+                app:layout_constraintTop_toTopOf="@id/ibPlayPause" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

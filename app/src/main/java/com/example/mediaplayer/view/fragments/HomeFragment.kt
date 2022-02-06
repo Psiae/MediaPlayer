@@ -16,6 +16,8 @@ import com.example.mediaplayer.databinding.FragmentHomeBinding
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants.FADETHROUGH_IN_DURATION
+import com.example.mediaplayer.util.Constants.FADETHROUGH_OUT_DURATION
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.example.mediaplayer.util.VersionHelper
@@ -83,16 +85,14 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupObserver()
         setupView()
+        setupRecyclerView()
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup)
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 200L
+            it.duration = FADETHROUGH_OUT_DURATION
         }
         reenterTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 600L
-        }
-        lifecycleScope.launch {
-            setupRecyclerView()
+            it.duration = FADETHROUGH_IN_DURATION
         }
     }
 
@@ -120,7 +120,7 @@ class HomeFragment : Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            lifecycleScope.launch(Dispatchers.IO) {
+                            lifecycleScope.launch {
                                 songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
                                     delay(150)
                                         songViewModel.playOrToggle(song)
@@ -159,9 +159,7 @@ class HomeFragment : Fragment() {
                             Timber.d("songList is NullOrEmpty")
                             songViewModel.updateMusicDB()
                         } else {
-                            lifecycleScope.launch(Dispatchers.IO) {
                                 songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name, observedSongList)
-                            }
                             Timber.d("${artist.name}")
                         }
                     }

@@ -38,6 +38,9 @@ class MusicServiceConnector(
             return _curPlayingSong
         }
 
+    private val _repeatMode = MutableLiveData<Int>(0)
+    val repeatMode: LiveData<Int> get() = _repeatMode
+
     lateinit var mediaController: MediaControllerCompat
 
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
@@ -52,6 +55,14 @@ class MusicServiceConnector(
         null
     ).apply {
         connect()
+    }
+
+    fun updateRepeatState(state: Int) {
+        try {
+            _repeatMode.value = state
+        } catch (e: Error) {
+            _repeatMode.postValue(state)
+        }
     }
 
     fun checkMediaBrowser(): Boolean {

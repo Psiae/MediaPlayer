@@ -24,6 +24,7 @@
     <color name="widgetBackground">@color/darkBackground</color>
     <color name="widgetBackgroundMax">@color/black</color>
     <color name="widgetColor">@color/white</color>
+    <color name="widgetColord">@color/white</color>
     <color name="playpause">@color/white</color>
     <color name="searchColor">@color/white</color>
 </resources>

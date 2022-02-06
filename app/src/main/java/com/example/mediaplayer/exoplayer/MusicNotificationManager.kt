@@ -146,15 +146,12 @@ class MusicNotificationManager(
                 ACTION_REPEAT -> toast(context, "REPEAT_SONG toggled")
                 REPEAT_SONG_ALL -> {
                     player.repeatMode = Player.REPEAT_MODE_OFF
-                    toast(context, "Repeat Off", short = true, blockable = false)
                 }
                 REPEAT_SONG_OFF -> {
                     player.repeatMode = Player.REPEAT_MODE_ONE
-                    toast(context, "Repeat This Song", short = true, blockable = false)
                 }
                 REPEAT_SONG_ONCE -> {
                     player.repeatMode = Player.REPEAT_MODE_ALL
-                    toast(context, "Repeat All Song", short = true, blockable = false)
                 }
             }
         }
@@ -211,6 +208,10 @@ class MusicNotificationManager(
             return super.createNotification(player, builder, ongoing, largeIcon)
         }
 
+        /** | prev | << | play/pause | >> | next | custom actions | stop | */
+
+        /** | custom actions | prev | << | play/pause | >> | next | stop | */
+
         override fun getActions(player: Player): MutableList<String> {
             val actions = super.getActions(player)
             val toReturn = mutableListOf<String>()
@@ -236,6 +237,7 @@ class MusicNotificationManager(
     }
 
     init {
+
         val mediaController = MediaControllerCompat(context, sessionToken)
 
         notificationManager = MyNotificationManager(context,
@@ -270,7 +272,6 @@ class MusicNotificationManager(
             setPauseActionIconResourceId(R.drawable.ic_pause_48_widget_f)
             setStopActionIconResourceId(R.drawable.ic_baseline_close_24)
         }.build()*/
-
         /*notificationManager = PlayerNotificationManager.Builder(
             context,
             NOTIFICATION_ID,
@@ -310,6 +311,7 @@ class MusicNotificationManager(
     ) : PlayerNotificationManager.MediaDescriptionAdapter {
 
         override fun getCurrentContentTitle(player: Player): CharSequence {
+            Timber.d("getCurrentContentTitle + SongDurationCallback")
             newSongCallback()
             return mediaController.metadata.description.title.toString()
         }

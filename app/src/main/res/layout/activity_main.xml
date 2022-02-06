@@ -44,6 +44,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/nav_graph"/>
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/globalContainer"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:tag="globalContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <Button
         android:id="@+id/btnGrantPermission"
         android:layout_width="wrap_content"
@@ -141,7 +152,7 @@
             android:layout_marginBottom="0dp"
             android:splitTrack="false"
             android:thumbTint="#00000000"
-            android:elevation="5dp"
+            android:progressTint="@color/accentColor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

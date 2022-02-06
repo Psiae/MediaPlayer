@@ -2,10 +2,12 @@ package com.example.mediaplayer.viewmodel
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.session.PlaybackState
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
 import com.example.mediaplayer.model.data.entities.Album
@@ -17,6 +19,7 @@ import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.UPDATE_INTERVAL
 import com.example.mediaplayer.util.Resource
 import com.example.mediaplayer.util.ext.toast
+import com.google.android.exoplayer2.Player
 import com.google.common.base.Stopwatch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +44,7 @@ class SongViewModel @Inject constructor(
     val onError = musicServiceConnector.networkError
     val playingMediaItem = musicServiceConnector.curPlayingSong
     val playbackState = musicServiceConnector.playbackState
+    val repeatState = musicServiceConnector.repeatMode
 
     /** LiveData */
 
@@ -49,22 +53,16 @@ class SongViewModel @Inject constructor(
     val currentlyPlaying: LiveData<Song>
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
-                Timber.d("playingMediaItem : ${mediaItem!!.description.title}")
-                getFromDB().find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }/*
-                songList.value?.let { songs ->
-                    songs.find {
-                        it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
-                    }
-                } ?: run {
-                    _songList.value = getFromDB().also {
-                        Timber.d("setSongList ${it.size}")
-                    }
-                    songList.value!!.find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
-                }*/
+                Timber.d("playingMediaItem : ${mediaItem?.description?.title}")
+                getFromDB().find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
             }
         }
 
     var currentlyPlayingSongListObservedByMainActivity = mutableListOf<Song>()
+
+    fun setRepeatMode(state: Int) {
+        musicServiceConnector.transportControls.setRepeatMode(state)
+    }
 
     fun mediaBrowserConnected(): Boolean {
         return musicServiceConnector.checkMediaBrowser()
@@ -80,7 +78,7 @@ class SongViewModel @Inject constructor(
         viewModelScope.launch {
             while(true) {
                 val pos = playbackState.value?.currentPlaybackPosition ?: 0L
-                if(curPlayerPosition.value != pos) {
+                if(curPlayerPosition.value != pos && MusicService.curSongDuration > -1) {
                     _curPlayerPosition.postValue(pos)
                     _curSongDuration.postValue(MusicService.curSongDuration)
                 }
@@ -210,7 +208,7 @@ class SongViewModel @Inject constructor(
                 }
                 if (songList.isNullOrEmpty()) {
                     Timber.d("songList isNullOrEmpty")
-                    updateSongList()
+                    updateMusicDB()
                     return@launch
                 }
                 val filtered = if (extra.isNotEmpty()) songList.filter {
@@ -296,14 +294,18 @@ class SongViewModel @Inject constructor(
                     }
                 }
             } else {
-                musicServiceConnector.transportControls
-                    .playFromMediaId(mediaItem.mediaId.toString(), null)
-                curPlaying.value = mediaItem
-                Timber.d("playFromMediaId ${mediaItem.title}")
+                playFromMediaId(mediaItem)
             }
         } catch (e: Exception) {
             Timber.d("PlayToggleFailed")
         }
+    }
+
+    fun playFromMediaId(mediaItem: Song) {
+        musicServiceConnector.transportControls
+            .playFromMediaId(mediaItem.mediaId.toString(), null)
+//        curPlaying.value = mediaItem
+        Timber.d("playFromMediaId ${mediaItem.title}")
     }
 
     /** Query */

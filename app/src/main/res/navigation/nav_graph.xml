@@ -60,4 +60,12 @@
         android:name="com.example.mediaplayer.view.fragments.ExoplayerFragment"
         android:label="ExoplayerFragment"
         tools:layout="@layout/fragment_exoplayer"/>
+    <fragment
+        android:id="@+id/playingFragment"
+        android:name="com.example.mediaplayer.view.fragments.PlayingFragment"
+        android:label="PlayingFragment" />
+
+    <action
+        android:id="@+id/toPlayingFragment"
+        app:destination="@id/playingFragment" />
 </navigation>

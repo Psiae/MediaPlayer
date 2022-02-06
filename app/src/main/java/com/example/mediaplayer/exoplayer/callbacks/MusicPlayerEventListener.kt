@@ -2,6 +2,7 @@ package com.example.mediaplayer.exoplayer.callbacks
 
 import android.widget.Toast
 import com.example.mediaplayer.exoplayer.MusicService
+import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import timber.log.Timber
@@ -22,6 +23,22 @@ class MusicPlayerEventListener(
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
 
+    }
+
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        super.onRepeatModeChanged(repeatMode)
+        with(musicService) {
+            this.musicServiceConnector.updateRepeatState(repeatMode)
+            when (repeatMode) {
+                Player.REPEAT_MODE_OFF ->
+                    toast(this, "Repeat Off", short = true, blockable = false)
+                Player.REPEAT_MODE_ONE ->
+                    toast(this, "Repeat This Song", short = true, blockable = false)
+                Player.REPEAT_MODE_ALL ->
+                    toast(this, "Repeat All Song", short = true, blockable = false)
+                else -> Unit
+            }
+        }
     }
 
     override fun onPlayerError(error: PlaybackException) {

@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
 import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants.FADETHROUGH_IN_DURATION
+import com.example.mediaplayer.util.Constants.FADETHROUGH_OUT_DURATION
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.ext.toast
@@ -67,18 +69,17 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        observeSongList()
+        setupView()
+        setupRecyclerView()
         navController = requireActivity().findNavController(R.id.navHostContainer)
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
-            it.duration = 600L
+            it.duration = FADETHROUGH_IN_DURATION
         }
         exitTransition = MaterialFadeThrough().addTarget(view).also {
-            it.duration = 200L
+            it.duration = FADETHROUGH_OUT_DURATION
         }
-        setupView()
-        lifecycleScope.launch {
-            setupRecyclerView()
-            observeSongList()
-        }
+
     }
 
     override fun onResume() {
@@ -166,9 +167,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                 if (!mediaItems.contains(song)) {
                     songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
-                        lifecycleScope.launch {
                             songViewModel.playOrToggle(song)
-                        }
                     }
                 } else songViewModel.playOrToggle(song)
             }
