@@ -58,5 +58,5 @@ object Constants {
     const val ARTIST = "ARTIST"
     const val ALBUM = "ALBUM"
 
-    const val UPDATE_INTERVAL = 100L
+    const val UPDATE_INTERVAL = 250L
 }

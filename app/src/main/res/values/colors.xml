@@ -19,6 +19,9 @@
     <color name="seekbarColor">#FF6200EE</color>
     <color name="cacaca">#CACACA</color>
 
+    <color name="statusBarColor">@color/white</color>
+    <color name="darkGrey">#121212</color>
+
     <color name="bnvColor">@color/white</color>
     <color name="navigatorColor">@color/white</color>
     <color name="widgetBackground">@color/white</color>

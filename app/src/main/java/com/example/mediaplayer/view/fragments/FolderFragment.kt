@@ -38,9 +38,6 @@ class FolderFragment: Fragment() {
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
 
-    @Inject
-    lateinit var player: ExoPlayer
-
     private val songViewModel: SongViewModel by activityViewModels()
 
     private var _binding: FragmentFolderBinding? = null

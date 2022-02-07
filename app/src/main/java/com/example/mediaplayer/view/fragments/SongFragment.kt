@@ -44,9 +44,6 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     @Named("songAdapterNS")
     lateinit var songAdapter: SongAdapter
 
-    @Inject
-    lateinit var player: ExoPlayer
-
     private val songViewModel: SongViewModel by activityViewModels()
     private lateinit var navController: NavController
     private lateinit var songListener: AsyncListDiffer.ListListener<Song>

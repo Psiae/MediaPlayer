@@ -42,10 +42,6 @@ class HomeFragment : Fragment() {
     companion object {
         val TAG: String? = HomeFragment::class.java.simpleName // Not nullable but Complains
     }
-
-    @Inject
-    lateinit var player: ExoPlayer
-
     @Inject
     @Named("homeAdapterNS")
     lateinit var suggestAdapter: HomeAdapter

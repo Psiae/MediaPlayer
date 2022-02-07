@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
@@ -62,6 +63,10 @@ class SongViewModel @Inject constructor(
 
     fun setRepeatMode(state: Int) {
         musicServiceConnector.transportControls.setRepeatMode(state)
+    }
+
+    fun checkQueue(): MutableList<MediaSessionCompat.QueueItem> {
+        return musicServiceConnector.mediaController.queue
     }
 
     fun mediaBrowserConnected(): Boolean {

@@ -60,29 +60,6 @@ object AppModule {
         @ApplicationContext context: Context
     ) = MusicServiceConnector(context)
 
-    @Singleton
-    @Provides
-    fun provideAudioAttributes() = AudioAttributes.Builder()
-        .setContentType(C.CONTENT_TYPE_MUSIC)
-        .setUsage(C.USAGE_MEDIA)
-        .build()
-
-    @Singleton
-    @Provides
-    fun provideExoPlayer(
-        @ApplicationContext context: Context,
-        audioAttributes: AudioAttributes
-    ) = ExoPlayer.Builder(context).build().apply {
-        setAudioAttributes(audioAttributes, true)
-        setHandleAudioBecomingNoisy(true)
-    }
-
-    @Singleton
-    @Provides
-    fun provideDataSourceFactory(
-        @ApplicationContext context: Context
-    ) = DefaultDataSource.Factory(context)
-
     @Named("songAdapterNS")
     @Provides
     fun provideSongAdapterNS(

@@ -1,18 +1,29 @@
 package com.example.mediaplayer.view.fragments
 
+import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
+import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.target.ImageViewTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentPlayingBinding
 import com.example.mediaplayer.exoplayer.isPlaying
@@ -39,6 +50,9 @@ class PlayingFragment: Fragment() {
     @Inject
     @Named("playingAdapterNS")
     lateinit var playingAdapter: PlayingAdapter
+
+    @Inject
+    lateinit var glide: RequestManager
 
     private val songViewModel: SongViewModel by activityViewModels()
 
@@ -132,10 +146,11 @@ class PlayingFragment: Fragment() {
         Timber.d("PlayingFragment setupObserver")
 
         lifecycleScope.launch {
-            delay(500)
-            if (playingPos > 0 && songViewModel.curPlaying.value?.length == songViewModel.curSongDuration.value) {
+            delay(200)
+            if (playingPos > 0) {
                 binding.sbPlaying.progress = playingPos
             } else {
+                Timber.d("MtvSet 0, $playingPos")
                 setMtvCurrent(0)
                 try {
                     setMtvDuration(playingAdapter.songList[binding.vpPlaying.currentItem].length)
@@ -163,25 +178,26 @@ class PlayingFragment: Fragment() {
                 setMtvDuration(dur)
             }
 
-            curPlaying.observe(viewLifecycleOwner) { song ->
-                val itemIndex = playingAdapter.songList.indexOf(song)
-                if (itemIndex != -1) {
-                    binding.mtvTitle.text = song.title
-                    binding.mtvSubtitle.text = song.artist
-                    lifecycleScope.launch {
-                        delay(50)
+            lifecycleScope.launch {
+                delay(50)
+                curPlaying.observe(viewLifecycleOwner) { song ->
+                    val itemIndex = playingAdapter.songList.indexOf(song)
+                    if (itemIndex != -1) {
+                        binding.mtvTitle.text = song.title
+                        binding.mtvSubtitle.text = song.artist
                         val curIndex = binding.vpPlaying.currentItem
                         binding.vpPlaying.setCurrentItem(itemIndex,
                             (true /*curIndex == itemIndex + 1 || curIndex == itemIndex - 1*/))
+                        glidePalette(song.imageUri)
+                        Timber.d("itemIndex = $itemIndex")
                     }
-                    Timber.d("itemIndex = $itemIndex")
                 }
             }
 
             playbackState.observe(viewLifecycleOwner) {
                 binding.ibPlayPause.setImageResource(
-                    if (it?.isPlaying == true) R.drawable.ic_pause_30
-                    else R.drawable.ic_play_30
+                    if (it?.isPlaying == true) R.drawable.ic_pause_30_widget
+                    else R.drawable.ic_play_30_widget
                 )
             }
 
@@ -203,15 +219,91 @@ class PlayingFragment: Fragment() {
                     }
                 }
             }
-
-
-
             lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     updateMusicDB()
                 }
             }
         }
+    }
+
+    private fun glideBackground(uri: String) {
+        glide.asDrawable().load(uri).into(object : CustomTarget<Drawable>() {
+            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                binding.nsvHome.background = resource.also { it.alpha = 150 }
+            }
+            override fun onLoadCleared(placeholder: Drawable?) = Unit
+        })
+    }
+
+    private fun glidePalette(uri: String) {
+        Timber.d("uri: $uri")
+        glide.asBitmap()
+            .load(uri)
+            .into(object : CustomTarget<Bitmap>() {
+            @RequiresApi(Build.VERSION_CODES.N)
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                Palette.from(resource).maximumColorCount(1).generate {
+                    it?.let {
+                        var default = requireContext().getColor(R.color.widgetBackground)
+                        var dominant = it.getDominantColor(default)
+                        var vibrant = it.getVibrantColor(dominant)
+                        var muted = it.getMutedColor(vibrant)
+                        var lightVibrant = it.getLightVibrantColor(muted)
+                        var lightMuted = it.getLightMutedColor(lightVibrant)
+                        var darkVibrant =  it.getDarkVibrantColor(lightMuted)
+                        var darkMuted = it.getDarkMutedColor(darkVibrant)
+                        var grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                            intArrayOf(darkMuted, darkMuted)
+                        )
+                        if (grad.colors!!.first() == default) {
+                            Timber.d("grad == default")
+                            Palette.from(resource).maximumColorCount(10).generate {
+                                it?.let {
+                                    default = requireContext().getColor(R.color.widgetBackground)
+                                    dominant = it.getDominantColor(default)
+                                    vibrant = it.getVibrantColor(dominant)
+                                    muted = it.getMutedColor(vibrant)
+                                    lightVibrant = it.getLightVibrantColor(muted)
+                                    lightMuted = it.getLightMutedColor(lightVibrant)
+                                    darkVibrant =  it.getDarkVibrantColor(lightMuted)
+                                    darkMuted = it.getDarkMutedColor(darkVibrant)
+                                    grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                                        intArrayOf(darkMuted, darkMuted)
+                                    )
+                                    binding.crlHome.background = grad
+                                    binding.nsvHome.background = grad
+                                    binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(darkMuted)
+                                    requireActivity().window.navigationBarColor = grad.colors!!.last()
+                                    requireActivity().window.statusBarColor = grad.colors!!.first()
+                                    binding.tbLib.setBackgroundColor(grad.colors!!.first())
+                                }
+                            }
+                        } else {
+                            binding.crlHome.background = grad
+                            binding.nsvHome.background = grad
+                            binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(darkMuted)
+                            requireActivity().window.navigationBarColor = grad.colors!!.last()
+                            requireActivity().window.statusBarColor = grad.colors!!.first()
+                            binding.tbLib.setBackgroundColor(grad.colors!!.first())
+                        }
+
+                    }
+                }
+
+            }
+                override fun onLoadCleared(placeholder: Drawable?) = Unit
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    val default = requireContext().getColor(R.color.widgetBackground)
+                    binding.crlHome.background = null
+                    binding.nsvHome.background = null
+                    binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.widgetColor))
+                    requireActivity().window.navigationBarColor = default
+                    requireActivity().window.statusBarColor = default
+                    binding.tbLib.setBackgroundColor(default)
+                    return
+                }
+            })
     }
 
     private fun setMtvDuration(ms: Long) {
@@ -231,6 +323,10 @@ class PlayingFragment: Fragment() {
             ibPlayPause.setOnClickListener {
                 with(songViewModel) {
                     curPlaying.value?.let {
+                        if (curPlaying.value?.mediaId ?: 0 != currentlyPlaying.value?.mediaId ?: 1) {
+                            playOrToggle(it, true).also { seekTo(sbPlaying.progress.toLong()) }
+                            return@setOnClickListener
+                        }
                         playOrToggle(it, true)
                     }
                 }
@@ -259,8 +355,20 @@ class PlayingFragment: Fragment() {
                 }
             })
 
-            ibPrev.setOnClickListener { songViewModel.skipPrev() }
-            ibNext.setOnClickListener { songViewModel.skipNext() }
+            ibPrev.setOnClickListener {
+                if (songViewModel.checkQueue().isEmpty()) {
+                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem - 1])
+                    return@setOnClickListener
+                }
+                songViewModel.skipPrev()
+            }
+            ibNext.setOnClickListener {
+                if (songViewModel.checkQueue().isEmpty()) {
+                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem + 1])
+                    return@setOnClickListener
+                }
+                songViewModel.skipNext()
+            }
             ibFavorite.setOnClickListener { toast(requireContext(), "Coming Soon") }
 
 
@@ -276,8 +384,13 @@ class PlayingFragment: Fragment() {
         val activity = activity as MainActivity
     }
 
+    fun makePalette(bitmap: Bitmap) {
+    }
 
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+    }
 
     override fun onDestroy() {
         Timber.d("PlayingFragment Destroyed")

@@ -89,4 +89,5 @@ dependencies {
 
     // UI
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.palette:palette-ktx:1.0.0'
 }

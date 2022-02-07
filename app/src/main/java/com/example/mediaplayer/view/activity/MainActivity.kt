@@ -2,11 +2,18 @@ package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -16,10 +23,13 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.exoplayer.isPlaying
@@ -60,9 +70,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     
     @Inject
     lateinit var swipeAdapter: SwipeAdapter
-
-    @Inject
-    lateinit var player: ExoPlayer
 
     @Inject
     lateinit var glide: RequestManager
@@ -219,6 +226,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                     bottomNavigationView.visibility = this
                 }
                 with(navHostContainer) { layoutParams.height = 0 }
+                window.statusBarColor = resources.getColor(R.color.statusBarColor, this@MainActivity.theme)
+                window.navigationBarColor = resources.getColor(R.color.bnvColor, this@MainActivity.theme)
             }
 
             FULL_SCREEN -> binding.apply {
@@ -341,6 +350,55 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(sivCurImage)
         }
+        glidePalette(it.imageUri)
+    }
+
+    private fun glidePalette(uri: String) {
+        glide.asBitmap().load(uri).into(object : CustomTarget<Bitmap>() {
+            @RequiresApi(Build.VERSION_CODES.N)
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                Palette.from(resource).maximumColorCount(1).generate {
+                    it?.let {
+                        var default = getColor(R.color.widgetBackground)
+                        var dominant = it.getDominantColor(default)
+                        var vibrant = it.getVibrantColor(dominant)
+                        var muted = it.getMutedColor(vibrant)
+                        var lightVibrant = it.getLightVibrantColor(muted)
+                        var lightMuted = it.getLightMutedColor(lightVibrant)
+                        var darkVibrant =  it.getDarkVibrantColor(lightMuted)
+                        var darkMuted = it.getDarkMutedColor(darkVibrant)
+                        var grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                            intArrayOf(darkMuted, darkMuted)
+                        )
+
+                        if (grad.colors!!.first() == default) {
+                            Timber.d("grad == default")
+                            Palette.from(resource).maximumColorCount(10).generate {
+                                it?.let {
+                                    default = getColor(R.color.widgetBackground)
+                                    dominant = it.getDominantColor(default)
+                                    vibrant = it.getVibrantColor(dominant)
+                                    muted = it.getMutedColor(vibrant)
+                                    lightVibrant = it.getLightVibrantColor(muted)
+                                    lightMuted = it.getLightMutedColor(lightVibrant)
+                                    darkVibrant =  it.getDarkVibrantColor(lightMuted)
+                                    darkMuted = it.getDarkMutedColor(darkVibrant)
+                                    grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                                        intArrayOf(darkMuted, darkMuted)
+                                    )
+                                    binding.clPager.background = grad
+                                }
+                            }
+                        } else binding.clPager.background = grad
+                    }
+                }
+            }
+            override fun onLoadCleared(placeholder: Drawable?) = Unit
+            override fun onLoadFailed(errorDrawable: Drawable?) {
+                binding.clPager.background = null
+                return
+            }
+        })
     }
 
     /**
@@ -449,7 +507,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             finishAfterTransition()
             return
         } else {
-            super.onBackPressed()
+            lifecycleScope.launch {
+                delay(100)
+                super.onBackPressed()
+            }
         }
     }
 

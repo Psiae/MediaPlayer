@@ -48,6 +48,7 @@ class PlayingAdapter(
 
         fun bindItems(item: Song) {
             binding.apply {
+                binding.cardView.setCardBackgroundColor(context.getColor(R.color.widgetBackground))
                 glide.asDrawable()
                     .load(item.imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())
