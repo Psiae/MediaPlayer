@@ -60,6 +60,8 @@ class MusicService : MediaBrowserServiceCompat() {
     companion object {
         var curSongDuration = 0L
             private set
+        var lastItemIndex = 0
+            private set
     }
 
     override fun onCreate() {
@@ -88,6 +90,7 @@ class MusicService : MediaBrowserServiceCompat() {
             exoPlayer
         ) {
             curSongDuration = exoPlayer.duration
+            lastItemIndex = exoPlayer.currentMediaItemIndex
         }
 
         val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource, this, musicServiceConnector) {

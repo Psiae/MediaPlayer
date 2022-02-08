@@ -25,6 +25,7 @@
     <color name="bnvColor">#E6000000</color>
     <color name="navigatorColor">#000000</color>
     <color name="widgetBackground">@color/darkBackground</color>
+    <color name="widgetBackgroundD">@color/darkGrey</color>
     <color name="widgetBackgroundMax">@color/black</color>
     <color name="widgetColor">@color/white</color>
     <color name="widgetColord">@color/white</color>

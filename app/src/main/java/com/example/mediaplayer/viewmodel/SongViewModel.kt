@@ -204,6 +204,8 @@ class SongViewModel @Inject constructor(
         updateCurrentPlayerPosition()
     }
 
+    var lastFilter = ""
+
     fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>, force: Boolean = false, playToggle: Song? = null) {
         if (!stopwatch.isRunning || force) {
             if (!force) stopwatch.start()
@@ -217,9 +219,13 @@ class SongViewModel @Inject constructor(
                     updateMusicDB()
                     return@launch
                 }
-                val filtered = if (extra.isNotEmpty()) songList.filter {
-                        it.artist == extra || it.album == extra || it.title == extra
-                } else songList
+                val filtered = if (extra.isNotEmpty()) {
+                    lastFilter = extra
+                    songList.filter { it.artist == extra || it.album == extra || it.title == extra }
+                } else {
+                    lastFilter = ""
+                    songList
+                }
 
                 musicSource.mapToSongs(filtered)
                 musicServiceConnector.sendCommand(command, param, callback)
@@ -250,6 +256,7 @@ class SongViewModel @Inject constructor(
     fun updateSongList(fromDB: Boolean = true) {
         if (fromDB) viewModelScope.launch(Dispatchers.IO) {
             val oldList = getFromDB()
+            val source = musicSource.songs
             val newList = musicDB.getAllSongs().toMutableList().also { songs ->
                 withContext(Dispatchers.Main) {
                     _albumList.value = songs.groupBy { it.album }.entries.map { (album, song) ->
@@ -265,8 +272,11 @@ class SongViewModel @Inject constructor(
                 }
             }
             if (oldList != newList) {
+                val lastPlayingIndex = musicServiceConnector
                 if (musicServiceConnector.isControllerInit()) {
-                    sendCommand(NOTIFY_CHILDREN, null, null, "", newList, true)/*
+                    if (oldList.size != source.size) {
+                        sendCommand(NOTIFY_CHILDREN, null, null, lastFilter, newList, true)
+                    } else sendCommand(NOTIFY_CHILDREN, null, null, "", newList, true)/*
                     viewModelScope.launch {
                         delay(100)
                         curPlaying.value?.let {
@@ -278,6 +288,16 @@ class SongViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun List<MediaMetadataCompat>.toSong(): List<Song> {
+        val mediaItemList = mutableListOf<Song>()
+        val dbList = getFromDB()
+        this.map { item ->
+            mediaItemList.add(dbList.find { it.mediaId.toString() == item.getString(METADATA_KEY_MEDIA_ID)} ?: Song())
+        }
+        val filtered = mediaItemList.filter { it.mediaId != 0L }.toMutableList()
+        return filtered.ifEmpty { emptyList<Song>().toMutableList() }
     }
 
     fun findMatchingMediaId(mediaItem: MediaMetadataCompat): Song {

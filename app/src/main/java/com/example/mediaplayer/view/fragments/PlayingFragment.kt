@@ -11,6 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -21,6 +24,7 @@ import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.ImageViewTarget
 import com.bumptech.glide.request.transition.Transition
@@ -36,6 +40,7 @@ import com.example.mediaplayer.view.adapter.PlayingAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.Player
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -188,7 +193,7 @@ class PlayingFragment: Fragment() {
                         val curIndex = binding.vpPlaying.currentItem
                         binding.vpPlaying.setCurrentItem(itemIndex,
                             (curIndex < itemIndex + 2 && curIndex > itemIndex - 2))
-                        if (false) glidePalette(song.imageUri)
+                        if (true) glidePalette(song.imageUri)
                         Timber.d("itemIndex = $itemIndex")
                     }
                 }
@@ -238,72 +243,83 @@ class PlayingFragment: Fragment() {
 
     private fun glidePalette(uri: String) {
         Timber.d("uri: $uri")
-        glide.asBitmap()
-            .load(uri)
-            .into(object : CustomTarget<Bitmap>() {
-            @RequiresApi(Build.VERSION_CODES.N)
-            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                Palette.from(resource).maximumColorCount(1).generate {
-                    it?.let {
-                        var default = requireContext().getColor(R.color.widgetBackground)
-                        var dominant = it.getDominantColor(default)
-                        var vibrant = it.getVibrantColor(dominant)
-                        var muted = it.getMutedColor(vibrant)
-                        var lightVibrant = it.getLightVibrantColor(muted)
-                        var lightMuted = it.getLightMutedColor(lightVibrant)
-                        var darkVibrant =  it.getDarkVibrantColor(lightMuted)
-                        var darkMuted = it.getDarkMutedColor(darkVibrant)
-                        var grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                            intArrayOf(darkMuted, darkMuted, darkMuted)
-                        )
-                        if (grad.colors!!.first() == default) {
-                            Timber.d("grad == default")
-                            Palette.from(resource).maximumColorCount(10).generate {
-                                it?.let {
-                                    default = requireContext().getColor(R.color.widgetBackground)
-                                    dominant = it.getDominantColor(default)
-                                    vibrant = it.getVibrantColor(dominant)
-                                    muted = it.getMutedColor(vibrant)
-                                    lightVibrant = it.getLightVibrantColor(muted)
-                                    lightMuted = it.getLightMutedColor(lightVibrant)
-                                    darkVibrant =  it.getDarkVibrantColor(lightMuted)
-                                    darkMuted = it.getDarkMutedColor(darkVibrant)
-                                    grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                                        intArrayOf(darkMuted, darkMuted)
+        lifecycleScope.launch(Dispatchers.IO) {
+            glide.asBitmap()
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .load(uri)
+                .into(object : CustomTarget<Bitmap>() {
+                    @RequiresApi(Build.VERSION_CODES.N)
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        Palette.from(resource).maximumColorCount(4).generate {
+                            it?.let {
+                                val default = requireContext().getColor(R.color.widgetBackgroundD)
+                                val white = requireContext().getColor(R.color.white)
+                                var dark = requireContext().getColor(R.color.darkGrey)
+
+                                val grad = if (default == white) {
+
+                                    val dominant = it.getDominantColor(default)
+                                    val vibrant = it.getVibrantColor(dominant)
+                                    val muted = it.getMutedColor(vibrant)
+                                    val lightVibrant = it.getLightVibrantColor(muted)
+                                    val lightMuted = it.getLightMutedColor(lightVibrant)
+
+                                    val palettes = lightMuted
+                                    val lightArray = intArrayOf(
+                                        palettes, palettes, palettes, palettes, palettes,
+                                        palettes, palettes, palettes, palettes, palettes
                                     )
-                                    binding.crlHome.background = grad
-                                    binding.nsvHome.background = grad
-                                    binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(darkMuted)
-                                    requireActivity().window.navigationBarColor = grad.colors!!.last()
-                                    requireActivity().window.statusBarColor = grad.colors!!.first()
-                                    binding.tbLib.setBackgroundColor(grad.colors!!.first())
+
+                                    GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM, lightArray
+                                    )
+
+                                } else {
+
+                                    val vibrant = it.getVibrantColor(default)
+                                    val muted = it.getMutedColor(vibrant)
+                                    val dominant = it.getDominantColor(muted)
+                                    val darkMuted = it.getDarkMutedColor(dominant)
+
+                                    val palettes = dominant
+                                    val darkArray = intArrayOf(
+                                        darkMuted, darkMuted, darkMuted, palettes, palettes,
+                                        palettes, palettes, palettes, palettes, palettes
+                                    )
+
+                                    GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM, darkArray
+                                    )
                                 }
+
+                                binding.crlHome.background = grad
+                                binding.nsvHome.background = grad
+                                binding.ibPlayPause.backgroundTintList =
+                                    ColorStateList.valueOf(requireContext().getColor(R.color.white))
+                                activity?.window?.navigationBarColor = grad.colors!!.last()
+                                activity?.window?.statusBarColor = default
+                                binding.tbLib.setBackgroundColor(default)
                             }
-                        } else {
-                            binding.crlHome.background = grad
-                            binding.nsvHome.background = grad
-                            binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(darkMuted)
-                            requireActivity().window.navigationBarColor = grad.colors!!.last()
-                            requireActivity().window.statusBarColor = grad.colors!!.first()
-                            binding.tbLib.setBackgroundColor(grad.colors!!.first())
                         }
-
                     }
-                }
 
-            }
-                override fun onLoadCleared(placeholder: Drawable?) = Unit
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    val default = requireContext().getColor(R.color.widgetBackground)
-                    binding.crlHome.background = null
-                    binding.nsvHome.background = null
-                    binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.widgetColor))
-                    requireActivity().window.navigationBarColor = default
-                    requireActivity().window.statusBarColor = default
-                    binding.tbLib.setBackgroundColor(default)
-                    return
-                }
-            })
+                    override fun onLoadCleared(placeholder: Drawable?) = Unit
+                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                        val default = requireContext().getColor(R.color.widgetBackground)
+                        binding.crlHome.background = null
+                        binding.nsvHome.background = null
+                        binding.ibPlayPause.backgroundTintList =
+                            ColorStateList.valueOf(requireContext().getColor(R.color.widgetColor))
+                        activity?.window?.navigationBarColor = default
+                        activity?.window?.statusBarColor = default
+                        binding.tbLib.setBackgroundColor(default)
+                        return
+                    }
+                })
+        }
     }
 
     private fun setMtvDuration(ms: Long) {

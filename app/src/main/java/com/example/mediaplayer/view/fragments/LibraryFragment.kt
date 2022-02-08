@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
@@ -67,7 +69,7 @@ class LibraryFragment: Fragment() {
 
         folderAdapter.setOnFolderClicked {
             songViewModel.setCurFolder(it)
-            findNavController().navigate(R.id.folderFragment)
+            findNavController()
         }
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
             it.duration = Constants.FADETHROUGH_IN_DURATION

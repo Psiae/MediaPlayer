@@ -162,7 +162,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 layout.scrollToPositionWithOffset(index, centerOfScreen)
                 Timber.d("$index")*/
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
-                if (!mediaItems.contains(song)) {
+                if (mediaItems.size < songViewModel.getFromDB().size) {
                     songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList, false, song)
                 } else songViewModel.playOrToggle(song)
             }

@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -109,15 +110,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
      * Navigation & View Setup
      */
     private fun setupNavController() {
-        navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
+
+        navHostFragment = supportFragmentManager.findFragmentById(R.id.navHostContainer) as NavHostFragment
         navController = navHostFragment.navController
+
+        setDestinationListener(navController)
+
+
         /*containerFragment =
             supportFragmentManager.findFragmentById(R.id.globalContainer) as NavHostFragment
         containerController = containerFragment.navController
 
         supportFragmentManager.beginTransaction().hide(containerFragment).commit()*/
-        setDestinationListener(navController)
     }
 
     private fun setDestinationListener(controller: NavController) {
@@ -226,6 +230,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             FULL_SCREEN -> binding.apply {
                 with(View.GONE) {
                     bottomNavigationView.visibility = this
+                }
+                with(View.INVISIBLE) {
                     clPager.visibility = this
                 }
                 navHostContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -271,6 +277,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     /**
      * ViewModel & Data Provider
      */
+
+
     private fun  setupSongVM() {
 
         songViewModel.apply {
@@ -302,6 +310,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
+    var lastItemIndex = -1
     private fun observePlayer() {
 
         with(songViewModel) {
@@ -322,7 +331,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                         curPlaying.value = song
                         glideCurSong(song)
                         val itemIndex = swipeAdapter.songList.indexOf(song)
-                        if (itemIndex != -1) binding.viewPager2.setCurrentItem(itemIndex, true)
+                        if (itemIndex == lastItemIndex) return@observe
+                        if (itemIndex != -1) {
+                            lastItemIndex = itemIndex
+                            binding.viewPager2.setCurrentItem(itemIndex, true)
+                        }
                         Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                     }
                 }

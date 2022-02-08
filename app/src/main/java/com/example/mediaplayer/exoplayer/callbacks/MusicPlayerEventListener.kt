@@ -43,6 +43,7 @@ class MusicPlayerEventListener(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
+        musicService.exoPlayer.removeMediaItem(musicService.exoPlayer.currentMediaItemIndex)
         Toast.makeText(musicService, "An unknown error occurred", Toast.LENGTH_LONG).show()
     }
 }

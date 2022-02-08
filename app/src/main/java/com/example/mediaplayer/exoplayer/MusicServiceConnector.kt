@@ -38,6 +38,8 @@ class MusicServiceConnector(
             return _curPlayingSong
         }
 
+    private val curplayingIndex = 0
+
     private val _repeatMode = MutableLiveData<Int>(0)
     val repeatMode: LiveData<Int> get() = _repeatMode
 
@@ -152,8 +154,6 @@ class MusicServiceConnector(
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-
-
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             _playbackState.postValue(state)
