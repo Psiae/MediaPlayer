@@ -155,7 +155,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
             songAdapter.setItemClickListener { song ->
 
                 /*val index = songAdapter.songList.indexOfFirst {
-                    it.title == song.title
+                    it.title == song.title`
                 }
                 val centerOfScreen = this.width / 2
                 val layout = this.layoutManager as LinearLayoutManager
@@ -163,9 +163,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 Timber.d("$index")*/
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                 if (!mediaItems.contains(song)) {
-                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
-                            songViewModel.playOrToggle(song)
-                    }
+                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList, false, song)
                 } else songViewModel.playOrToggle(song)
             }
             adapter = songAdapter

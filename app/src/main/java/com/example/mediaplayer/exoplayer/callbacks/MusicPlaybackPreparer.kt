@@ -6,7 +6,9 @@ import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.mediaplayer.exoplayer.MusicService
+import com.example.mediaplayer.exoplayer.MusicServiceConnector
 import com.example.mediaplayer.exoplayer.MusicSource
+import com.example.mediaplayer.exoplayer.currentPlaybackPosition
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_SONG
@@ -17,6 +19,7 @@ import kotlinx.coroutines.delay
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,
     private val musicService: MusicService,
+    private val musicServiceConnector: MusicServiceConnector,
     private val playerPrepared: (MediaMetadataCompat?) -> Unit,
 ) : MediaSessionConnector.PlaybackPreparer {
 
@@ -27,7 +30,9 @@ class MusicPlaybackPreparer(
         cb: ResultReceiver?,
     ): Boolean {
         when (command) {
-            UPDATE_SONG -> musicService.apply { fetchSongData() }
+            UPDATE_SONG -> {
+                musicService.fetchSongData()
+            }
             NOTIFY_CHILDREN -> {
                 musicService.resInitPlayer()
                 musicService.notifyChildrenChanged(MEDIA_ROOT_ID)

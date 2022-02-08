@@ -43,6 +43,8 @@ class MusicServiceConnector(
 
     lateinit var mediaController: MediaControllerCompat
 
+    fun isControllerInit() = this::mediaController.isInitialized
+
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
 
     private val mediaBrowser = MediaBrowserCompat(

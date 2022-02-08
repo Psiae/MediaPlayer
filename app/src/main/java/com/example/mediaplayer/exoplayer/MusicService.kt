@@ -90,7 +90,7 @@ class MusicService : MediaBrowserServiceCompat() {
             curSongDuration = exoPlayer.duration
         }
 
-        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource, this) {
+        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource, this, musicServiceConnector) {
             curPlayingSong = it
             preparePlayer(
                 musicSource.songs,
@@ -123,7 +123,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     fun fetchSongData() = serviceScope.launch { musicSource.fetchMediaData() }
 
-    private fun preparePlayer(
+    fun preparePlayer(
         songs: List<MediaMetadataCompat>,
         itemToPlay: MediaMetadataCompat?,
         playNow: Boolean

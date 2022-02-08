@@ -187,8 +187,8 @@ class PlayingFragment: Fragment() {
                         binding.mtvSubtitle.text = song.artist
                         val curIndex = binding.vpPlaying.currentItem
                         binding.vpPlaying.setCurrentItem(itemIndex,
-                            (true /*curIndex == itemIndex + 1 || curIndex == itemIndex - 1*/))
-                        glidePalette(song.imageUri)
+                            (curIndex < itemIndex + 2 && curIndex > itemIndex - 2))
+                        if (false) glidePalette(song.imageUri)
                         Timber.d("itemIndex = $itemIndex")
                     }
                 }
@@ -254,7 +254,7 @@ class PlayingFragment: Fragment() {
                         var darkVibrant =  it.getDarkVibrantColor(lightMuted)
                         var darkMuted = it.getDarkMutedColor(darkVibrant)
                         var grad = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                            intArrayOf(darkMuted, darkMuted)
+                            intArrayOf(darkMuted, darkMuted, darkMuted)
                         )
                         if (grad.colors!!.first() == default) {
                             Timber.d("grad == default")
@@ -319,6 +319,8 @@ class PlayingFragment: Fragment() {
     private fun setupView() {
 
         binding.apply {
+
+            binding.ibPlayPause.backgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.widgetBackground))
 
             ibPlayPause.setOnClickListener {
                 with(songViewModel) {

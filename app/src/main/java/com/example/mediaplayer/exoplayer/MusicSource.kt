@@ -24,6 +24,8 @@ class MusicSource (
 ) {
     var songs = emptyList<MediaMetadataCompat>()
 
+    fun getFromDB() = musicDatabase.songFromQuery
+
     suspend fun mapToSongs(songToMap: List<Song>) = withContext(Dispatchers.IO) {
         songs = songToMap.map { song ->
             MediaMetadataCompat.Builder()
