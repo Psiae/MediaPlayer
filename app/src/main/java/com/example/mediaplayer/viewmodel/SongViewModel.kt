@@ -16,6 +16,7 @@ import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Folder
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.model.data.local.MusicRepo
+import com.example.mediaplayer.util.Constants.FILTER_MODE_NONE
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_INTERVAL
@@ -82,12 +83,14 @@ class SongViewModel @Inject constructor(
     val curPlayerPosition: LiveData<Long> = _curPlayerPosition
 
     private fun updateCurrentPlayerPosition() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             while(true) {
-                val pos = playbackState.value?.currentPlaybackPosition ?: 0L
+                Timber.d("updateCurrentPlayerPos")
+                val pos = playbackState.value?.currentPlaybackPosition ?: -1L
                 if(curPlayerPosition.value != pos && MusicService.curSongDuration > -1) {
                     _curPlayerPosition.postValue(pos)
                     _curSongDuration.postValue(MusicService.curSongDuration)
+                    Timber.d("playerPosUpdated")
                 }
                 delay(UPDATE_INTERVAL)
             }
@@ -196,6 +199,8 @@ class SongViewModel @Inject constructor(
         }
     }
     private val stopwatch = Stopwatch.createUnstarted()
+
+    val filterMode = MutableLiveData(FILTER_MODE_NONE)
 
     init {
         Timber.d("SongViewModel init")
@@ -312,13 +317,18 @@ class SongViewModel @Inject constructor(
     }
 
     fun skipPrev() {
-        Timber.d("Skip Prev")
+        Timber.d("Skip Prev to")
         musicServiceConnector.transportControls.skipToPrevious()
     }
 
     fun seekTo(pos: Long){
         Timber.d("Seek To")
         musicServiceConnector.transportControls.seekTo(pos)
+    }
+
+    fun seekTo(pos: Double) {
+        Timber.d("Seek To $pos")
+        musicServiceConnector.transportControls.seekTo((MusicService.curSongDuration * pos).toLong())
     }
 
     fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {

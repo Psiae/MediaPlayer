@@ -69,7 +69,7 @@ class LibraryFragment: Fragment() {
 
         folderAdapter.setOnFolderClicked {
             songViewModel.setCurFolder(it)
-            findNavController()
+            findNavController().navigate(R.id.folderFragment)
         }
         enterTransition = MaterialFadeThrough().addTarget(view as ViewGroup).also {
             it.duration = Constants.FADETHROUGH_IN_DURATION

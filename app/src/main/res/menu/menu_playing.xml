@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:id="@+id/playingMenu">
+
         <item
             android:id="@+id/menu_details"
             android:title="@string/details"
@@ -24,6 +25,12 @@
             android:id="@+id/menu_share"
             android:title="@string/share">
         </item>
+
+        <item
+            android:id="@+id/menu_filter"
+            android:title="@string/filter"
+            app:showAsAction="never"
+            android:icon="@drawable/ic_baseline_filter_none_24"/>
     </group>
 
 </menu>

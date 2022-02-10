@@ -1,15 +1,22 @@
 package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.registerForActivityResult
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +35,8 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
+import com.example.mediaplayer.exoplayer.MusicService
+import com.example.mediaplayer.exoplayer.isPlayEnabled
 import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.DEFAULT_SCREEN
@@ -165,6 +174,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 adapter = swipeAdapter.also {
                     it.setItemListener { song ->
                         navController.navigate(R.id.playingFragment)
+                        if (song.mediaId != MusicService.curSongMediaId
+                            && songViewModel.playbackState.value?.isPlayEnabled == true)
+                                songViewModel.playOrToggle(song)
                     }
                 }
             }
@@ -197,7 +209,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun setToaster() = apply { curToast = "" }
 
     private fun getControlHeight() {
-        if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
+        lifecycleScope.launch {
+            delay(100)
+            if (getDummyHeight() != 0) songViewModel.navHeight.value = getDummyHeight()
+            else songViewModel.navHeight.value = 300
+        }
     }
 
     private fun getDummyHeight(): Int {
@@ -310,7 +326,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
-    var lastItemIndex = -1
+    var lastItemIndex = Pair(Song(), -1)
+
     private fun observePlayer() {
 
         with(songViewModel) {
@@ -328,12 +345,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                             Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
                         }
                     } else {
-                        curPlaying.value = song
-                        glideCurSong(song)
                         val itemIndex = swipeAdapter.songList.indexOf(song)
-                        if (itemIndex == lastItemIndex) return@observe
+                        if (lastItemIndex == Pair(song, itemIndex)) return@let
+                        curPlaying.value = song
+                        lastItemIndex = Pair(song, itemIndex)
+                        glideCurSong(song)
                         if (itemIndex != -1) {
-                            lastItemIndex = itemIndex
                             binding.viewPager2.setCurrentItem(itemIndex, true)
                         }
                         Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
@@ -505,6 +522,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     override fun onBackPressed() {
+        Timber.d("onBackPressed")
         if (false) {
             /*hidePlayingFragment()*/
             return
@@ -522,9 +540,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
+
+
     override fun onDestroy() {
-        super.onDestroy()
+        this.cacheDir.deleteRecursively()
+        this.externalCacheDir?.deleteRecursively()
         Timber.d("MainActivity Destroyed")
+        super.onDestroy()
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.example.mediaplayer.exoplayer.callbacks
 
 import android.app.Notification
+import android.app.NotificationChannel
 import android.content.Intent
 import android.support.v4.media.MediaBrowserCompat
 import androidx.core.content.ContextCompat
@@ -8,8 +9,10 @@ import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.exoplayer.MusicServiceConnector
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFICATION_ID
+import com.example.mediaplayer.util.VersionHelper
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import timber.log.Timber
+import java.lang.Exception
 
 class MusicPlayerNotificationListener(
     private val musicService: MusicService,
@@ -35,12 +38,15 @@ class MusicPlayerNotificationListener(
         super.onNotificationPosted(notificationId, notification, ongoing)
         musicService.apply {
             if(ongoing && !isForegroundService) {
-                ContextCompat.startForegroundService(
-                    this,
-                    Intent(applicationContext, this::class.java)
-                )
-                this.startForeground(NOTIFICATION_ID, notification)
-                isForegroundService = true
+                try {
+                    startForeground(notification)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    if (VersionHelper.isQ()) {
+                        createNotificationChannel()
+                        startForeground(notification)
+                    }
+                }
             }
         }
     }

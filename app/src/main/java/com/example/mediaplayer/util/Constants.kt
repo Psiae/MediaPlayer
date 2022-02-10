@@ -24,6 +24,15 @@ object Constants {
     const val FADETHROUGH_IN_DURATION = 600L
     const val  FADETHROUGH_OUT_DURATION = 300L
 
+    const val FILTER_MODE_NONE = "FILTER_MODE_NONE"
+    const val FILTER_MODE_BACKGROUND = "FILTER_MODE_BACKGROUND"
+    const val FILTER_MODE_PALETTE = "FILTER_MODE_PALETTE"
+    const val FILTER_MODE_BLUR = "FILTER_MODE_BLUR"
+
+
+    const val LIST_MODE_DEFAULT = "LIST_MODE_DEFAULT"
+    const val LIST_MODE_LOOP = "LIST_MODE_LOOP"
+
     // Music Service
     const val MEDIA_ROOT_ID = "Kylentt_root_id"
     const val MUSIC_SERVICE = "MEDIA_PLAYER"
@@ -58,5 +67,5 @@ object Constants {
     const val ARTIST = "ARTIST"
     const val ALBUM = "ALBUM"
 
-    const val UPDATE_INTERVAL = 250L
+    const val UPDATE_INTERVAL = 300L
 }

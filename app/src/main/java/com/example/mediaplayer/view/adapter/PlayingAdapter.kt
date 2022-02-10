@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ItemPlayingBinding
@@ -20,10 +21,16 @@ class PlayingAdapter(
 
     val differ = AsyncListDiffer(this, diffSongCallback)
 
-    var songList: List<Song>
+    var songList: MutableList<Song>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct()
+            val submit = run {
+                val first = value.first()
+                val last = value.last()
+                value.add(0, last)
+                value.add(first)
+                value
+            }
             differ.submitList(submit)
         }
 

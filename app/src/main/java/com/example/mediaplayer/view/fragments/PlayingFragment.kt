@@ -1,46 +1,56 @@
 package com.example.mediaplayer.view.fragments
 
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.util.Property
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.SeekBar
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.target.ImageViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentPlayingBinding
+import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.exoplayer.isPlaying
+import com.example.mediaplayer.model.data.entities.Song
+import com.example.mediaplayer.util.Constants.FILTER_MODE_BACKGROUND
+import com.example.mediaplayer.util.Constants.FILTER_MODE_BLUR
+import com.example.mediaplayer.util.Constants.FILTER_MODE_NONE
+import com.example.mediaplayer.util.Constants.FILTER_MODE_PALETTE
 import com.example.mediaplayer.util.Constants.REPEAT_MODE_ALL_INT
 import com.example.mediaplayer.util.Constants.REPEAT_MODE_OFF_INT
 import com.example.mediaplayer.util.Constants.REPEAT_MODE_ONE_INT
 import com.example.mediaplayer.util.ext.toast
-import com.example.mediaplayer.view.activity.MainActivity
 import com.example.mediaplayer.view.adapter.PlayingAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
 import com.google.android.exoplayer2.Player
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
+import jp.wasabeef.glide.transformations.BlurTransformation
+import jp.wasabeef.glide.transformations.gpu.VignetteFilterTransformation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -51,6 +61,8 @@ import javax.inject.Named
 
 @AndroidEntryPoint
 class PlayingFragment: Fragment() {
+
+
 
     @Inject
     @Named("playingAdapterNS")
@@ -74,10 +86,29 @@ class PlayingFragment: Fragment() {
         return binding.root
     }
 
+    lateinit var sbAnim: ObjectAnimator
+    val sbAnimListener = object : Animator.AnimatorListener {
+        override fun onAnimationStart(animation: Animator?) {
+            Timber.d("animationStart")
+            updateSeekbar = false
+        }
+
+        override fun onAnimationEnd(animation: Animator?) {
+            updateSeekbar = true
+        }
+
+        override fun onAnimationCancel(animation: Animator?) {
+
+        }
+
+        override fun onAnimationRepeat(animation: Animator?) = Unit
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupView()
         setupRecyclerView()
+
         setupObserver()
 
         enterTransition = Slide()
@@ -85,50 +116,53 @@ class PlayingFragment: Fragment() {
     }
 
     var init = true
+    var infMode = false
+    var lastIndex = -1
+    var playingSongList = listOf<Song>()
+    var selectedSong: Song = Song()
 
     private val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
-            super.onPageSelected(position)
 
             Timber.d("changeCallback pos: $position")
-            if (init ) {
+
+            if (lastIndex == position) return
+            lastIndex = position
+
+            if (init) {
                 lifecycleScope.launch {
-                    delay(500)
+                    delay(250)
                     init = false
                 }
+                Timber.d("init Block")
                 return
             }
+            sbAnim = ObjectAnimator.ofInt(binding.sbPlaying, Property.of(SeekBar::class.java, Int::class.java, "progress"), 0).also {
+                it.duration = 500
+                it.interpolator = DecelerateInterpolator()
+                it.addListener(sbAnimListener)
+            }
+
+            if (this@PlayingFragment::sbAnim.isInitialized) {
+                sbAnim.setAutoCancel(true)
+                sbAnim.start()
+            }
+
+            super.onPageSelected(position)
+            Timber.d("passed pos: $position")
 
             with(songViewModel) {
-
                 try {
                     playOrToggle(playingAdapter.songList[position])
                 } catch (e: Exception) {
                     Timber.e(e)
                 }
-
-
-                /*if (playbackState.value?.isPlaying == true) {
-                    Timber.d("changed to $position")
-                    try {
-                        playOrToggle(playingAdapter.songList[position])
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
-                } else {
-                    Timber.d("pos $position")
-                    try {
-                        curPlaying.value = playingAdapter.songList[position]
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
-                }*/
             }
         }
     }
 
     var updateSeekbar = true
-    var playingPos = 0
+    var playingPos = -1
 
     private fun setupRecyclerView() {
 
@@ -138,21 +172,31 @@ class PlayingFragment: Fragment() {
                 this.adapter = playingAdapter.also { it ->
                     unregisterOnPageChangeCallback(pagerCallback)
                     registerOnPageChangeCallback(pagerCallback)
-                    it.setClickListener { song ->
-                        toast(requireContext(), song.title)
+                    it.setClickListener { _ ->
+                        with(songViewModel) {
+                            when (modeFilter) {
+                                FILTER_MODE_NONE -> filterMode.value = FILTER_MODE_BACKGROUND
+                                FILTER_MODE_BACKGROUND -> filterMode.value = FILTER_MODE_PALETTE
+                                FILTER_MODE_PALETTE -> filterMode.value = FILTER_MODE_BLUR
+                                FILTER_MODE_BLUR -> filterMode.value = FILTER_MODE_NONE
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
+    var enableSeekbar = true
+    var modeFilter = FILTER_MODE_NONE
+
     private fun setupObserver() {
 
         Timber.d("PlayingFragment setupObserver")
 
         lifecycleScope.launch {
-            delay(200)
-            if (playingPos > 0) {
+            delay(300)
+            if (playingPos > -1) {
                 binding.sbPlaying.progress = playingPos
             } else {
                 Timber.d("MtvSet 0, $playingPos")
@@ -160,7 +204,7 @@ class PlayingFragment: Fragment() {
                 try {
                     setMtvDuration(playingAdapter.songList[binding.vpPlaying.currentItem].length)
                 } catch (e: Exception) {
-                    if (e is IndexOutOfBoundsException) setMtvDuration(playingAdapter.songList[0].length)
+                    if (e is IndexOutOfBoundsException) setMtvDuration(playingAdapter.songList[1].length)
                 }
             }
         }
@@ -171,7 +215,9 @@ class PlayingFragment: Fragment() {
             }
 
             curPlayerPosition.observe(viewLifecycleOwner) { pos ->
-                if (updateSeekbar) {
+                if (updateSeekbar
+                    && MusicService.curSongMediaId
+                    == curPlaying.value?.mediaId) {
                     binding.sbPlaying.progress = pos.toInt()
                     playingPos = pos.toInt()
                     setMtvCurrent(pos)
@@ -179,22 +225,42 @@ class PlayingFragment: Fragment() {
             }
 
             curSongDuration.observe(viewLifecycleOwner) { dur ->
+                Timber.d("curSongDuration $dur")
                 binding.sbPlaying.max = dur.toInt()
                 setMtvDuration(dur)
             }
 
+            curPlaying.observe(viewLifecycleOwner) {
+                selectedSong = it
+            }
+
+            var lastSong = Song()
+
             lifecycleScope.launch {
                 delay(50)
                 curPlaying.observe(viewLifecycleOwner) { song ->
-                    val itemIndex = playingAdapter.songList.indexOf(song)
-                    if (itemIndex != -1) {
-                        binding.mtvTitle.text = song.title
-                        binding.mtvSubtitle.text = song.artist
-                        val curIndex = binding.vpPlaying.currentItem
-                        binding.vpPlaying.setCurrentItem(itemIndex,
-                            (curIndex < itemIndex + 2 && curIndex > itemIndex - 2))
-                        if (true) glidePalette(song.imageUri)
-                        Timber.d("itemIndex = $itemIndex")
+                    if (lastSong == song) return@observe
+                    lastSong = song
+
+                    val filtered = when (val itemIndex = playingAdapter.songList.indexOf(song)) {
+                        0 -> playingAdapter.songList.size - 2
+                        playingAdapter.songList.lastIndex -> { 1 }
+                        else -> itemIndex
+                    }
+
+                    if (filtered != -1) {
+                        with(binding) {
+                            mtvTitle.text = song.title
+                            mtvSubtitle.text = song.artist
+                            val curIndex = vpPlaying.currentItem
+                            vpPlaying.setCurrentItem(filtered,
+                                (curIndex < filtered + 2 && curIndex > filtered - 2 &&
+                                        !(curIndex == 0 || curIndex == playingAdapter.songList.lastIndex))
+                            )
+                        }
+
+                        glideBackground(song.imageUri)
+                        Timber.d("itemIndex = $filtered")
                     }
                 }
             }
@@ -204,6 +270,17 @@ class PlayingFragment: Fragment() {
                     if (it?.isPlaying == true) R.drawable.ic_pause_30_widget
                     else R.drawable.ic_play_30_widget
                 )
+            }
+
+            filterMode.observe(viewLifecycleOwner) {
+                modeFilter = it
+                /*binding.tbLib.menu.getItem(0).setIcon(when (it) {
+                    FILTER_MODE_BACKGROUND -> R.drawable.ic_baseline_filter_image_24
+                    FILTER_MODE_PALETTE -> R.drawable.ic_baseline_filter_1_24
+                    FILTER_MODE_BLUR -> R.drawable.ic_baseline_filter_2_24
+                    else -> R.drawable.ic_baseline_filter_none_24
+                })*/
+                glideBackground(selectedSong.imageUri)
             }
 
             repeatState.observe(viewLifecycleOwner) {
@@ -233,19 +310,100 @@ class PlayingFragment: Fragment() {
     }
 
     private fun glideBackground(uri: String) {
-        glide.asDrawable().load(uri).into(object : CustomTarget<Drawable>() {
-            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                binding.nsvHome.background = resource.also { it.alpha = 150 }
+        when (songViewModel.filterMode.value) {
+            FILTER_MODE_NONE -> defaultBackground()
+            FILTER_MODE_BACKGROUND -> glideVignette(uri)
+            FILTER_MODE_BLUR -> glideBlur(uri)
+            FILTER_MODE_PALETTE -> glidePalette(uri)
+        }
+    }
+
+    private fun defaultBackground() {
+        val default = requireContext().getColor(R.color.widgetBackground)
+        with(binding) {
+            crlHome.background = null
+            nsvHome.background = null
+            imageView2.setImageResource(0)
+            binding.ibPlayPause.backgroundTintList =
+                ColorStateList.valueOf(requireContext().getColor(R.color.white))
+            activity?.window?.navigationBarColor = default
+            activity?.window?.statusBarColor = default
+            binding.tbLib.setBackgroundColor(default)
+        }
+    }
+
+    private fun glideVignette(uri: String) {
+        Timber.d("uri: $uri")
+        lifecycleScope.launch {
+            val default = requireContext().getColor(R.color.widgetBackgroundD)
+            val white = requireContext().getColor(R.color.white)
+            val multi = if (default == white) MultiTransformation(
+                CenterCrop()
+            ) else MultiTransformation(
+                VignetteFilterTransformation(),
+                CenterCrop()
+            )
+            if (default == white) {
+                binding.imageView2.setColorFilter(requireContext().getColor(R.color.transparent))
+                binding.imageView2.alpha = 0.1f
+            } else {
+                binding.imageView2.setColorFilter(requireContext().getColor(R.color.bitDarker))
+                binding.imageView2.alpha = 1f
             }
-            override fun onLoadCleared(placeholder: Drawable?) = Unit
-        })
+
+            glide.asBitmap()
+                .load(uri)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                .apply(RequestOptions.bitmapTransform(multi))
+                .transition(BitmapTransitionOptions.withCrossFade())
+                .into(binding.imageView2)
+        }
+        binding.nsvHome.background = null
+        binding.tbLib.background = null
+        binding.ibPlayPause.backgroundTintList =
+            ColorStateList.valueOf(requireContext().getColor(R.color.white))
+        binding.ibPlayPause.rippleColor = requireContext().getColor(R.color.ibRipple)
+        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.transparent)
+    }
+
+    private fun glideBlur(uri: String) {
+        Timber.d("uri: $uri")
+        lifecycleScope.launch {
+            val default = requireContext().getColor(R.color.widgetBackgroundD)
+            val white = requireContext().getColor(R.color.white)
+            val multi = if (default == white) MultiTransformation(
+                BlurTransformation(40, 5),
+                CenterCrop()
+            ) else MultiTransformation(
+                BlurTransformation(40, 5),
+                CenterCrop()
+            )
+            if (default == white) {
+                binding.imageView2.setColorFilter(requireContext().getColor(R.color.transparent))
+                binding.imageView2.alpha = 0.1f
+            } else {
+                binding.imageView2.setColorFilter(requireContext().getColor(R.color.bitDarker))
+                binding.imageView2.alpha = 1f
+            }
+            glide.asBitmap()
+                .load(uri)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                .apply(RequestOptions.bitmapTransform(multi))
+                .transition(BitmapTransitionOptions.withCrossFade())
+                .into(binding.imageView2)
+        }
+        binding.nsvHome.background = null
+        binding.ibPlayPause.backgroundTintList =
+            ColorStateList.valueOf(requireContext().getColor(R.color.white))
+        binding.ibPlayPause.rippleColor = requireContext().getColor(R.color.ibRipple)
+        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.transparent)
     }
 
     private fun glidePalette(uri: String) {
         Timber.d("uri: $uri")
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch  {
             glide.asBitmap()
-                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .load(uri)
                 .into(object : CustomTarget<Bitmap>() {
                     @RequiresApi(Build.VERSION_CODES.N)
@@ -272,6 +430,7 @@ class PlayingFragment: Fragment() {
                                         palettes, palettes, palettes, palettes, palettes,
                                         palettes, palettes, palettes, palettes, palettes
                                     )
+                                    binding.ibPlayPause.setRippleColor(ColorStateList.valueOf(palettes))
 
                                     GradientDrawable(
                                         GradientDrawable.Orientation.TOP_BOTTOM, lightArray
@@ -280,15 +439,16 @@ class PlayingFragment: Fragment() {
                                 } else {
 
                                     val vibrant = it.getVibrantColor(default)
-                                    val muted = it.getMutedColor(vibrant)
-                                    val dominant = it.getDominantColor(muted)
-                                    val darkMuted = it.getDarkMutedColor(dominant)
+                                    val dominant = it.getDominantColor(vibrant)
+                                    val muted = it.getMutedColor(dominant)
+                                    val darkMuted = it.getDarkMutedColor(muted)
 
                                     val palettes = dominant
                                     val darkArray = intArrayOf(
                                         darkMuted, darkMuted, darkMuted, palettes, palettes,
                                         palettes, palettes, palettes, palettes, palettes
                                     )
+                                    binding.ibPlayPause.setRippleColor(ColorStateList.valueOf(palettes))
 
                                     GradientDrawable(
                                         GradientDrawable.Orientation.TOP_BOTTOM, darkArray
@@ -304,10 +464,13 @@ class PlayingFragment: Fragment() {
                                 binding.tbLib.setBackgroundColor(default)
                             }
                         }
+
+
                     }
 
                     override fun onLoadCleared(placeholder: Drawable?) = Unit
                     override fun onLoadFailed(errorDrawable: Drawable?) {
+                        if (selectedSong.imageUri != uri) return
                         val default = requireContext().getColor(R.color.widgetBackground)
                         binding.crlHome.background = null
                         binding.nsvHome.background = null
@@ -350,6 +513,7 @@ class PlayingFragment: Fragment() {
                 }
             }
 
+
             sbPlaying.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
@@ -362,12 +526,13 @@ class PlayingFragment: Fragment() {
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    if (this@PlayingFragment::sbAnim.isInitialized) sbAnim.cancel()
                     updateSeekbar = false
                 }
 
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     seekBar?.let {
-                        songViewModel.seekTo(it.progress.toLong())
+                        songViewModel.seekTo(it.progress.toDouble() / it.max.toDouble())
                         updateSeekbar = true
                     }
                 }
@@ -389,25 +554,31 @@ class PlayingFragment: Fragment() {
             }
             ibFavorite.setOnClickListener { toast(requireContext(), "Coming Soon") }
 
-
             tbLib.apply {
                 setNavigationOnClickListener {
                     findNavController().popBackStack()
                 }
+                setOnMenuItemClickListener { menu ->
+                    when (menu.itemId) {
+                        R.id.menu_filter -> {
+                            with(songViewModel) {
+                                when (modeFilter) {
+                                    FILTER_MODE_NONE -> filterMode.value = FILTER_MODE_BACKGROUND
+                                    FILTER_MODE_BACKGROUND -> filterMode.value = FILTER_MODE_PALETTE
+                                    FILTER_MODE_PALETTE -> filterMode.value = FILTER_MODE_BLUR
+                                    FILTER_MODE_BLUR -> filterMode.value = FILTER_MODE_NONE
+                                }
+                                true
+                            }
+                        }
+                        else -> {
+                            toast(requireContext(), "Coming Soon!")
+                            false
+                        }
+                    }
+                }
             }
         }
-    }
-
-    fun hideFragment() {
-        val activity = activity as MainActivity
-    }
-
-    fun makePalette(bitmap: Bitmap) {
-    }
-
-
-    override fun onDestroyView() {
-        super.onDestroyView()
     }
 
     override fun onDestroy() {

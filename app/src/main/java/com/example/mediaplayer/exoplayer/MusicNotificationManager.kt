@@ -10,7 +10,6 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
-import androidx.core.app.NotificationCompat.getAction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -90,16 +89,21 @@ class MusicNotificationManager(
         return actionList
     }
 
-    val notifActionRepeatOff = NotificationCompat.Action(R.drawable.exo_media_action_repeat_off, "OFF",
-        PendingIntent.getBroadcast(context, 123, Intent(REPEAT_SONG_OFF).setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    val notifActionRepeatOff = NotificationCompat.Action(
+        R.drawable.exo_media_action_repeat_off,
+        "OFF",
+        PendingIntent
+            .getBroadcast(context, 123, Intent(REPEAT_SONG_OFF)
+                .setPackage(context.packageName),
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     )
 
     val notifActionRepeatOnce = NotificationCompat.Action(R.drawable.exo_media_action_repeat_one, "ONE",
-        PendingIntent.getBroadcast(context, 456, Intent(REPEAT_SONG_ONCE).setPackage(context.packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        PendingIntent.getBroadcast(context, 456, Intent(REPEAT_SONG_ONCE).setPackage(context.packageName), PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     )
 
     val notifActionRepeatAll = NotificationCompat.Action(R.drawable.exo_media_action_repeat_all, "ALL",
-        PendingIntent.getBroadcast(context, 311, Intent(REPEAT_SONG_ALL).setPackage(context.packageName),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        PendingIntent.getBroadcast(context, 311, Intent(REPEAT_SONG_ALL).setPackage(context.packageName),PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     )
 
     private val myReceiver = object : PlayerNotificationManager.CustomActionReceiver {
@@ -168,7 +172,7 @@ class MusicNotificationManager(
         ): MutableMap<String, NotificationCompat.Action> {
             return mutableMapOf(Pair("TEST",
                 NotificationCompat.Action(R.drawable.exo_icon_stop, "Stop",
-                    PendingIntent.getBroadcast(context, 123, Intent("TEST").setPackage(context?.packageName), PendingIntent.FLAG_CANCEL_CURRENT)
+                    PendingIntent.getBroadcast(context, 123, Intent("TEST").setPackage(context?.packageName), PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
             ))
         }

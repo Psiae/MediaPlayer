@@ -30,12 +30,12 @@ class MusicPlayerEventListener(
         with(musicService) {
             this.musicServiceConnector.updateRepeatState(repeatMode)
             when (repeatMode) {
-                Player.REPEAT_MODE_OFF ->
-                    toast(this, "Repeat Off", short = true, blockable = false)
-                Player.REPEAT_MODE_ONE ->
-                    toast(this, "Repeat This Song", short = true, blockable = false)
-                Player.REPEAT_MODE_ALL ->
-                    toast(this, "Repeat All Song", short = true, blockable = false)
+                Player.REPEAT_MODE_OFF -> Unit
+//                    toast(this, "Repeat Off", short = true, blockable = false)
+                Player.REPEAT_MODE_ONE -> Unit
+//                    toast(this, "Repeat This Song", short = true, blockable = false)
+                Player.REPEAT_MODE_ALL -> Unit
+//                    toast(this, "Repeat All Song", short = true, blockable = false)
                 else -> Unit
             }
         }
@@ -43,7 +43,12 @@ class MusicPlayerEventListener(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-        musicService.exoPlayer.removeMediaItem(musicService.exoPlayer.currentMediaItemIndex)
+        try {
+            musicService.exoPlayer.removeMediaItem(musicService.exoPlayer.currentMediaItemIndex)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         Toast.makeText(musicService, "An unknown error occurred", Toast.LENGTH_LONG).show()
     }
 }

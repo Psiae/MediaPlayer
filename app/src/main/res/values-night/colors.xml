@@ -9,6 +9,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="ibRipple">@color/bitDarker</color>
+
     <color name="transparent">#00000000</color>
     <color name="mediumDarkBackground">#303030</color>
     <color name="darkBackground">#202020</color>

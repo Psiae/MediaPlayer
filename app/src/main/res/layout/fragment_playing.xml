@@ -10,6 +10,13 @@
     android:elevation="0dp"
     android:fitsSystemWindows="false">
 
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imageView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        tools:srcCompat="@tools:sample/avatars" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/ablHome"
         android:background="@color/transparent"
@@ -52,12 +59,13 @@
         android:id="@+id/nsvHome"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cslHomeNested"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:background="@color/transparent">
 
             <androidx.viewpager2.widget.ViewPager2
@@ -177,6 +185,7 @@
                 app:fabCustomSize="60dp"
                 android:elevation="5dp"
                 app:elevation="5dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/vpPlaying"
                 app:layout_constraintStart_toStartOf="@+id/vpPlaying"

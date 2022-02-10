@@ -20,7 +20,7 @@ class SwipeAdapter @Inject constructor(
     var songList : List<Song>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct()
+            val submit = value
             differ.submitList(submit)
         }
 
