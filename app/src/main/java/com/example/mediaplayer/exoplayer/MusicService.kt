@@ -71,7 +71,14 @@ class MusicService : MediaBrowserServiceCompat() {
 
     companion object {
         var playNow = true
+        var preparing = false
         var songToPlay: Song? = null
+        var seekToPos: Long? = null
+        var shouldPlay: Boolean? = null
+            set(value) {
+                Timber.d("shouldPlay set $value")
+                field = value
+            }
         var curSongDuration = 0L
             private set
         var curSongMediaId = 0L
@@ -115,7 +122,9 @@ class MusicService : MediaBrowserServiceCompat() {
             preparePlayer(
                 musicSource.songs,
                 it,
-                playNow
+                playNow,
+                "musicPlaybackPreparer",
+                false
             )
         }
 
@@ -163,17 +172,43 @@ class MusicService : MediaBrowserServiceCompat() {
     fun preparePlayer(
         songs: List<MediaMetadataCompat>,
         itemToPlay: MediaMetadataCompat?,
-        playNow: Boolean
+        playNow: Boolean,
+        caller: String,
+        force: Boolean
     ) {
         serviceScope.launch {
-            val toplay = musicSource.songs.find { it.description.mediaId == songToPlay?.mediaId.toString()} ?: itemToPlay
+            if (preparing && !force) return@launch
+            preparing = true
+
+            val play = shouldPlay ?: playNow
+            val toplay = songs.find { it.description.mediaId == songToPlay?.mediaId.toString()} ?: itemToPlay
+
             try {
                 val curSongIndex = if (curPlayingSong == null) 0
                 else songs.indexOf(toplay)
-                exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory))
-                exoPlayer.prepare()
-                exoPlayer.seekTo(curSongIndex, 0L)
-                exoPlayer.playWhenReady = playNow
+
+                with(exoPlayer) {
+                    setMediaSource(musicSource.asMediaSource(dataSourceFactory))
+                    prepare()
+                    if (songs[curSongIndex].description.mediaId != toplay?.description?.mediaId) {
+                        Timber.d("song at mediaId index != toPlay mediaId")
+                        seekToPos = null
+                        songToPlay = null
+                        preparing = false
+                        preparePlayer(musicSource.songs, itemToPlay, playNow, caller, force)
+                        return@launch
+                    }
+                    seekTo(curSongIndex, seekToPos ?: 0)
+                    playWhenReady = play
+                }
+
+                Timber.d("preparePlayer, ${toplay?.description?.title} $curSongIndex $seekToPos $play ? $shouldPlay $caller")
+
+                shouldPlay = null
+                seekToPos = null
+                songToPlay = null
+                preparing = false
+
             } catch (e: Exception) {
                 Timber.e(e)
                 toast(this@MusicService, "Unable to Prepare ExoPlayer", false, blockable = false)
@@ -222,7 +257,7 @@ class MusicService : MediaBrowserServiceCompat() {
                             if (isInitialized) {
                                 Timber.d("sendResult")
                                 if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                                    preparePlayer(musicSource.songs, musicSource.songs[0], false)
+                                    preparePlayer(musicSource.songs, musicSource.songs[0], false, "onLoadChildren", true)
                                     isPlayerInitialized = true
                                 }
                                 if (sendResult) {

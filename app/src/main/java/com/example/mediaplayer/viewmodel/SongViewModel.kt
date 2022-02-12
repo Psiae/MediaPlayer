@@ -211,7 +211,15 @@ class SongViewModel @Inject constructor(
 
     var lastFilter = ""
 
-    fun sendCommand(command: String, param: Bundle?, callback: (() -> Unit)?, extra: String, songs: List<Song>, force: Boolean = false, playToggle: Song? = null) {
+    fun sendCommand(
+        command: String,
+        param: Bundle?,
+        extra: String,
+        songs: List<Song>,
+        force: Boolean = false,
+        playToggle: Boolean? = false,
+        callback: (() -> Unit)?
+    ) {
         if (!stopwatch.isRunning || force) {
             if (!force) stopwatch.start()
             Timber.d("sendCommand")
@@ -231,10 +239,11 @@ class SongViewModel @Inject constructor(
                     lastFilter = ""
                     songList
                 }
-
+                if (callback != null) callback() else Timber.d("sendCommand is Null")
                 musicSource.mapToSongs(filtered)
+                _mediaItems.value = filtered.toMutableList()
                 musicServiceConnector.sendCommand(command, param, callback)
-                delay(300)
+                delay(200)
                 stopwatch.reset()
             }
         } else {
@@ -278,46 +287,43 @@ class SongViewModel @Inject constructor(
             }
             if (oldList != newList) {
                 Timber.d("oldList != newList")
+                MusicService.preparing = true
                 val lastPlayingIndex = MusicService.lastItemIndex
                 val lastPlayingMediaId = MusicService.curSongMediaId
                 val lastPlayingPosition = curPlayerPosition.value
                 val isPlaying = playbackState.value?.isPlaying
                 val item = newList.find { it.mediaId == lastPlayingMediaId }
+                Timber.d("isPlaying $isPlaying")
                 if (musicServiceConnector.isControllerInit()) {
-                    if (oldList.size != source.size) {
-                        sendCommand(NOTIFY_CHILDREN, null, null, lastFilter, newList, true)
-                    } else sendCommand(NOTIFY_CHILDREN, null, null, "", newList, true)
-
-                    viewModelScope.launch {
-                        delay(200)
-                        try {
-                            val item = newList.find { it.mediaId == lastPlayingMediaId }
-                            item?.let {
-                                playFromMediaId(item)
-                                Timber.d(" isPlaying $isPlaying")
-                                delay(700)
-                                if (curPlaying.value == item) {
-                                    seekTo(lastPlayingPosition ?: 0)
-
-                                    if (isPlaying == false && curPlaying.value == item) {
-                                        Timber.d("paused Music")
-                                        musicServiceConnector.transportControls.pause()
-                                    } else musicServiceConnector.transportControls.play()
-                                }
-
-                            } ?: run {
-                                if (lastPlayingIndex < newList.size) {
-                                    val item = newList[lastPlayingIndex]
-                                    playFromMediaId(item)
-                                    delay(500)
-                                    if (isPlaying == false && curPlaying.value == item)
-                                        musicServiceConnector.transportControls.pause()
-                                    else musicServiceConnector.transportControls.play()
-                                }
+                    playToggleEnabled = false
+                    item?.let { sendCommand(NOTIFY_CHILDREN, null,
+                        lastFilter, newList, true, null, callback = {
+                            Timber.d("shouldPlay newList $isPlaying")
+                            MusicService.songToPlay = item
+                            MusicService.seekToPos = lastPlayingPosition
+                            MusicService.shouldPlay = isPlaying
+                            playToggleEnabled = true
+                        })
+                    } ?: if (lastPlayingIndex < newList.size) {
+                        sendCommand(NOTIFY_CHILDREN, null,
+                            lastFilter, newList, true, null, callback = {
+                                Timber.d("shouldPlay newList $isPlaying")
+                                MusicService.songToPlay = newList[lastPlayingIndex]
+                                MusicService.seekToPos = null
+                                MusicService.shouldPlay = isPlaying
+                                playToggleEnabled = true
                             }
-                        } catch (e : Exception) {
-                            e.printStackTrace()
-                        }
+                        )
+                    } else if (newList.isNotEmpty()) {
+                        sendCommand(NOTIFY_CHILDREN, null,
+                            lastFilter, newList, true, null, callback = {
+                                Timber.d("shouldPlay newList $isPlaying")
+                                MusicService.songToPlay = newList[newList.lastIndex]
+                                MusicService.seekToPos = null
+                                MusicService.shouldPlay = isPlaying
+                                playToggleEnabled = true
+                            }
+                        )
                     }
                 }
             }
@@ -369,8 +375,8 @@ class SongViewModel @Inject constructor(
 
     var playToggleEnabled = true
 
-    fun playOrToggle(mediaItem: Song, toggle: Boolean = false, callback: (() -> Unit)? = null) {
-        Timber.d("Play or Toggle: ${mediaItem.title}")
+    fun playOrToggle(mediaItem: Song, toggle: Boolean = false, caller: String) {
+        Timber.d("Play or Toggle: ${mediaItem.title}, caller: $caller")
         if (!playToggleEnabled) return
         val isPrepared = playbackState.value?.isPrepared ?: false
         try {

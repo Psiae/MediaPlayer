@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
+import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.view.adapter.FolderAdapter
@@ -79,13 +80,10 @@ class FolderFragment: Fragment() {
                     it.setItemClickListener { song ->
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
-                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, null, "", observedSongList).also {
-                                lifecycleScope.launch {
-                                    delay(100)
-                                    songViewModel.playOrToggle(song)
-                                }
+                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, "", observedSongList, false, true) {
+                                MusicService.songToPlay = song
                             }
-                        } else songViewModel.playOrToggle(song)
+                        } else songViewModel.playOrToggle(song, false, "FolderFragment ClickListener")
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext())

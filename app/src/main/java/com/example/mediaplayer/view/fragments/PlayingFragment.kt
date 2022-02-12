@@ -153,7 +153,7 @@ class PlayingFragment: Fragment() {
 
             with(songViewModel) {
                 try {
-                    playOrToggle(playingAdapter.songList[position])
+                    playOrToggle(playingAdapter.songList[position], false, "PlayingFragment PagerCallback")
                 } catch (e: Exception) {
                     Timber.e(e)
                 }
@@ -510,14 +510,13 @@ class PlayingFragment: Fragment() {
                 with(songViewModel) {
                     curPlaying.value?.let {
                         if (curPlaying.value?.mediaId ?: 0 != currentlyPlaying.value?.mediaId ?: 1) {
-                            playOrToggle(it, true).also { seekTo(sbPlaying.progress.toLong()) }
+                            playOrToggle(it, true, "PlayingFragment curPlaying Observer").also { seekTo(sbPlaying.progress.toLong()) }
                             return@setOnClickListener
                         }
-                        playOrToggle(it, true)
+                        playOrToggle(it, true, "PlayingFragment playpause")
                     }
                 }
             }
-
 
             sbPlaying.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
@@ -545,14 +544,14 @@ class PlayingFragment: Fragment() {
 
             ibPrev.setOnClickListener {
                 if (songViewModel.checkQueue().isEmpty()) {
-                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem - 1])
+                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem - 1], false, "ibPrev no queue")
                     return@setOnClickListener
                 }
                 songViewModel.skipPrev()
             }
             ibNext.setOnClickListener {
                 if (songViewModel.checkQueue().isEmpty()) {
-                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem + 1])
+                    songViewModel.playOrToggle(playingAdapter.songList[vpPlaying.currentItem + 1], false, "ibPrev no queue")
                     return@setOnClickListener
                 }
                 songViewModel.skipNext()

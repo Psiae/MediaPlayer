@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
+import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FADETHROUGH_IN_DURATION
 import com.example.mediaplayer.util.Constants.FADETHROUGH_OUT_DURATION
@@ -163,8 +164,11 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                 Timber.d("$index")*/
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                 if (mediaItems.size < songViewModel.getFromDB().size) {
-                    songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList, false, song)
-                } else songViewModel.playOrToggle(song)
+                    songViewModel.sendCommand(NOTIFY_CHILDREN, null,"", observedSongList, false) {
+                        MusicService.songToPlay = song
+                        MusicService.shouldPlay = true
+                    }
+                } else songViewModel.playOrToggle(song, false, caller = "SongFragment clickListener")
             }
             adapter = songAdapter
             layoutManager = GridLayoutManager(requireContext(),
@@ -176,9 +180,10 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         lifecycleScope.launch {
-            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", songAdapter.songList, false)
-            delay(150)
-            songViewModel.playOrToggle(songAdapter.songList[0])
+            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  "", songAdapter.songList, false ) {
+                MusicService.songToPlay = songAdapter.songList[0]
+                MusicService.shouldPlay = true
+            }
         }
 
         return false

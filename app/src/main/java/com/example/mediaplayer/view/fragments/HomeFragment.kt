@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentHomeBinding
+import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Song
@@ -117,12 +118,12 @@ class HomeFragment : Fragment() {
                         val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                         if (!mediaItems.contains(song)) {
                             lifecycleScope.launch {
-                                songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, "", observedSongList).also {
-                                    delay(150)
-                                        songViewModel.playOrToggle(song)
+                                songViewModel.sendCommand(NOTIFY_CHILDREN, null,  "", observedSongList) {
+                                    MusicService.songToPlay = song
+                                    MusicService.shouldPlay = true
                                 }
                             }
-                        } else songViewModel.playOrToggle(song)
+                        } else songViewModel.playOrToggle(song, false, "HomeFragment SuggestClick")
                     }
                     it.differ.addListListener(suggestListener)
                 }
@@ -138,8 +139,9 @@ class HomeFragment : Fragment() {
                             Timber.d("observedSongList isNullOrEmpty")
                             songViewModel.updateMusicDB()
                         } else {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, album.name, observedSongList)
-                            Timber.d("${album.name}")
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  album.name, observedSongList) {
+                                MusicService.shouldPlay = false
+                            }
                         }
                     }
                 }
@@ -155,8 +157,9 @@ class HomeFragment : Fragment() {
                             Timber.d("songList is NullOrEmpty")
                             songViewModel.updateMusicDB()
                         } else {
-                                songViewModel.sendCommand(NOTIFY_CHILDREN, null, null, artist.name, observedSongList)
-                            Timber.d("${artist.name}")
+                            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  artist.name, observedSongList) {
+                                MusicService.shouldPlay = false
+                            }
                         }
                     }
                 }
