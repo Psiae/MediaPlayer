@@ -174,21 +174,20 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 adapter = swipeAdapter.also {
                     it.setItemListener { song ->
                         navController.navigate(R.id.playingFragment)
-                        if (song.mediaId != MusicService.curSongMediaId
-                            && songViewModel.playbackState.value?.isPlayEnabled == true)
-                                songViewModel.playOrToggle(song)
+                        if (song.mediaId != MusicService.curSongMediaId) {
+                            songViewModel.playOrToggle(song).also {
+                                lifecycleScope.launch {
+                                    while (song.mediaId != MusicService.curSongMediaId
+                                        && songViewModel.playbackState.value?.isPlaying == false){
+                                        delay(200)
+                                        songViewModel.pause()
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-
-            /*lifecycleScope.launch {
-                while (true) {
-                    delay(500)
-                    with (binding.sbSeekbar) {
-                        progress = ((player.currentPosition * 100) / player.duration).toInt()
-                    }
-                }
-            }*/
         }
     }
 /*
@@ -227,7 +226,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun getClpHeight(): Int {
         return binding.clPager.measuredHeight
     }
-
 
     fun setControl(controlMode: String) {
 
@@ -335,22 +333,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             currentlyPlaying.observe(this@MainActivity) { song ->
                 song?.let {
                     if (swipeAdapter.songList.isEmpty()) {
-                        lifecycleScope.launch {
-                            updateMusicDB()
-                            delay(100)
-                            curPlaying.value = song
-                            glideCurSong(song)
-                            val itemIndex = swipeAdapter.songList.indexOf(song)
-                            if (itemIndex != -1) binding.viewPager2.currentItem = itemIndex
-                            Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
-                        }
+                        return@let
                     } else {
                         val itemIndex = swipeAdapter.songList.indexOf(song)
                         if (lastItemIndex == Pair(song, itemIndex)) return@let
                         curPlaying.value = song
                         lastItemIndex = Pair(song, itemIndex)
                         glideCurSong(song)
-                        if (itemIndex != -1) {
+                        if (itemIndex != -1 && swipeAdapter.songList[itemIndex].mediaId == song.mediaId) {
                             binding.viewPager2.setCurrentItem(itemIndex, true)
                         }
                         Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
@@ -533,10 +523,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             finishAfterTransition()
             return
         } else {
-            lifecycleScope.launch {
-                delay(100)
-                super.onBackPressed()
-            }
+            super.onBackPressed()
         }
     }
 

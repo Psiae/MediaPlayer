@@ -50,7 +50,7 @@ class PlayingAdapter(
     }
 
     inner class PlayingViewHolder(
-        private val binding: ItemPlayingBinding
+        val binding: ItemPlayingBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bindItems(item: Song) {

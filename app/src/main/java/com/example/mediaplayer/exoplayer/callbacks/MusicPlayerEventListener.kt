@@ -45,10 +45,11 @@ class MusicPlayerEventListener(
         super.onPlayerError(error)
         try {
             musicService.exoPlayer.removeMediaItem(musicService.exoPlayer.currentMediaItemIndex)
+            Toast.makeText(musicService, "Item Removed", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        Toast.makeText(musicService, "An unknown error occurred", Toast.LENGTH_LONG).show()
+        Toast.makeText(musicService, "An unknown error occurred", Toast.LENGTH_SHORT).show()
     }
 }

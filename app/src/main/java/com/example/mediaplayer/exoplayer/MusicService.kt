@@ -70,6 +70,8 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var musicPlayerEventListener: MusicPlayerEventListener
 
     companion object {
+        var playNow = true
+        var songToPlay: Song? = null
         var curSongDuration = 0L
             private set
         var curSongMediaId = 0L
@@ -113,7 +115,7 @@ class MusicService : MediaBrowserServiceCompat() {
             preparePlayer(
                 musicSource.songs,
                 it,
-                true
+                playNow
             )
         }
 
@@ -164,8 +166,10 @@ class MusicService : MediaBrowserServiceCompat() {
         playNow: Boolean
     ) {
         serviceScope.launch {
+            val toplay = musicSource.songs.find { it.description.mediaId == songToPlay?.mediaId.toString()} ?: itemToPlay
             try {
-                val curSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+                val curSongIndex = if (curPlayingSong == null) 0
+                else songs.indexOf(toplay)
                 exoPlayer.setMediaSource(musicSource.asMediaSource(dataSourceFactory))
                 exoPlayer.prepare()
                 exoPlayer.seekTo(curSongIndex, 0L)

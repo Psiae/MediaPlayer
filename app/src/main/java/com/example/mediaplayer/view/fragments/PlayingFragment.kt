@@ -8,11 +8,13 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.telecom.TelecomManager
 import android.util.Property
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.widget.ListView
 import android.widget.SeekBar
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -24,11 +26,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -92,15 +96,12 @@ class PlayingFragment: Fragment() {
             Timber.d("animationStart")
             updateSeekbar = false
         }
-
         override fun onAnimationEnd(animation: Animator?) {
             updateSeekbar = true
         }
-
         override fun onAnimationCancel(animation: Animator?) {
 
         }
-
         override fun onAnimationRepeat(animation: Animator?) = Unit
     }
 
@@ -116,9 +117,7 @@ class PlayingFragment: Fragment() {
     }
 
     var init = true
-    var infMode = false
     var lastIndex = -1
-    var playingSongList = listOf<Song>()
     var selectedSong: Song = Song()
 
     private val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
@@ -137,6 +136,7 @@ class PlayingFragment: Fragment() {
                 Timber.d("init Block")
                 return
             }
+
             sbAnim = ObjectAnimator.ofInt(binding.sbPlaying, Property.of(SeekBar::class.java, Int::class.java, "progress"), 0).also {
                 it.duration = 500
                 it.interpolator = DecelerateInterpolator()
@@ -248,7 +248,7 @@ class PlayingFragment: Fragment() {
                         else -> itemIndex
                     }
 
-                    if (filtered != -1) {
+                    if (filtered != -1 && (song.mediaId == curPlaying.value?.mediaId)) {
                         with(binding) {
                             mtvTitle.text = song.title
                             mtvSubtitle.text = song.artist
@@ -319,7 +319,7 @@ class PlayingFragment: Fragment() {
     }
 
     private fun defaultBackground() {
-        val default = requireContext().getColor(R.color.widgetBackground)
+        val default = requireContext().getColor(R.color.widgetBackgroundD)
         with(binding) {
             crlHome.background = null
             nsvHome.background = null
@@ -334,9 +334,10 @@ class PlayingFragment: Fragment() {
 
     private fun glideVignette(uri: String) {
         Timber.d("uri: $uri")
+        val default = requireContext().getColor(R.color.widgetBackgroundD)
+        val white = requireContext().getColor(R.color.white)
+
         lifecycleScope.launch {
-            val default = requireContext().getColor(R.color.widgetBackgroundD)
-            val white = requireContext().getColor(R.color.white)
             val multi = if (default == white) MultiTransformation(
                 CenterCrop()
             ) else MultiTransformation(
@@ -351,6 +352,7 @@ class PlayingFragment: Fragment() {
                 binding.imageView2.alpha = 1f
             }
 
+
             glide.asBitmap()
                 .load(uri)
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
@@ -363,7 +365,8 @@ class PlayingFragment: Fragment() {
         binding.ibPlayPause.backgroundTintList =
             ColorStateList.valueOf(requireContext().getColor(R.color.white))
         binding.ibPlayPause.rippleColor = requireContext().getColor(R.color.ibRipple)
-        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.transparent)
+        requireActivity().window.statusBarColor = requireContext().getColor(R.color.widgetBackgroundMax)
+        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.widgetBackgroundMax)
     }
 
     private fun glideBlur(uri: String) {
@@ -372,15 +375,15 @@ class PlayingFragment: Fragment() {
             val default = requireContext().getColor(R.color.widgetBackgroundD)
             val white = requireContext().getColor(R.color.white)
             val multi = if (default == white) MultiTransformation(
-                BlurTransformation(40, 5),
+                BlurTransformation(25, 5),
                 CenterCrop()
             ) else MultiTransformation(
-                BlurTransformation(40, 5),
+                BlurTransformation(25, 5),
                 CenterCrop()
             )
             if (default == white) {
                 binding.imageView2.setColorFilter(requireContext().getColor(R.color.transparent))
-                binding.imageView2.alpha = 0.1f
+                binding.imageView2.alpha = 0.25f
             } else {
                 binding.imageView2.setColorFilter(requireContext().getColor(R.color.bitDarker))
                 binding.imageView2.alpha = 1f
@@ -392,11 +395,14 @@ class PlayingFragment: Fragment() {
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .into(binding.imageView2)
         }
+        binding.crlHome.background = null
         binding.nsvHome.background = null
         binding.ibPlayPause.backgroundTintList =
             ColorStateList.valueOf(requireContext().getColor(R.color.white))
         binding.ibPlayPause.rippleColor = requireContext().getColor(R.color.ibRipple)
-        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.transparent)
+        requireActivity().window.navigationBarColor = requireContext().getColor(R.color.widgetBackgroundMax)
+
+
     }
 
     private fun glidePalette(uri: String) {
@@ -455,8 +461,9 @@ class PlayingFragment: Fragment() {
                                     )
                                 }
 
-                                binding.crlHome.background = grad
                                 binding.nsvHome.background = grad
+                                binding.crlHome.background = grad
+
                                 binding.ibPlayPause.backgroundTintList =
                                     ColorStateList.valueOf(requireContext().getColor(R.color.white))
                                 activity?.window?.navigationBarColor = grad.colors!!.last()
@@ -464,8 +471,6 @@ class PlayingFragment: Fragment() {
                                 binding.tbLib.setBackgroundColor(default)
                             }
                         }
-
-
                     }
 
                     override fun onLoadCleared(placeholder: Drawable?) = Unit

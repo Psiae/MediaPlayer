@@ -28,7 +28,7 @@ class MusicSource (
 
     suspend fun mapToSongs(songToMap: List<Song>) = withContext(Dispatchers.IO) {
         songs = songToMap.map { song ->
-            MediaMetadataCompat.Builder()
+            Builder()
                 .putString(METADATA_KEY_ARTIST, song.artist)
                 .putString(METADATA_KEY_MEDIA_ID, song.mediaId.toString())
                 .putString(METADATA_KEY_TITLE, song.title)

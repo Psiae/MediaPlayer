@@ -1,13 +1,17 @@
 package com.example.mediaplayer.exoplayer
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import com.bumptech.glide.Glide
@@ -24,6 +28,7 @@ import com.example.mediaplayer.util.Constants.NOTIFICATION_INTENT_ACTION_REQUEST
 import com.example.mediaplayer.util.Constants.REPEAT_SONG_ALL
 import com.example.mediaplayer.util.Constants.REPEAT_SONG_OFF
 import com.example.mediaplayer.util.Constants.REPEAT_SONG_ONCE
+import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
@@ -241,8 +246,9 @@ class MusicNotificationManager(
     }
 
     init {
-
         val mediaController = MediaControllerCompat(context, sessionToken)
+
+        if (VersionHelper.isOreo()) createNotificationChannel()
 
         notificationManager = MyNotificationManager(context,
             NOTIFICATION_CHANNEL_ID,
@@ -291,6 +297,13 @@ class MusicNotificationManager(
             setStopActionIconResourceId(R.drawable.ic_baseline_close_24)
             setCustomActionReceiver(myReceiver)
         }.build()*/
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun createNotificationChannel() {
+        val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, "MediaNotif", NotificationManager.IMPORTANCE_HIGH)
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
     }
 
     fun showNotification(player: Player) {

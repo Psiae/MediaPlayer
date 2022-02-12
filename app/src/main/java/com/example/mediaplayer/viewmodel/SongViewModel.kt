@@ -39,7 +39,7 @@ class SongViewModel @Inject constructor(
     private val context: Context,
     private val musicServiceConnector: MusicServiceConnector,
     private val musicDB: MusicRepo,
-    private val musicSource: MusicSource
+    val musicSource: MusicSource
 ) : ViewModel() {
 
     /** Service Connector */
@@ -234,8 +234,6 @@ class SongViewModel @Inject constructor(
 
                 musicSource.mapToSongs(filtered)
                 musicServiceConnector.sendCommand(command, param, callback)
-                delay(50)
-                if (playToggle != null) playOrToggle(playToggle)
                 delay(300)
                 stopwatch.reset()
             }
@@ -258,6 +256,8 @@ class SongViewModel @Inject constructor(
         return musicDB.songFromQuery
     }
 
+    var newValue = 0
+
     fun updateSongList(fromDB: Boolean = true) {
         if (fromDB) viewModelScope.launch(Dispatchers.IO) {
             val oldList = getFromDB()
@@ -277,19 +277,48 @@ class SongViewModel @Inject constructor(
                 }
             }
             if (oldList != newList) {
-                val lastPlayingIndex = musicServiceConnector
+                Timber.d("oldList != newList")
+                val lastPlayingIndex = MusicService.lastItemIndex
+                val lastPlayingMediaId = MusicService.curSongMediaId
+                val lastPlayingPosition = curPlayerPosition.value
+                val isPlaying = playbackState.value?.isPlaying
+                val item = newList.find { it.mediaId == lastPlayingMediaId }
                 if (musicServiceConnector.isControllerInit()) {
                     if (oldList.size != source.size) {
                         sendCommand(NOTIFY_CHILDREN, null, null, lastFilter, newList, true)
-                    } else sendCommand(NOTIFY_CHILDREN, null, null, "", newList, true)/*
+                    } else sendCommand(NOTIFY_CHILDREN, null, null, "", newList, true)
+
                     viewModelScope.launch {
-                        delay(100)
-                        curPlaying.value?.let {
-                            playOrToggle(it)
-                        } ?: currentlyPlaying.value?.let {
-                            playOrToggle(it)
+                        delay(200)
+                        try {
+                            val item = newList.find { it.mediaId == lastPlayingMediaId }
+                            item?.let {
+                                playFromMediaId(item)
+                                Timber.d(" isPlaying $isPlaying")
+                                delay(700)
+                                if (curPlaying.value == item) {
+                                    seekTo(lastPlayingPosition ?: 0)
+
+                                    if (isPlaying == false && curPlaying.value == item) {
+                                        Timber.d("paused Music")
+                                        musicServiceConnector.transportControls.pause()
+                                    } else musicServiceConnector.transportControls.play()
+                                }
+
+                            } ?: run {
+                                if (lastPlayingIndex < newList.size) {
+                                    val item = newList[lastPlayingIndex]
+                                    playFromMediaId(item)
+                                    delay(500)
+                                    if (isPlaying == false && curPlaying.value == item)
+                                        musicServiceConnector.transportControls.pause()
+                                    else musicServiceConnector.transportControls.play()
+                                }
+                            }
+                        } catch (e : Exception) {
+                            e.printStackTrace()
                         }
-                    }*/
+                    }
                 }
             }
         }
@@ -321,18 +350,28 @@ class SongViewModel @Inject constructor(
         musicServiceConnector.transportControls.skipToPrevious()
     }
 
+    var seekToEnabled = true
+
+    fun pause() = musicServiceConnector.transportControls.pause()
+    fun play() = musicServiceConnector.transportControls.play()
+
     fun seekTo(pos: Long){
-        Timber.d("Seek To")
+        if (!seekToEnabled) return
+        Timber.d("Seek To $pos Long")
         musicServiceConnector.transportControls.seekTo(pos)
     }
 
     fun seekTo(pos: Double) {
-        Timber.d("Seek To $pos")
+        if (!seekToEnabled) return
+        Timber.d("Seek To $pos Percent")
         musicServiceConnector.transportControls.seekTo((MusicService.curSongDuration * pos).toLong())
     }
 
-    fun playOrToggle(mediaItem: Song, toggle: Boolean = false) {
+    var playToggleEnabled = true
+
+    fun playOrToggle(mediaItem: Song, toggle: Boolean = false, callback: (() -> Unit)? = null) {
         Timber.d("Play or Toggle: ${mediaItem.title}")
+        if (!playToggleEnabled) return
         val isPrepared = playbackState.value?.isPrepared ?: false
         try {
             if (isPrepared && mediaItem.mediaId ==
@@ -356,7 +395,6 @@ class SongViewModel @Inject constructor(
     fun playFromMediaId(mediaItem: Song) {
         musicServiceConnector.transportControls
             .playFromMediaId(mediaItem.mediaId.toString(), null)
-//        curPlaying.value = mediaItem
         Timber.d("playFromMediaId ${mediaItem.title}")
     }
 

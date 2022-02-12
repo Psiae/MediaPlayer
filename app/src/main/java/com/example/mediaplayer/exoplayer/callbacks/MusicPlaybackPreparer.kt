@@ -15,6 +15,7 @@ import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,
@@ -49,6 +50,7 @@ class MusicPlaybackPreparer(
     override fun onPrepare(playWhenReady: Boolean) = Unit
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
+        Timber.d("PrepareFromMediaId")
         musicSource.whenReady {
             val itemToPlay = musicSource.songs.find { mediaId == it.description.mediaId }
             playerPrepared(itemToPlay)
