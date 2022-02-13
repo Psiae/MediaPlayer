@@ -353,7 +353,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             viewModelScope.launch {
                 currentlyPlaying.observe(this@MainActivity) { song ->
                     if (!observePlaying) return@observe
-                    Timber.d("CurrentlyPlayingCallback ${song.title}")
                     song?.let {
                         if (swipeAdapter.songList.isEmpty()) {
                             return@let

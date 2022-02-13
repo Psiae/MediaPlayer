@@ -27,6 +27,8 @@
 
     <color name="statusBarColor">@color/white</color>
     <color name="darkGrey">#121212</color>
+    <color name="darkGreyB">#121212</color>
+
 
     <color name="ibRipple">#1A121212</color>
 

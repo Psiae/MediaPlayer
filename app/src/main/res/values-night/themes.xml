@@ -56,7 +56,7 @@
     </style>
 
     <style name="layoutBackground">
-        <item name="android:background">@color/darkBackground</item>
+        <item name="android:background">@color/darkGreyB</item>
     </style>
 
     <style name="folderBackground">

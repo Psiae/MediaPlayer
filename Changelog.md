@@ -1,3 +1,29 @@
+#2022/02/13
+- Fix Bug where MainActivity Swipe before songList is Updated
+
+#2022/02/12
+- Fix Bug when Item of playlist is deleted and will try to recover
+
+#2022/02/11
+- PlayingFragment ViewPager Loop
+- seekTo Percentage instead of Duration
+- Seekbar Object Animator
+- Fix Notification Channel Bug on PlayerNotification
+
+#2022/02/08
+- PlayingFragment Palette API background
+- reload Children on Device Song List changes
+
+#2022/02/07
+-  PlayingFragment that shows currently Playing Song
+-  PlayerNotification & PlayingFragment Repeat State
+-  PlayingFragment seekTo with Seekbar
+-  PlayingFragment Skip Next / Prev button
+-  PlayingFragment observe Duration & Progress
+-  Reduce Transition Lag
+
+# ~~~~~~~~~~~~
+
 # 2022/02/03
 - Added CustomActionReceiver on PlayerNotificationManager
 - Added Notification Repeat button that Toggle the exoPlayer Repeat state between OFF, ONCE, ALL
