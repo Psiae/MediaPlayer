@@ -29,4 +29,17 @@ fun toast(context: Context,
         delay(3500)
     }
     curToast = ""
+
+
+
 }
+
+/** Extra / Interesting Thing i Found */
+
+/* RecyclerView Scroll & Center to Item
+// this = RecyclerView
+val index = songAdapter.songList.indexOfFirst { it.mediaId == song.mediaId }
+val centerOfScreen = this.width / 2
+val layout = this.layoutManager as LinearLayoutManager
+layout.scrollToPositionWithOffset(index, centerOfScreen)
+Timber.d("$index") */

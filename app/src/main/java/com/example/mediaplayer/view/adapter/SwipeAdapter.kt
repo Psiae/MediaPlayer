@@ -20,8 +20,7 @@ class SwipeAdapter @Inject constructor(
     var songList : List<Song>
         get() = differ.currentList
         set(value) {
-            val submit = value
-            differ.submitList(submit)
+            differ.submitList(value)
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SwipeViewHolder {

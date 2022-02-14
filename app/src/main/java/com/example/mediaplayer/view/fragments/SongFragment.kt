@@ -1,6 +1,7 @@
 package com.example.mediaplayer.view.fragments
 
 import android.os.Bundle
+import android.support.v4.media.MediaMetadataCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -155,13 +156,6 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
         binding.rvSongList.apply {
             songAdapter.setItemClickListener { song ->
 
-                /*val index = songAdapter.songList.indexOfFirst {
-                    it.title == song.title`
-                }
-                val centerOfScreen = this.width / 2
-                val layout = this.layoutManager as LinearLayoutManager
-                layout.scrollToPositionWithOffset(index, centerOfScreen)
-                Timber.d("$index")*/
                 val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
                 if (mediaItems.size < songViewModel.getFromDB().size) {
                     songViewModel.sendCommand(NOTIFY_CHILDREN, null,"", observedSongList, false) {
@@ -169,6 +163,11 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
                         MusicService.shouldPlay = true
                     }
                 } else songViewModel.playOrToggle(song, false, caller = "SongFragment clickListener")
+            }
+            songAdapter.setItemLongClickListener { song ->
+                songViewModel.addItemToQueue(song, null)
+                toast(requireContext(), "${song.title} added to queue")
+                true
             }
             adapter = songAdapter
             layoutManager = GridLayoutManager(requireContext(),

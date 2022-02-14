@@ -14,6 +14,7 @@ data class Song(
     val mediaId: Long = 0L,
     val mediaPath: String = "",
     val mediaUri: String = "",
+    val queue: Long? = null,
     val startFrom: Int = 0,
     var title: String = "",
     val year: Int = 0,

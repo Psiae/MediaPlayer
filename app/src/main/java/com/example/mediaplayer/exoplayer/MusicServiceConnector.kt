@@ -9,6 +9,7 @@ import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -128,6 +129,8 @@ class MusicServiceConnector(
         private val context: Context
     ) : MediaBrowserCompat.ConnectionCallback() {
 
+
+
         override fun onConnected() {
             Timber.d("ConnectionCallback CONNECTED")
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
@@ -159,8 +162,10 @@ class MusicServiceConnector(
             _playbackState.postValue(state)
         }
 
+
+
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            Timber.d("onMetadataChanged")
+            Timber.d("onMetadataChanged ${metadata?.description?.subtitle} ${metadata?.description?.description}")
             _curPlayingSong.value = metadata
         }
 

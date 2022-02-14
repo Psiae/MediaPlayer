@@ -51,14 +51,14 @@ class MusicPlaybackPreparer(
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         Timber.d("PrepareFromMediaId")
+        val extra = if (extras?.getLong("queue") != -1L) extras?.getLong("queue") else null
         musicSource.whenReady {
-            val itemToPlay = musicSource.songs.find { mediaId == it.description.mediaId }
+            val itemToPlay = musicSource.songs.find { mediaId == it.description.mediaId && (extra == it.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER)) }
             playerPrepared(itemToPlay)
         }
     }
 
     override fun onPrepareFromSearch(query: String, playWhenReady: Boolean, extras: Bundle?) = Unit
-
     override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle?) = Unit
 }
 

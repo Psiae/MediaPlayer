@@ -1,31 +1,22 @@
 package com.example.mediaplayer.view.activity
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.registerForActivityResult
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -37,7 +28,6 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
 import com.example.mediaplayer.exoplayer.MusicService
-import com.example.mediaplayer.exoplayer.isPlayEnabled
 import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.DEFAULT_SCREEN
@@ -127,8 +117,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         super.onResume()
         lifecycleScope.launch {
             delay(300)
-            if (suspendedpager != -1) binding.viewPager2.currentItem = suspendedpager
             binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
+            if (suspendedpager != -1) binding.viewPager2.currentItem = suspendedpager
         }
     }
 
@@ -350,18 +340,22 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun observePlayer() {
 
         with(songViewModel) {
-            viewModelScope.launch {
+            lifecycleScope.launch {
                 currentlyPlaying.observe(this@MainActivity) { song ->
                     if (!observePlaying) return@observe
                     song?.let {
                         if (swipeAdapter.songList.isEmpty()) {
                             return@let
                         } else {
+                            Timber.d("currentlyPlaying observer ${it.queue} ${it.title}")
                             val itemIndex = swipeAdapter.songList.indexOf(song)
                             if (lastItemIndex == Pair(song, itemIndex)) return@let
-                            curPlaying.value = song
                             lastItemIndex = Pair(song, itemIndex)
+
+                            curPlaying.value = song
+                            observedPlaying = song
                             glideCurSong(song)
+
                             if (itemIndex != -1 && swipeAdapter.songList[itemIndex].mediaId == song.mediaId) {
                                 binding.viewPager2.setCurrentItem(itemIndex, true).also {
                                     Timber.d("MainActivity set ${song.title} $itemIndex")

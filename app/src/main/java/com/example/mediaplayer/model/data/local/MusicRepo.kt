@@ -14,7 +14,10 @@ import java.io.File
 class MusicRepo(private val context: Context) {
 
     var folderList = mutableListOf<Folder>()
-    var songFromQuery = mutableListOf<Song>()
+    var songFromQuery = listOf<Song>()
+        private set
+
+    var fromQuery = listOf<Song>()
 
     suspend fun getAllSongs(): List<Song> {
         return try {
@@ -59,6 +62,8 @@ class MusicRepo(private val context: Context) {
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     projection, selection, null, selectOrder
                 )
+
+                var i = 0L
 
                 musicCursor?.use { cursor ->
                     Timber.d(cursor.toString())
@@ -131,6 +136,7 @@ class MusicRepo(private val context: Context) {
                                 mediaId = songId,
                                 mediaPath = audioPath,
                                 mediaUri = uri.toString(),
+                                queue = i++,
                                 startFrom = 0,
                                 title = title,
                                 year = year,
@@ -155,7 +161,8 @@ class MusicRepo(private val context: Context) {
         }
 
         folderList = listOfFolder.distinct().toMutableList()
-        songFromQuery = deviceMusicList.distinct().toMutableList()
+        songFromQuery = deviceMusicList
+        fromQuery = deviceMusicList
         return deviceMusicList
     }
 }

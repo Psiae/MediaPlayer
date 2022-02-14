@@ -230,15 +230,12 @@ class PlayingFragment: Fragment() {
                 setMtvDuration(dur)
             }
 
-            curPlaying.observe(viewLifecycleOwner) {
-                selectedSong = it
-            }
-
             var lastSong = Song()
 
             lifecycleScope.launch {
                 delay(50)
                 curPlaying.observe(viewLifecycleOwner) { song ->
+                    selectedSong = song
                     if (lastSong == song) return@observe
                     lastSong = song
 
@@ -248,7 +245,9 @@ class PlayingFragment: Fragment() {
                         else -> itemIndex
                     }
 
-                    if (filtered != -1 && (song.mediaId == curPlaying.value?.mediaId)) {
+                    Timber.d("curPlaying $filtered ${song.queue}")
+
+                    if (filtered != -1) {
                         with(binding) {
                             mtvTitle.text = song.title
                             mtvSubtitle.text = song.artist

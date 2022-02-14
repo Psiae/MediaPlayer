@@ -2,13 +2,15 @@ package com.example.mediaplayer.viewmodel
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.media.session.PlaybackState
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.lifecycle.*
 import com.example.mediaplayer.exoplayer.*
 import com.example.mediaplayer.model.data.entities.Album
@@ -20,10 +22,9 @@ import com.example.mediaplayer.util.Constants.FILTER_MODE_NONE
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.Constants.UPDATE_INTERVAL
-import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.example.mediaplayer.util.Resource
 import com.example.mediaplayer.util.ext.toast
-import com.google.android.exoplayer2.Player
+import com.example.mediaplayer.util.toMediaMetadataCompat
 import com.google.common.base.Stopwatch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -57,12 +58,24 @@ class SongViewModel @Inject constructor(
     val currentlyPlaying: LiveData<Song>
         get() {
             return Transformations.map(playingMediaItem) { mediaItem ->
-                Timber.d("playingMediaItem : ${mediaItem?.description?.title}")
-                getFromDB().find { it.mediaId == mediaItem?.getString(METADATA_KEY_MEDIA_ID)?.toLong() }
+                val q = musicSource.getQueue().ifEmpty { musicSource.asSong() }
+                q.find { it.mediaId.toString() == mediaItem?.description?.mediaId && it.queue == mediaItem.description?.description.toString().toLong() }
             }
         }
 
+    var observedPlaying = Song()
     var currentlyPlayingSongListObservedByMainActivity = mutableListOf<Song>()
+
+    fun addItemToQueue(song: Song, index: Int? = null) {
+        val item = song.toMediaMetadataCompat()
+        MediaMetadataCompat
+            .Builder(item)
+            .putLong(METADATA_KEY_TRACK_NUMBER, (musicSource.songs.lastIndex +1).toLong())
+            .build().also {
+                musicSource.songs.add(it)
+                _mediaItems.value = musicSource.asSong()
+            }
+    }
 
     fun setRepeatMode(state: Int) {
         musicServiceConnector.transportControls.setRepeatMode(state)
@@ -85,12 +98,10 @@ class SongViewModel @Inject constructor(
     private fun updateCurrentPlayerPosition() {
         viewModelScope.launch(Dispatchers.IO) {
             while(true) {
-                Timber.d("updateCurrentPlayerPos")
                 val pos = playbackState.value?.currentPlaybackPosition ?: -1L
                 if(curPlayerPosition.value != pos && MusicService.curSongDuration > -1) {
                     _curPlayerPosition.postValue(pos)
                     _curSongDuration.postValue(MusicService.curSongDuration)
-                    Timber.d("playerPosUpdated")
                 }
                 delay(UPDATE_INTERVAL)
             }
@@ -163,39 +174,23 @@ class SongViewModel @Inject constructor(
     val mediaItems: LiveData<MutableList<Song>>
         get() {
             Timber.d("mediaItems LiveData")
-            return _mediaItems
-        }
-
-    val mediaItemSong: LiveData<MutableList<Song>>
-        get() {
-            return Transformations.map(mediaItems) { mediaItems ->
-                val mediaItemList = mutableListOf<Song>()
-                val dbList = getFromDB()
-                mediaItems.map {  item ->
-                    mediaItemList.add(dbList.find { it.mediaId == item.mediaId } ?: Song())
-                }
-                val filtered = mediaItemList.filter { it.mediaId != 0L }.toMutableList()
-                filtered.ifEmpty { emptyList<Song>().toMutableList() }
+            return Transformations.map(_mediaItems) {
+                it.sortedBy { it.queue }.toMutableList()
             }
         }
 
+    val mediaItemSong: LiveData<MutableList<Song>>
+        get() = mediaItems
+
     private var subsCallback = object : MediaBrowserCompat.SubscriptionCallback() {
+
         override fun onChildrenLoaded(
             parentId: String,
             children: MutableList<MediaBrowserCompat.MediaItem>,
         ) {
             Timber.d("subs onLoadChildren")
             super.onChildrenLoaded(parentId, children)
-            val items = children.map {
-                Song(
-                    mediaId = it.mediaId!!.toLong(),
-                    title = it.description.title.toString(),
-                    mediaPath = it.description.mediaUri.toString(),
-                    imageUri = it.description.iconUri.toString()
-                )
-            }
-            _resMediaItems.value = Resource.success(items)
-            _mediaItems.value = items.toMutableList()
+            _mediaItems.value = musicSource.asSong()
         }
     }
     private val stopwatch = Stopwatch.createUnstarted()
@@ -252,6 +247,7 @@ class SongViewModel @Inject constructor(
     }
 
     fun updateMusicDB() {
+
         if (_isFetching.value!!) return
         _isFetching.value = true
 
@@ -261,16 +257,19 @@ class SongViewModel @Inject constructor(
         }
     }
 
-    fun getFromDB(): MutableList<Song> {
+    fun getFromDB(): List<Song> {
         return musicDB.songFromQuery
+    }
+
+    fun fromQuery(): MutableList<Song> {
+        return musicDB.fromQuery.toMutableList()
     }
 
     var newValue = 0
 
     fun updateSongList(fromDB: Boolean = true) {
         if (fromDB) viewModelScope.launch(Dispatchers.IO) {
-            val oldList = getFromDB()
-            val source = musicSource.songs
+            val oldList = fromQuery()
             val newList = musicDB.getAllSongs().toMutableList().also { songs ->
                 withContext(Dispatchers.Main) {
                     _albumList.value = songs.groupBy { it.album }.entries.map { (album, song) ->
@@ -286,46 +285,7 @@ class SongViewModel @Inject constructor(
                 }
             }
             if (oldList != newList) {
-                Timber.d("oldList != newList")
-                MusicService.preparing = true
-                val lastPlayingIndex = MusicService.lastItemIndex
-                val lastPlayingMediaId = MusicService.curSongMediaId
-                val lastPlayingPosition = curPlayerPosition.value
-                val isPlaying = playbackState.value?.isPlaying
-                val item = newList.find { it.mediaId == lastPlayingMediaId }
-                Timber.d("isPlaying $isPlaying")
-                if (musicServiceConnector.isControllerInit()) {
-                    playToggleEnabled = false
-                    item?.let { sendCommand(NOTIFY_CHILDREN, null,
-                        lastFilter, newList, true, null, callback = {
-                            Timber.d("shouldPlay newList $isPlaying")
-                            MusicService.songToPlay = item
-                            MusicService.seekToPos = lastPlayingPosition
-                            MusicService.shouldPlay = isPlaying
-                            playToggleEnabled = true
-                        })
-                    } ?: if (lastPlayingIndex < newList.size) {
-                        sendCommand(NOTIFY_CHILDREN, null,
-                            lastFilter, newList, true, null, callback = {
-                                Timber.d("shouldPlay newList $isPlaying")
-                                MusicService.songToPlay = newList[lastPlayingIndex]
-                                MusicService.seekToPos = null
-                                MusicService.shouldPlay = isPlaying
-                                playToggleEnabled = true
-                            }
-                        )
-                    } else if (newList.isNotEmpty()) {
-                        sendCommand(NOTIFY_CHILDREN, null,
-                            lastFilter, newList, true, null, callback = {
-                                Timber.d("shouldPlay newList $isPlaying")
-                                MusicService.songToPlay = newList[newList.lastIndex]
-                                MusicService.seekToPos = null
-                                MusicService.shouldPlay = isPlaying
-                                playToggleEnabled = true
-                            }
-                        )
-                    }
-                }
+                Timber.d("oldList  ${oldList} != newList ${newList}")
             }
         }
     }
@@ -338,12 +298,6 @@ class SongViewModel @Inject constructor(
         }
         val filtered = mediaItemList.filter { it.mediaId != 0L }.toMutableList()
         return filtered.ifEmpty { emptyList<Song>().toMutableList() }
-    }
-
-    fun findMatchingMediaId(mediaItem: MediaMetadataCompat): Song {
-        return songList.value!!.find { it.mediaId == mediaItem.getLong(
-            METADATA_KEY_MEDIA_ID
-        ) } ?: songList.value!![0]
     }
 
     fun skipNext() {
@@ -376,12 +330,13 @@ class SongViewModel @Inject constructor(
     var playToggleEnabled = true
 
     fun playOrToggle(mediaItem: Song, toggle: Boolean = false, caller: String) {
-        Timber.d("Play or Toggle: ${mediaItem.title}, caller: $caller")
+        Timber.d("Play or Toggle: ${mediaItem.title} ${mediaItem.queue} ${observedPlaying.queue}, caller: $caller")
         if (!playToggleEnabled) return
         val isPrepared = playbackState.value?.isPrepared ?: false
         try {
-            if (isPrepared && mediaItem.mediaId ==
-                playingMediaItem.value?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
+            if (isPrepared
+                && (mediaItem.mediaId == observedPlaying.mediaId)
+                && (mediaItem.queue == observedPlaying.queue)
             ) {
                 playbackState.value?.let {
                     when {
@@ -391,17 +346,18 @@ class SongViewModel @Inject constructor(
                     }
                 }
             } else {
-                playFromMediaId(mediaItem)
+                val extra = Bundle().also { it.putLong("queue", mediaItem.queue ?: -1) }
+                playFromMediaId(mediaItem, extra = extra)
             }
         } catch (e: Exception) {
             Timber.d("PlayToggleFailed")
         }
     }
 
-    fun playFromMediaId(mediaItem: Song) {
+    fun playFromMediaId(mediaItem: Song, extra: Bundle) {
+        Timber.d("playFromMediaId extra = ${extra.getLong("queue")}")
         musicServiceConnector.transportControls
-            .playFromMediaId(mediaItem.mediaId.toString(), null)
-        Timber.d("playFromMediaId ${mediaItem.title}")
+            .playFromMediaId(mediaItem.mediaId.toString(), extra)
     }
 
     /** Query */
@@ -412,7 +368,7 @@ class SongViewModel @Inject constructor(
 
     fun checkShuffle(song: List<Song>, msg: String) {
         // only check Shuffle after query, if somehow null then its empty
-        Timber.d("checkShuffle $song")
+        Timber.d("checkShuffle ${song.size}")
         val size = if (song.size < 20) song.size else 20
         viewModelScope.launch {
             if (song.isNullOrEmpty()) {

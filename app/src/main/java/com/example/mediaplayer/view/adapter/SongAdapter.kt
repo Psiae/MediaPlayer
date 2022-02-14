@@ -26,13 +26,7 @@ class SongAdapter (
     var songList: List<Song>
         get() = differ.currentList
         set(value) {
-            val submit = value.distinct()
-            for (i in submit.indices) {
-                if (submit[i].title.isEmpty()) {
-                    submit[i].title = "Unknown"
-                }
-            }
-            differ.submitList(submit)
+            differ.submitList(value)
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
@@ -72,10 +66,7 @@ class SongAdapter (
             )
             val bullet = 0x2022.toChar()
 
-            binding.apply {
-                root.startAnimation(animation)
-
-                Timber.d("Uri: $imageUri")
+            with(binding) {
                 glide.asDrawable()
                     .load(imageUri)
                     .transition(DrawableTransitionOptions.withCrossFade())
@@ -84,27 +75,35 @@ class SongAdapter (
             }
 
             binding.apply {
-                ivSongImage.visibility =
-                    if (song.artist.isEmpty() && song.album.isEmpty()) View.GONE else View.VISIBLE
-                tvTitle.text = if (title.isNotEmpty()) title else "Unknown"
-                tvSecondaryTitle.text =
-                    "${if (artist.isNotEmpty()) artist else "<Artist>"}"
+                with(root) {
+                    transitionName = song.mediaId.toString()
+                    startAnimation(animation)
+                    setOnClickListener {
+                        onItemClickListener?.let { it(song) }
+                    }
+                    setOnLongClickListener {
+                        onLongClickListener?.let { it(song) } ?: run {
+                            toast(context, "Coming Soon!")
+                            true
+                        }
+                    }
+                }
 
-
-
-                binding.root.setOnClickListener {
-                    root.transitionName = song.mediaId.toString()
-                    onItemClickListener?.let { passedMethod ->
-                        passedMethod(song)              // function passed by fragment in this case
-                                                        // I want to use item from my adapter
-                    } ?: toast(context, "msg")     // do something else
-                }                                       // if the method is not passed yet
+                tvTitle.text = title.ifEmpty { "Unknown" }
+                tvSecondaryTitle.text = artist.ifEmpty { "<Unknown>" }
             }
         }
     }
-    var onItemClickListener: ((Song) -> Unit)? = null // variable that have the function
+
+    private var onItemClickListener: ( (Song ) -> Unit)? = null // variable that have the function
 
     fun setItemClickListener(listener: (Song) -> Unit) { // method to set the function
         onItemClickListener = listener
+    }
+
+    private var onLongClickListener: ( (Song) -> Boolean )? = null
+
+    fun setItemLongClickListener(listener: (Song) -> Boolean) {
+        onLongClickListener = listener
     }
 }

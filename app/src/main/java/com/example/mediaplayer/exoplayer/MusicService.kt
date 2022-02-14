@@ -156,15 +156,25 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
+
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            Timber.d("getMediaDescription")
             return try {
-                musicSource.songs[windowIndex].description
+                val song = musicSource.songs[windowIndex]
+                MediaDescriptionCompat.Builder()
+                    .setTitle(song.description.title)
+                    .setSubtitle(song.description.title)
+                    .setIconUri(song.description.iconUri)
+                    .setMediaUri(song.description.mediaUri)
+                    .setMediaId(song.description.mediaId)
+                    .setDescription(song.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER).toString())
+                    .build()
             } catch (e: Exception) {
                 Timber.d("MusicQueueNavigator Exception")
-                musicSource.songs.first().description
+                musicSource.songs[windowIndex].description
             }
         }
+
+
     }
 
     fun fetchSongData() = serviceScope.launch { musicSource.fetchMediaData() }
@@ -190,14 +200,6 @@ class MusicService : MediaBrowserServiceCompat() {
                 with(exoPlayer) {
                     setMediaSource(musicSource.asMediaSource(dataSourceFactory))
                     prepare()
-                    if (songs[curSongIndex].description.mediaId != toplay?.description?.mediaId) {
-                        Timber.d("song at mediaId index != toPlay mediaId")
-                        seekToPos = null
-                        songToPlay = null
-                        preparing = false
-                        preparePlayer(musicSource.songs, itemToPlay, playNow, caller, force)
-                        return@launch
-                    }
                     seekTo(curSongIndex, seekToPos ?: 0)
                     playWhenReady = play
                 }
