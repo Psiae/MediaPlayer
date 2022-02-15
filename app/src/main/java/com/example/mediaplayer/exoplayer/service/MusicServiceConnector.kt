@@ -1,4 +1,4 @@
-package com.example.mediaplayer.exoplayer
+package com.example.mediaplayer.exoplayer.service
 
 import android.content.ComponentName
 import android.content.Context
@@ -9,7 +9,6 @@ import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -39,15 +38,6 @@ class MusicServiceConnector(
             return _curPlayingSong
         }
 
-    private val curplayingIndex = 0
-
-    private val _repeatMode = MutableLiveData<Int>(0)
-    val repeatMode: LiveData<Int> get() = _repeatMode
-
-    lateinit var mediaController: MediaControllerCompat
-
-    fun isControllerInit() = this::mediaController.isInitialized
-
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
 
     private val mediaBrowser = MediaBrowserCompat(
@@ -58,9 +48,16 @@ class MusicServiceConnector(
         ),
         mediaBrowserConnectionCallback,
         null
-    ).apply {
-        connect()
-    }
+    ).apply {}
+
+    private val curplayingIndex = 0
+
+    private val _repeatMode = MutableLiveData<Int>(0)
+    val repeatMode: LiveData<Int> get() = _repeatMode
+
+    lateinit var mediaController: MediaControllerCompat
+
+    fun isControllerInit() = this::mediaController.isInitialized
 
     fun updateRepeatState(state: Int) {
         try {
@@ -162,11 +159,9 @@ class MusicServiceConnector(
             _playbackState.postValue(state)
         }
 
-
-
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            Timber.d("onMetadataChanged ${metadata?.description?.subtitle} ${metadata?.description?.description}")
-            _curPlayingSong.value = metadata
+            Timber.d("onMetadataChanged ${metadata?.description?.subtitle} ${metadata?.bundle?.get("queue")}")
+            _curPlayingSong.postValue(metadata)
         }
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {

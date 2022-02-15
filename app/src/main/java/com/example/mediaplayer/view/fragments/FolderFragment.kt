@@ -6,21 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.databinding.FragmentFolderBinding
-import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.view.adapter.FolderAdapter
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
@@ -78,12 +73,7 @@ class FolderFragment: Fragment() {
             rvLib.apply {
                 adapter = songAdapter.also {
                     it.setItemClickListener { song ->
-                        val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
-                        if (!mediaItems.contains(song)) {
-                            songViewModel.sendCommand(Constants.NOTIFY_CHILDREN, null, "", observedSongList, false, true) {
-                                MusicService.songToPlay = song
-                            }
-                        } else songViewModel.playOrToggle(song, false, "FolderFragment ClickListener")
+                        songViewModel.requestPlay(song, it.songList, "FolderFragment")
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext())

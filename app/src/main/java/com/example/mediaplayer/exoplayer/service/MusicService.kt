@@ -1,4 +1,4 @@
-package com.example.mediaplayer.exoplayer
+package com.example.mediaplayer.exoplayer.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -16,6 +16,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.example.mediaplayer.exoplayer.MusicNotificationManager
+import com.example.mediaplayer.exoplayer.MusicSource
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlaybackPreparer
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerEventListener
 import com.example.mediaplayer.exoplayer.callbacks.MusicPlayerNotificationListener
@@ -23,10 +25,7 @@ import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.MUSIC_SERVICE
-import com.example.mediaplayer.util.Constants.NETWORK_ERROR
 import com.example.mediaplayer.util.Constants.NOTIFICATION_CHANNEL_ID
-import com.example.mediaplayer.util.Constants.REPEAT_MODE_ALL_INT
-import com.example.mediaplayer.util.ext.curToast
 import com.example.mediaplayer.util.ext.toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -70,8 +69,6 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var musicPlayerEventListener: MusicPlayerEventListener
 
     companion object {
-        var playNow = true
-        var preparing = false
         var songToPlay: Song? = null
         var seekToPos: Long? = null
         var shouldPlay: Boolean? = null
@@ -79,18 +76,23 @@ class MusicService : MediaBrowserServiceCompat() {
                 Timber.d("shouldPlay set $value")
                 field = value
             }
+
         var curSongDuration = 0L
+            private set
+        var curSong: Song? = null
             private set
         var curSongMediaId = 0L
             private set
-        var lastItemIndex = 0
+        var lastSongQueue = -1L
             private set
     }
 
     override fun onCreate() {
         super.onCreate()
         serviceScope.launch {
-            musicSource.fetchMediaData()
+            musicSource.mapToSongs(musicSource.musicDatabase.getAllSongs())
+            resInitPlayer()
+            notifyChildrenChanged(MEDIA_ROOT_ID)
         }
 
         val activityIntent = packageManager?.getLaunchIntentForPackage(packageName)?.let {
@@ -114,21 +116,23 @@ class MusicService : MediaBrowserServiceCompat() {
         ) {
             curSongDuration = exoPlayer.duration
             curSongMediaId = exoPlayer.currentMediaItem?.mediaId?.toLong() ?: -1L
-            lastItemIndex = exoPlayer.currentMediaItemIndex
+            lastSongQueue = exoPlayer.currentMediaItemIndex.toLong()
         }
 
-        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource, this, musicServiceConnector) {
-            curPlayingSong = it
+        val musicPlaybackPreparer = MusicPlaybackPreparer(musicSource, this, musicServiceConnector) { item, play, ->
+            curPlayingSong = item
             preparePlayer(
                 musicSource.songs,
-                it,
-                playNow,
+                item,
+                play,
                 "musicPlaybackPreparer",
-                false
+                0
             )
         }
 
-        mediaSessionConnector = MediaSessionConnector(mediaSession)
+        mediaSessionConnector = MediaSessionConnector(mediaSession).also {
+            it.mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS)
+        }
         mediaSessionConnector.setPlaybackPreparer(musicPlaybackPreparer)
         mediaSessionConnector.setQueueNavigator(MusicQueueNavigator())
         mediaSessionConnector.setPlayer(exoPlayer)
@@ -141,7 +145,10 @@ class MusicService : MediaBrowserServiceCompat() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun createNotificationChannel() {
-        val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, "MediaNotif", NotificationManager.IMPORTANCE_HIGH)
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID, "Kylentt",
+            NotificationManager.IMPORTANCE_HIGH
+        )
         val manager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)
     }
@@ -160,60 +167,61 @@ class MusicService : MediaBrowserServiceCompat() {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
             return try {
                 val song = musicSource.songs[windowIndex]
+                val extra = Bundle().also { it.putLong("queue", song.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER)) }
                 MediaDescriptionCompat.Builder()
                     .setTitle(song.description.title)
                     .setSubtitle(song.description.title)
                     .setIconUri(song.description.iconUri)
                     .setMediaUri(song.description.mediaUri)
                     .setMediaId(song.description.mediaId)
-                    .setDescription(song.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER).toString())
+                    .setExtras(extra)
                     .build()
             } catch (e: Exception) {
                 Timber.d("MusicQueueNavigator Exception")
-                musicSource.songs[windowIndex].description
+                musicSource.songs.first().description
             }
         }
-
-
     }
 
+    var lastQueue = listOf<Song>()
+
     fun fetchSongData() = serviceScope.launch { musicSource.fetchMediaData() }
+
+    var retry = true
 
     fun preparePlayer(
         songs: List<MediaMetadataCompat>,
         itemToPlay: MediaMetadataCompat?,
         playNow: Boolean,
         caller: String,
-        force: Boolean
+        seekTo: Long?
     ) {
         serviceScope.launch {
-            if (preparing && !force) return@launch
-            preparing = true
-
-            val play = shouldPlay ?: playNow
-            val toplay = songs.find { it.description.mediaId == songToPlay?.mediaId.toString()} ?: itemToPlay
 
             try {
-                val curSongIndex = if (curPlayingSong == null) 0
-                else songs.indexOf(toplay)
+                itemToPlay?.let {
+                    val curSongIndex = if (curPlayingSong == null) 0
+                    else songs.indexOf(itemToPlay)
 
-                with(exoPlayer) {
-                    setMediaSource(musicSource.asMediaSource(dataSourceFactory))
-                    prepare()
-                    seekTo(curSongIndex, seekToPos ?: 0)
-                    playWhenReady = play
+                    with(exoPlayer) {
+                        setMediaSource(musicSource.asMediaSource(dataSourceFactory))
+                        prepare()
+                        seekTo(curSongIndex, seekTo ?: seekToPos ?: 0)
+                        playWhenReady = playNow
+                    }
                 }
 
-                Timber.d("preparePlayer, ${toplay?.description?.title} $curSongIndex $seekToPos $play ? $shouldPlay $caller")
-
-                shouldPlay = null
-                seekToPos = null
-                songToPlay = null
-                preparing = false
+                Timber.d("preparePlayer, ${itemToPlay?.description?.title} $caller")
 
             } catch (e: Exception) {
-                Timber.e(e)
-                toast(this@MusicService, "Unable to Prepare ExoPlayer", false, blockable = false)
+                if (e is IllegalStateException) {
+                    Timber.e(e)
+                    if (retry) preparePlayer(songs, itemToPlay, playNow, caller, seekTo).also {
+                        retry = false
+                    } else {
+                        toast(this@MusicService, "Unable to Prepare ExoPlayer", false, blockable = false)
+                    }
+                }
             }
         }
     }
@@ -241,45 +249,31 @@ class MusicService : MediaBrowserServiceCompat() {
 
     var sendResult = true
 
+    private var savedQueue = listOf<Song>()
+
+    fun saveQueue() {
+        savedQueue = musicSource.queuedSong
+    }
+
     fun resInitPlayer() {
         isPlayerInitialized = false
     }
 
+    var detached = false
     override fun onLoadChildren(
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
-        Timber.d("onLoadChildren")
-        sendResult = true
-        when(parentId) {
+        Timber.d("onLoadChildren ${savedQueue.size}")
+        when (parentId) {
             MEDIA_ROOT_ID -> {
-                try {
-                    val resultsSent = musicSource.whenReady { isInitialized ->
-                        try {
-                            if (isInitialized) {
-                                Timber.d("sendResult")
-                                if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
-                                    preparePlayer(musicSource.songs, musicSource.songs[0], false, "onLoadChildren", true)
-                                    isPlayerInitialized = true
-                                }
-                                if (sendResult) {
-                                    result.sendResult(musicSource.asMediaItems())
-                                    sendResult = false
-                                }
-                            } else {
-                                mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                                if (sendResult) result.sendResult(null)
-                            }
-                        } catch (e: Exception) {
-                            Timber.e(e)
-                            return@whenReady
-                        }
-                    }
-                    if (!resultsSent && sendResult) {
-                        result.detach()
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Please Wait For Load", Toast.LENGTH_LONG).show()
+                if (musicSource.init && savedQueue.isNotEmpty()) serviceScope.launch {
+                    musicSource.mapToSongs(savedQueue)
+                }
+                result.sendResult(musicSource.asMediaItems())
+                if (!isPlayerInitialized && musicSource.songs.isNotEmpty()) {
+                    preparePlayer(musicSource.songs, musicSource.songs[0], false, "onLoadChildren", 0)
+                    isPlayerInitialized = true
                 }
             }
         }

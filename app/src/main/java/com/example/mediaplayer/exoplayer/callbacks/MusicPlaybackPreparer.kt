@@ -5,23 +5,23 @@ import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.example.mediaplayer.exoplayer.MusicService
-import com.example.mediaplayer.exoplayer.MusicServiceConnector
+import com.example.mediaplayer.exoplayer.service.MusicService
+import com.example.mediaplayer.exoplayer.service.MusicServiceConnector
 import com.example.mediaplayer.exoplayer.MusicSource
-import com.example.mediaplayer.exoplayer.currentPlaybackPosition
 import com.example.mediaplayer.util.Constants.MEDIA_ROOT_ID
 import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
+import com.example.mediaplayer.util.Constants.SAVE_QUEUE
+import com.example.mediaplayer.util.Constants.UPDATE_QUEUE
 import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import kotlinx.coroutines.delay
 import timber.log.Timber
 
 class MusicPlaybackPreparer(
     private val musicSource: MusicSource,
     private val musicService: MusicService,
     private val musicServiceConnector: MusicServiceConnector,
-    private val playerPrepared: (MediaMetadataCompat?) -> Unit,
+    private val playerPrepared: (MediaMetadataCompat?, Boolean) -> Unit,
 ) : MediaSessionConnector.PlaybackPreparer {
 
     override fun onCommand(
@@ -31,13 +31,10 @@ class MusicPlaybackPreparer(
         cb: ResultReceiver?,
     ): Boolean {
         when (command) {
-            UPDATE_SONG -> {
-                musicService.fetchSongData()
-            }
-            NOTIFY_CHILDREN -> {
-                musicService.resInitPlayer()
-                musicService.notifyChildrenChanged(MEDIA_ROOT_ID)
-            }
+            UPDATE_QUEUE -> Unit
+            UPDATE_SONG -> musicService.fetchSongData()
+            NOTIFY_CHILDREN -> musicService.notifyChildrenChanged(MEDIA_ROOT_ID)
+            SAVE_QUEUE -> musicService.saveQueue()
         }
         return false
     }
@@ -47,14 +44,19 @@ class MusicPlaybackPreparer(
                 PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
     }
 
+
+
     override fun onPrepare(playWhenReady: Boolean) = Unit
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         Timber.d("PrepareFromMediaId")
         val extra = if (extras?.getLong("queue") != -1L) extras?.getLong("queue") else null
         musicSource.whenReady {
-            val itemToPlay = musicSource.songs.find { mediaId == it.description.mediaId && (extra == it.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER)) }
-            playerPrepared(itemToPlay)
+            val itemToPlay = musicSource.songs.find {
+                mediaId == it.description.mediaId
+                        && (extra == it.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER))
+            } ?: return@whenReady
+            playerPrepared(itemToPlay, playWhenReady)
         }
     }
 

@@ -15,7 +15,7 @@
         android:roundIcon="@mipmap/ic_launcher_rainote_round"
         android:supportsRtl="true"
         android:theme="@style/splashScreenTheme">
-        <service android:name=".exoplayer.MusicService"
+        <service android:name=".exoplayer.service.MusicService"
             android:exported="false"
             android:enabled="true">
             <intent-filter>

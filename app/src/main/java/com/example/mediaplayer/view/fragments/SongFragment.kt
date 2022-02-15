@@ -1,7 +1,6 @@
 package com.example.mediaplayer.view.fragments
 
 import android.os.Bundle
-import android.support.v4.media.MediaMetadataCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,20 +14,16 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentSongBinding
-import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FADETHROUGH_IN_DURATION
 import com.example.mediaplayer.util.Constants.FADETHROUGH_OUT_DURATION
-import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.util.ext.toast
 import com.example.mediaplayer.view.adapter.SongAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -89,14 +84,15 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     private fun observeSongList() {
+
         songViewModel.apply {
+
             navHeight.observe(viewLifecycleOwner) {
                 binding.rvSongList.setPadding(0, 0, 0, it)
                 Timber.d("${binding.rvSongList.paddingBottom} $it")
             }
             songList.observe(viewLifecycleOwner) {
                 songAdapter.songList = it
-                observedSongList = it
                 if (it.isNullOrEmpty() && VersionHelper.isQ()) {
                     binding.tvNoSong.visibility = View.VISIBLE
                 } else binding.tvNoSong.visibility = View.GONE
@@ -155,19 +151,7 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     private fun setupRecyclerView () {
         binding.rvSongList.apply {
             songAdapter.setItemClickListener { song ->
-
-                val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
-                if (mediaItems.size < songViewModel.getFromDB().size) {
-                    songViewModel.sendCommand(NOTIFY_CHILDREN, null,"", observedSongList, false) {
-                        MusicService.songToPlay = song
-                        MusicService.shouldPlay = true
-                    }
-                } else songViewModel.playOrToggle(song, false, caller = "SongFragment clickListener")
-            }
-            songAdapter.setItemLongClickListener { song ->
-                songViewModel.addItemToQueue(song, null)
-                toast(requireContext(), "${song.title} added to queue")
-                true
+                songViewModel.requestPlay(song, songAdapter.songList, " SongFragment")
             }
             adapter = songAdapter
             layoutManager = GridLayoutManager(requireContext(),
@@ -178,13 +162,6 @@ class SongFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        lifecycleScope.launch {
-            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  "", songAdapter.songList, false ) {
-                MusicService.songToPlay = songAdapter.songList[0]
-                MusicService.shouldPlay = true
-            }
-        }
-
         return false
     }
 

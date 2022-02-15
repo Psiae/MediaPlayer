@@ -79,10 +79,14 @@ class SongAdapter (
                     transitionName = song.mediaId.toString()
                     startAnimation(animation)
                     setOnClickListener {
-                        onItemClickListener?.let { it(song) }
+                        onItemClickListener?.let {
+                            it(song)
+                        }
                     }
                     setOnLongClickListener {
-                        onLongClickListener?.let { it(song) } ?: run {
+                        onLongClickListener?.let {
+                            it(song)
+                        } ?: run {
                             toast(context, "Coming Soon!")
                             true
                         }
@@ -95,7 +99,7 @@ class SongAdapter (
         }
     }
 
-    private var onItemClickListener: ( (Song ) -> Unit)? = null // variable that have the function
+    private var onItemClickListener: ( ( Song ) -> Unit)? = null // variable that have the function
 
     fun setItemClickListener(listener: (Song) -> Unit) { // method to set the function
         onItemClickListener = listener

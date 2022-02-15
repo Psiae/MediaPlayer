@@ -27,7 +27,7 @@ class ArtistAdapter(
     var itemList: List<Artist>
         get() = differ.currentList
         set(value) {
-            val submit = value.sortedBy { it.name.lowercase() }.distinct()
+            val submit = value.sortedBy { it.name.lowercase() }
             differ.submitList(submit)
         }
 

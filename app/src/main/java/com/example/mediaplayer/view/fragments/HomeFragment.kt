@@ -13,24 +13,18 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentHomeBinding
-import com.example.mediaplayer.exoplayer.MusicService
 import com.example.mediaplayer.model.data.entities.Album
 import com.example.mediaplayer.model.data.entities.Artist
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FADETHROUGH_IN_DURATION
 import com.example.mediaplayer.util.Constants.FADETHROUGH_OUT_DURATION
-import com.example.mediaplayer.util.Constants.NOTIFY_CHILDREN
-import com.example.mediaplayer.util.Constants.UPDATE_SONG
 import com.example.mediaplayer.util.VersionHelper
 import com.example.mediaplayer.view.adapter.AlbumAdapter
 import com.example.mediaplayer.view.adapter.ArtistAdapter
 import com.example.mediaplayer.view.adapter.HomeAdapter
 import com.example.mediaplayer.viewmodel.SongViewModel
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
@@ -114,18 +108,10 @@ class HomeFragment : Fragment() {
 
             rvSuggestion.apply {
                 adapter = suggestAdapter.also {
-                    it.setItemClickListener { song ->
-                        val mediaItems = songViewModel.currentlyPlayingSongListObservedByMainActivity
-                        if (!mediaItems.contains(song)) {
-                            lifecycleScope.launch {
-                                songViewModel.sendCommand(NOTIFY_CHILDREN, null,  "", observedSongList) {
-                                    MusicService.songToPlay = song
-                                    MusicService.shouldPlay = true
-                                }
-                            }
-                        } else songViewModel.playOrToggle(song, false, "HomeFragment SuggestClick")
-                    }
                     it.differ.addListListener(suggestListener)
+                    it.setItemClickListener { song ->
+                       songViewModel.requestPlay(song, songViewModel.getFromDB(), "HomeFragment Suggest")
+                    }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
                     it.orientation = LinearLayoutManager.HORIZONTAL
@@ -135,14 +121,7 @@ class HomeFragment : Fragment() {
                 adapter = albumAdapter.also {
                     it.differ.addListListener(albumListener)
                     it.setItemClickListener { album ->
-                        if (observedSongList.isNullOrEmpty()) {
-                            Timber.d("observedSongList isNullOrEmpty")
-                            songViewModel.updateMusicDB()
-                        } else {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  album.name, observedSongList) {
-                                MusicService.shouldPlay = false
-                            }
-                        }
+                        songViewModel.changeChildren(album.song, album.song[0], false)
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {
@@ -153,14 +132,7 @@ class HomeFragment : Fragment() {
                 adapter = artistAdapter.also {
                     it.differ.addListListener(artistListener)
                     it.setItemClickListener { artist ->
-                        if (observedSongList.isNullOrEmpty()) {
-                            Timber.d("songList is NullOrEmpty")
-                            songViewModel.updateMusicDB()
-                        } else {
-                            songViewModel.sendCommand(NOTIFY_CHILDREN, null,  artist.name, observedSongList) {
-                                MusicService.shouldPlay = false
-                            }
-                        }
+                        songViewModel.changeChildren(artist.song, artist.song[0], false)
                     }
                 }
                 layoutManager = LinearLayoutManager(requireContext()).also {

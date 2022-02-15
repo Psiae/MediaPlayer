@@ -21,34 +21,44 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class MusicSource (
-    private val musicDatabase: MusicRepo,
+    val musicDatabase: MusicRepo,
     private val context: Context
 ) {
 
-    var songs = mutableListOf<MediaMetadataCompat>()
-    var songQ = mutableListOf<Song>()
+    var init = true
+
+    var songs = listOf<MediaMetadataCompat>()
+    var queuedSong = listOf<Song>()
 
     fun getFromDB(): List<Song> {
         return musicDatabase.songFromQuery
     }
 
-    suspend fun mapToSongs(songToMap: List<Song>) = withContext(Dispatchers.IO) {
-        var i = 0L
-        songs = songToMap.map { song ->
-            Builder()
-                .putString(METADATA_KEY_ARTIST, song.artist)
-                .putString(METADATA_KEY_MEDIA_ID, song.mediaId.toString())
-                .putString(METADATA_KEY_TITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_TITLE, song.title)
-                .putString(METADATA_KEY_DISPLAY_ICON_URI, song.imageUri)
-                .putString(METADATA_KEY_MEDIA_URI, song.mediaUri)
-                .putString(METADATA_KEY_ALBUM_ART_URI, song.imageUri)
-                .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.artist)
-                .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.displayName)
-                .putLong(METADATA_KEY_TRACK_NUMBER, i++)
-                .build()
-        }.toMutableList()
+    suspend fun mapToSongs(songToMap: List<Song>): List<Song> {
+        var toReturn = listOf<Song>()
+        withContext(Dispatchers.IO) {
+            var i = 0L
+            songs = songToMap.map { song ->
+                Builder()
+                    .putString(METADATA_KEY_ARTIST, song.artist)
+                    .putString(METADATA_KEY_MEDIA_ID, song.mediaId.toString())
+                    .putString(METADATA_KEY_TITLE, song.title)
+                    .putString(METADATA_KEY_DISPLAY_TITLE, song.title)
+                    .putString(METADATA_KEY_DISPLAY_ICON_URI, song.imageUri)
+                    .putString(METADATA_KEY_MEDIA_URI, song.mediaUri)
+                    .putString(METADATA_KEY_ALBUM_ART_URI, song.imageUri)
+                    .putString(METADATA_KEY_DISPLAY_SUBTITLE, song.artist)
+                    .putString(METADATA_KEY_DISPLAY_DESCRIPTION, song.displayName)
+                    .putLong(METADATA_KEY_TRACK_NUMBER, i++)
+                    .build()
+            }.toMutableList().also {
+                val songs = asSong(it)
+                queuedSong = songs
+                toReturn = songs
+            }
+        }
         state = STATE_INITIALIZED
+        return toReturn
     }
 
     suspend fun fetchMediaData() = withContext(Dispatchers.IO) {
@@ -58,28 +68,59 @@ class MusicSource (
         mapToSongs(allSongs)
     }
 
-    private var queuedSong = mutableListOf<Song>()
-    fun getQueue() = queuedSong
-
-    fun asSong(): MutableList<Song> {
-        val songList = mutableListOf<Song>()
+    fun asSong(meta: List<MediaMetadataCompat>? = null): MutableList<Song> {
+        val songList = getFromDB()
         val toReturn = mutableListOf<Song>()
-        getFromDB().forEach { songList.add(it) }
-        songs.forEach { song ->
+
+        meta?.let { metas ->
+            metas.forEach { meta ->
+                songList.find {
+                    it.mediaId.toString() == meta.description.mediaId
+                }?.let {
+                    val song = Song(
+                        album = it.album, albumId = it.albumId, artist = it.artist,
+                        dateAdded = it.dateAdded, dateModified = it.dateModified,
+                        displayName = it.displayName, imageUri = it.imageUri, isLocal = it.isLocal,
+                        length = it.length, mediaId = it.mediaId, mediaPath = it.mediaPath,
+                        mediaUri = it.mediaUri, startFrom = 0, title = it.title, year = it.year,
+                        queue = meta.getLong(METADATA_KEY_TRACK_NUMBER)
+                    )
+                    toReturn.add(song)
+                }
+            }
+        } ?: songs.forEach { song ->
             songList.find { item ->
                 item.mediaId.toString() == song.description.mediaId
             }?.let {
-                  toReturn.add(Song(
-                      album = it.album, albumId = it.albumId, artist = it.artist,
-                      dateAdded = it.dateAdded, dateModified = it.dateModified,
-                      displayName = it.displayName, imageUri = it.imageUri, isLocal = it.isLocal,
-                      length = it.length, mediaId = it.mediaId, mediaPath = it.mediaPath,
-                      mediaUri = it.mediaUri, startFrom = 0, title = it.title, year = it.year,
-                      queue = song.getLong(METADATA_KEY_TRACK_NUMBER)
-                  ))
+                val song = Song(
+                    album = it.album, albumId = it.albumId, artist = it.artist,
+                    dateAdded = it.dateAdded, dateModified = it.dateModified,
+                    displayName = it.displayName, imageUri = it.imageUri, isLocal = it.isLocal,
+                    length = it.length, mediaId = it.mediaId, mediaPath = it.mediaPath,
+                    mediaUri = it.mediaUri, startFrom = 0, title = it.title, year = it.year,
+                    queue = song.getLong(METADATA_KEY_TRACK_NUMBER)
+                )
+                toReturn.add(song)
             }
         }
-        queuedSong = toReturn
+        return toReturn
+    }
+
+    suspend fun indexSong(song: MutableList<Song>): MutableList<Song> {
+        val toReturn = mutableListOf<Song>()
+        withContext(Dispatchers.IO) {
+            var i = 0L
+            song.forEach {
+                toReturn.add(Song(
+                    album = it.album, albumId = it.albumId, artist = it.artist,
+                    dateAdded = it.dateAdded, dateModified = it.dateModified,
+                    displayName = it.displayName, imageUri = it.imageUri, isLocal = it.isLocal,
+                    length = it.length, mediaId = it.mediaId, mediaPath = it.mediaPath,
+                    mediaUri = it.mediaUri, startFrom = 0, title = it.title, year = it.year,
+                    queue = i++
+                ))
+            }
+        }
         return toReturn
     }
 
@@ -102,7 +143,6 @@ class MusicSource (
         val desc = MediaDescriptionCompat.Builder()
             .setMediaUri(song.getString(METADATA_KEY_MEDIA_URI).toUri())
             .setTitle(song.description.title)
-            .setSubtitle("asMediaItems")
             .setMediaId(song.description.mediaId)
             .setIconUri(song.description.iconUri)
             .build()

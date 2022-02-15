@@ -61,7 +61,9 @@ object Constants {
     const val REPEAT_MODE_ONE_INT = 1
     const val REPEAT_MODE_ALL_INT = 2
 
+    const val SAVE_QUEUE = "SAVE_QUEUE"
     const val UPDATE_SONG = "UPDATE_SONG"
+    const val UPDATE_QUEUE = "UPDATE_QUEUE"
     const val NOTIFY_CHILDREN = "NOTIFY_CHILDREN"
 
     const val ARTIST = "ARTIST"

@@ -8,13 +8,11 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.telecom.TelecomManager
 import android.util.Property
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import android.widget.ListView
 import android.widget.SeekBar
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -26,19 +24,17 @@ import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.transition.Slide
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.FragmentPlayingBinding
-import com.example.mediaplayer.exoplayer.MusicService
+import com.example.mediaplayer.exoplayer.service.MusicService
 import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.FILTER_MODE_BACKGROUND
@@ -211,7 +207,7 @@ class PlayingFragment: Fragment() {
 
         with(songViewModel) {
             mediaItemSong.observe(viewLifecycleOwner) {
-                playingAdapter.songList = it
+                playingAdapter.songList = it.toMutableList()
             }
 
             curPlayerPosition.observe(viewLifecycleOwner) { pos ->

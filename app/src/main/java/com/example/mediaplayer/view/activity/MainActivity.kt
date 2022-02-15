@@ -27,7 +27,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mediaplayer.R
 import com.example.mediaplayer.databinding.ActivityMainBinding
-import com.example.mediaplayer.exoplayer.MusicService
+import com.example.mediaplayer.exoplayer.service.MusicService
 import com.example.mediaplayer.exoplayer.isPlaying
 import com.example.mediaplayer.model.data.entities.Song
 import com.example.mediaplayer.util.Constants.DEFAULT_SCREEN
@@ -181,10 +181,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 adapter = swipeAdapter.also {
                     it.setItemListener { song ->
                         navController.navigate(R.id.playingFragment)
-                        if (song.mediaId != MusicService.curSongMediaId) {
+                        if (song.queue != MusicService.lastSongQueue) {
                             songViewModel.playOrToggle(song, false,"MainActivity ViewPager2").also {
                                 lifecycleScope.launch {
-                                    while (song.mediaId != MusicService.curSongMediaId
+                                    while (song.queue != MusicService.lastSongQueue
                                         && songViewModel.playbackState.value?.isPlaying == false){
                                         delay(200)
                                         songViewModel.pause()
@@ -270,30 +270,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     private val pagerCallback = object : ViewPager2.OnPageChangeCallback() {
+
+
         override fun onPageSelected(position: Int) {
             super.onPageSelected(position)
 
             Timber.d("changeCallback pos: $position")
-
-            with(songViewModel) {
-                if (playbackState.value?.isPlaying == true) {
-                    Timber.d("changed to $position")
-                    try {
-                        if (!MusicService.preparing) {
-                            playOrToggle(swipeAdapter.songList[position], false, "MainActivity PagerCallback")
-                        }
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
-                } else {
-                    Timber.d("pos $position")
-                    try {
-                        curPlaying.value = swipeAdapter.songList[position]
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
-                }
-            }
         }
     }
 
@@ -306,14 +288,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
         songViewModel.apply {
             mediaItemSong.observe(this@MainActivity) { mediaItems ->
-                Timber.d("mediaItems: $mediaItems")
                 swipeAdapter.songList = mediaItems
-                currentlyPlayingSongListObservedByMainActivity = mediaItems
+                songQueue = mediaItems
+
+                Timber.d("mediaItems updated")
+
                 if (!alreadySetup && !songViewModel.currentlyPlaying.hasActiveObservers()) {
-                        alreadySetup = true
-                        observePlayer()
-                        binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
-                        binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
+                    alreadySetup = true
+                    observePlayer()
+                    binding.viewPager2.unregisterOnPageChangeCallback(pagerCallback)
+                    binding.viewPager2.registerOnPageChangeCallback(pagerCallback)
                 }
             }
 
@@ -336,11 +320,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     var lastItemIndex = Pair(Song(), -1)
     var observePlaying = true
 
-
     private fun observePlayer() {
+
+        Timber.d("observePlayer")
 
         with(songViewModel) {
             lifecycleScope.launch {
+
                 currentlyPlaying.observe(this@MainActivity) { song ->
                     if (!observePlaying) return@observe
                     song?.let {
@@ -356,13 +342,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                             observedPlaying = song
                             glideCurSong(song)
 
-                            if (itemIndex != -1 && swipeAdapter.songList[itemIndex].mediaId == song.mediaId) {
-                                binding.viewPager2.setCurrentItem(itemIndex, true).also {
-                                    Timber.d("MainActivity set ${song.title} $itemIndex")
-                                    suspendedpager = itemIndex
-                                }
-                            }
-                            Timber.d("currentlyPlaying song: ${song.title} $itemIndex")
+                            binding.viewPager2.setCurrentItem(itemIndex)
                         }
                     }
                 }

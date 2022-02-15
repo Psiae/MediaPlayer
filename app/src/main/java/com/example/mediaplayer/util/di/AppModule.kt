@@ -7,11 +7,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.mediaplayer.model.data.local.MusicRepo
 import com.example.mediaplayer.view.adapter.*
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.example.mediaplayer.exoplayer.MusicServiceConnector
+import com.example.mediaplayer.exoplayer.service.MusicServiceConnector
 import com.example.mediaplayer.exoplayer.MusicSource
 import dagger.Module
 import dagger.Provides
