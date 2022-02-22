@@ -1,4 +1,4 @@
-# Not Active, remake with Jetpack Compose
+# Not Active, remake with Jetpack Compose & Androix.Media3
 
 # MediaPlayer
 
