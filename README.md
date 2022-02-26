@@ -2,6 +2,8 @@
 
 # MediaPlayer
 
+https://github.com/Kylentt/MediaPlayer2
+
 Simple MediaPlayer App that able to Scan &amp; Play local playable Media. Using Exoplayer with Dagger-hilt &amp; ViewModels
 
 Kind of ready, pretty much usable
